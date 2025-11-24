@@ -1,3 +1,4 @@
+import PublicFooter from "@/components/shared/PublicFooter";
 import Image from "next/image";
 
 export default function Home() {
@@ -60,6 +61,7 @@ export default function Home() {
                         Documentation
                     </a>
                 </div>
+                <PublicFooter />
             </main>
         </div>
     );
