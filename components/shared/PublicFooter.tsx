@@ -12,7 +12,7 @@ const PublicFooter = () => {
 
     return (
         <div className="bg-base-200 text-base-content font-sans">
-            <footer className="footer p-10 max-w-7xl mx-auto">
+            <footer className="footer py-10 px-4 max-w-7xl mx-auto grid-cols-1 md:grid-cols-4">
                 <aside className="max-w-xs">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="text-primary">
