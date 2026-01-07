@@ -10,13 +10,12 @@ export default function LoginForm() {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
-    const showPassword = (event) => {
+    const showPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
-
-        isPasswordVisible === true ? setIsPasswordVisible(false) : setIsPasswordVisible(true);
+        setIsPasswordVisible(!isPasswordVisible);
     }
 
-    const handleLogin = (event) => {
+    const handleLogin = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
 
         // Xu ly dang nhap
