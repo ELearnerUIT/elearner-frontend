@@ -1,8 +1,10 @@
 'use client';
 import { Eye, EyeClosed, Lock, Mail, User, TriangleAlertIcon, Check, TruckElectric } from "lucide-react";
 import { FaGoogle, FaGithub } from "react-icons/fa";
-import { useState } from "react";
+import React, { useState } from "react";
 import CustomInputField, { InputFieldIcon } from "@/components/shared/CustomInputField";
+import CustomPasswordField from "@/components/shared/CustomPasswordField";
+
 
 export default function RegisterForm() {
 
@@ -12,48 +14,58 @@ export default function RegisterForm() {
     const [passwordInput, setPasswordInput] = useState("");
     const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
 
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-    const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
-
     const [agreeToTerms, setAgreeToTerms] = useState(false);
 
     const [errorMessage, setErrorMessage] = useState("");
+    const [firstNameError, setFirstNameError] = useState("");
+    const [lastNameError, setLastNameError] = useState("");
     const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
+    const [agreeToTermsError, setAgreeToTermsError] = useState("");
 
-    const showPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        setIsPasswordVisible(!isPasswordVisible);
-    }
-
-    const showConfirmPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        setIsConfirmPasswordVisible(!isConfirmPasswordVisible);
-    }
-
-    const validateRequiredFields = () => {
-        if (!firstNameInput || !lastNameInput || !emailInput || !passwordInput || !confirmPasswordInput) {
-            setErrorMessage("All fields are required");
+    const validateFirstName = (firstName: string) => {
+        if (!firstName || firstName.length === 0) {
+            setFirstNameError("Please enter your first name");
             return false;
         }
+        setFirstNameError("");
         return true;
     }
 
+    const validateLastName = (lastName: string) => {
+        if (!lastName || lastName.length === 0) {
+            setLastNameError("Please enter your last name");
+            return false;
+        }
+        setLastNameError("");
+        return true;
+    }
+
+
     const validateEmail = (email: string) => {
+        if (!email || email.length === 0) {
+            setEmailError("Please enter your email address");
+            return false;
+        }
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             setEmailError("Invalid email address");
             return false;
         }
-        else {
-            setEmailError("");
-            return true;
-        }
 
+        setEmailError("");
+        return true;
     }
 
     const validatePassword = (password: string) => {
+        if (!password || password.length === 0) {
+            setPasswordError("Please enter your password");
+            return false;
+        }
+
+
         let passwordErrorMessages: Array<string> = [];
         if (password.length < 8) {
             passwordErrorMessages.push("8 characters");
@@ -101,9 +113,11 @@ export default function RegisterForm() {
 
     const validateAgreeToTerms = () => {
         if (!agreeToTerms) {
-            setErrorMessage("Please agree to the Terms of Service and Privacy Policy");
+            // setErrorMessage("Please agree to the Terms of Service and Privacy Policy");
+            setAgreeToTermsError("Please agree to the Terms of Service and Privacy Policy");
             return false;
         }
+        setAgreeToTermsError("");
         return true;
     }
 
@@ -112,7 +126,9 @@ export default function RegisterForm() {
 
         let isValid = true;
 
-        if (!validateRequiredFields()) isValid = false;
+        // if (!validateRequiredFields()) isValid = false;
+        if (!validateFirstName(firstNameInput)) isValid = false;
+        if (!validateLastName(lastNameInput)) isValid = false;
         if (!validateEmail(emailInput)) isValid = false;
         if (!validatePassword(passwordInput)) isValid = false;
         if (!validConfirmPassword(confirmPasswordInput)) isValid = false;
@@ -161,107 +177,54 @@ export default function RegisterForm() {
                             icon={InputFieldIcon.USER}
                             initValue={firstNameInput}
                             placeholder="John"
-                            onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setFirstNameInput(event.target.value)} />
+                            errorMessage={firstNameError}
+                            onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setFirstNameInput(event.target.value)}
+                            onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validateFirstName(event.target.value); }}
+                        />
 
                         {/* Last Name Field */}
-                        <div>
-                            <label className="block text-gray-700 font-medium mb-2">Last Name</label>
-                            <div className="relative">
-                                <User className="absolute left-3 top-3 text-gray-400" size={20} />
-                                <input
-                                    type="text"
-                                    value={lastNameInput}
-                                    onChange={(e) => setLastNameInput(e.target.value)}
-                                    placeholder="Doe"
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                        </div>
+                        <CustomInputField
+                            text="Last Name"
+                            icon={InputFieldIcon.USER}
+                            initValue={lastNameInput}
+                            placeholder="Doe"
+                            errorMessage={lastNameError}
+                            onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setLastNameInput(event.target.value)}
+                            onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validateLastName(event.target.value); }}
+                        />
+
                     </div>
 
                     {/* Email Field */}
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">Email Address</label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
-                            <input
-                                type="email"
-                                value={emailInput}
-                                onChange={(e) => { setEmailInput(e.target.value); validateEmail(e.target.value); }}
-                                placeholder="your.email@example.com"
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                        {
-                            emailError && emailError.length > 0 ?
-                                <p className="text-red-500 text-sm mt-1">{emailError}</p>
-                                :
-                                <></>
-                        }
-                    </div>
+                    <CustomInputField
+                        text="Email Address"
+                        icon={InputFieldIcon.MAIL}
+                        initValue={emailInput}
+                        placeholder="your.email@example.com"
+                        errorMessage={emailError}
+                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => { setEmailInput(event.target.value); }}
+                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validateEmail(event.target.value); }}
+                    />
 
                     {/* Password Field */}
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">Password</label>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                            <input
-                                type={isPasswordVisible ? "text" : "password"}
-                                value={passwordInput}
-                                onChange={(e) => { setPasswordInput(e.target.value); validatePassword(e.target.value); }}
-                                placeholder="Create a strong password"
-                                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <button
-                                onClick={(event) => showPassword(event)}
-                                className="absolute right-3 top-3 text-gray-400 cursor-pointer hover:text-gray-600"
-                            >
-                                {isPasswordVisible ?
-                                    <EyeClosed size={20} />
-                                    :
-                                    <Eye size={20} />
-                                }
-                            </button>
-                        </div>
-                        {/* <p className="text-gray-500 text-sm mt-1">Must be at least 8 characters</p> */}
-                        {
-                            passwordError && passwordError.length > 0 ?
-                                <p className="text-red-500 text-sm mt-1">{passwordError}</p>
-                                :
-                                <></>
-                        }
-                    </div>
+                    <CustomPasswordField
+                        text="Password"
+                        initValue={passwordInput}
+                        placeholder="Create a strong password"
+                        errorMessage={passwordError}
+                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => { setPasswordInput(event.target.value); }}
+                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validatePassword(event.target.value); }}
+                    />
 
                     {/* Confirm Password Field */}
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">Confirm Password</label>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                            <input
-                                type={isConfirmPasswordVisible ? "text" : "password"}
-                                value={confirmPasswordInput}
-                                onChange={(e) => { setConfirmPasswordInput(e.target.value); validConfirmPassword(e.target.value); }}
-                                placeholder="Confirm your password"
-                                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <button
-                                onClick={(event) => showConfirmPassword(event)}
-                                className="absolute right-3 top-3 text-gray-400 cursor-pointer hover:text-gray-600"
-                            >
-                                {isConfirmPasswordVisible ?
-                                    <EyeClosed size={20} />
-                                    :
-                                    <Eye size={20} />
-                                }
-                            </button>
-                        </div>
-                        {
-                            confirmPasswordError && confirmPasswordError.length > 0 ?
-                                <p className="text-red-500 text-sm mt-1">{confirmPasswordError}</p>
-                                :
-                                <></>
-                        }
-                    </div>
+                    <CustomPasswordField
+                        text="Confirm Password"
+                        initValue={confirmPasswordInput}
+                        placeholder="Confirm your password"
+                        errorMessage={confirmPasswordError}
+                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => { setConfirmPasswordInput(event.target.value); }}
+                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validConfirmPassword(event.target.value); }}
+                    />
 
                     {/* Terms Agreement */}
                     <div className="flex items-center gap-2 mt-4">
@@ -276,6 +239,11 @@ export default function RegisterForm() {
                             I agree to the <a href="#" className="text-blue-500 hover:text-blue-700">Terms of Service</a> and <a href="#" className="text-blue-500 hover:text-blue-700">Privacy Policy</a>
                         </label>
                     </div>
+                    {agreeToTermsError && agreeToTermsError.length > 0 ?
+                        <p className="text-red-500 text-sm mt-1">{agreeToTermsError}</p>
+                        :
+                        <></>
+                    }
 
                     {/* Register Button */}
                     <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex justify-center gap-2 transition mt-6"

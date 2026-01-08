@@ -1,22 +1,51 @@
 'use client';
-import { Eye, EyeClosed, Lock, Mail, TriangleAlertIcon } from "lucide-react";
+import { Mail, TriangleAlertIcon } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import { useState } from "react";
+import CustomPasswordField from "@/components/shared/CustomPasswordField";
+import CustomInputField, { InputFieldIcon } from "../shared/CustomInputField";
 
 export default function LoginForm() {
 
     const [emailInput, setEmailInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [emailError, setEmailError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
 
-    const showPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        setIsPasswordVisible(!isPasswordVisible);
+    const validateEmail = (email: string) => {
+        if (!email) {
+            setEmailError("Please enter your email address");
+            return false;
+        }
+        else {
+            setEmailError("");
+            return true;
+        }
     }
+
+    const validatePassword = (password: string) => {
+        if (!password || password.length === 0) {
+            setPasswordError("Please enter your password");
+            return false;
+        }
+        setPasswordError("");
+        return true;
+    }
+
 
     const handleLogin = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
+
+        let isValid = true;
+
+        if (!validateEmail(emailInput)) isValid = false;
+        if (!validatePassword(passwordInput)) isValid = false;
+
+        if (!isValid) {
+            return;
+        }
+
 
         // Xu ly dang nhap
 
@@ -50,53 +79,26 @@ export default function LoginForm() {
                             <></>
                     }
                     {/* Email Field */}
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">Email Address</label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
-                            <input
-                                type="email"
-                                value={emailInput}
-                                onChange={(e) => setEmailInput(e.target.value)}
-                                placeholder="your.email@example.com"
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
+                    <CustomInputField
+                        text="Email Address"
+                        icon={InputFieldIcon.MAIL}
+                        initValue={emailInput}
+                        placeholder="your.email@example.com"
+                        errorMessage={emailError}
+                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setEmailInput(event.target.value)}
+                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validateEmail(event.target.value); }}
+                    />
 
                     {/* Password Field */}
-                    <div>
-                        <div className="flex justify-between items-center mb-2">
-                            <label className="block text-gray-700 font-medium">Password</label>
-                            <a href="#" className="text-blue-500 hover:text-blue-700 text-sm">Forgot password?</a>
-                        </div>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
-                            <input
-                                id="passwordField"
-                                type={isPasswordVisible === true ? "text" : "password"}
-                                value={passwordInput}
-                                onChange={(e) => setPasswordInput(e.target.value)}
-                                placeholder="Enter your password"
-                                className="w-full pl-10 pr-0 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <button
-                                onClick={(event) => showPassword(event)}>
-                                {isPasswordVisible === false ?
-                                    <Eye
-                                        className="absolute right-3 top-3 text-gray-400 cursor-pointer"
-                                        size={20}
-                                    />
-                                    :
-                                    <EyeClosed
-                                        className="absolute right-3 top-3 text-gray-400 cursor-pointer"
-                                        size={20}
-                                    />
-                                }
-                            </button>
-
-                        </div>
-                    </div>
+                    <CustomPasswordField
+                        text="Password"
+                        initValue={passwordInput}
+                        placeholder="Enter your password"
+                        errorMessage={passwordError}
+                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setPasswordInput(event.target.value)}
+                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validatePassword(event.target.value); }}
+                    />
+                    <a href="#" className="text-blue-500 hover:text-blue-700 text-sm">Forgot password?</a>
 
                     {/* Login Button */}
                     <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex justify-center gap-2 transition mt-6"

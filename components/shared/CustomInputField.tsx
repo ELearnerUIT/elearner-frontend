@@ -1,39 +1,52 @@
 'use client';
 
 import React from "react";
-import { User } from "lucide-react";
+import { User, Mail } from "lucide-react";
 
 export enum InputFieldIcon {
-    USER
+    USER,
+    MAIL
 }
 
 const getIcon = (icon: InputFieldIcon) => {
     switch (icon) {
         case InputFieldIcon.USER:
             return User
+        case InputFieldIcon.MAIL:
+            return Mail
     }
 }
 
-export default function CustomInputField(props) {
+export default function CustomInputField(props: {
+    text: string,
+    initValue: string,
+    placeholder: string,
+    errorMessage: string,
+    icon: InputFieldIcon,
+    onValueChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
+    onValidate?: (event: React.ChangeEvent<HTMLInputElement>) => void
+}) {
     return (
         <div>
             <label className="block text-gray-700 font-medium mb-2">{props.text}</label>
             <div className="relative">
-                {/* <User className="absolute left-3 top-3 text-gray-400" size={20} /> */}
                 {getIcon(props.icon) && React.createElement(getIcon(props.icon), { className: "absolute left-3 top-3 text-gray-300", size: 20 })}
-                {/* <img src="https://lucide.dev/icons/user" className="absolute left-3 top-3 text-gray-400" ></img> */}
                 <input
                     type="text"
                     value={props.initValue}
-                    // onChange={(e) => setFirstNameInput(e.target.value)}
-                    onChange={(event) => { props.onValueChange(event); /*props.onValidate(event);*/ }}
+                    onChange={(event) => { props.onValueChange(event); props.onValidate && props.onValidate(event); }}
                     placeholder={props.placeholder}
-                    className={"w-full pl-10 pr-4 py-2 border "
+                    className={"w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 "
                         +
-                        "border-gray-300 "
-                        +
-                        "rounded-lg focus:outline-none focus:ring-2  focus:ring-blue-500"}
+                        (props.errorMessage && props.errorMessage.length > 0 ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500")
+                    }
                 />
+                {
+                    props.errorMessage && props.errorMessage.length > 0 ?
+                        <p className="text-red-500 text-sm mt-1">{props.errorMessage}</p>
+                        :
+                        <></>
+                }
             </div>
         </div>
     )
