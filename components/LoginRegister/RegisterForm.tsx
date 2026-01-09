@@ -4,6 +4,7 @@ import { FaGoogle, FaGithub } from "react-icons/fa";
 import React, { useState } from "react";
 import CustomInputField, { InputFieldIcon } from "@/components/shared/CustomInputField";
 import CustomPasswordField from "@/components/shared/CustomPasswordField";
+import CustomButton, { ButtonColor } from "../shared/CustomButton";
 
 
 export default function RegisterForm() {
@@ -65,7 +66,6 @@ export default function RegisterForm() {
             return false;
         }
 
-
         let passwordErrorMessages: Array<string> = [];
         if (password.length < 8) {
             passwordErrorMessages.push("8 characters");
@@ -97,11 +97,12 @@ export default function RegisterForm() {
             setPasswordError(passwordErrorMessage);
             return false;
         }
+
         setPasswordError("");
         return true;
     }
 
-    const validConfirmPassword = (confirmPassword: string) => {
+    const validateConfirmPassword = (confirmPassword: string) => {
         if (confirmPassword !== passwordInput) {
             setConfirmPasswordError("Password does not match");
             return false;
@@ -131,7 +132,7 @@ export default function RegisterForm() {
         if (!validateLastName(lastNameInput)) isValid = false;
         if (!validateEmail(emailInput)) isValid = false;
         if (!validatePassword(passwordInput)) isValid = false;
-        if (!validConfirmPassword(confirmPasswordInput)) isValid = false;
+        if (!validateConfirmPassword(confirmPasswordInput)) isValid = false;
         if (!validateAgreeToTerms()) isValid = false;
 
         if (!isValid) {
@@ -223,7 +224,7 @@ export default function RegisterForm() {
                         placeholder="Confirm your password"
                         errorMessage={confirmPasswordError}
                         onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => { setConfirmPasswordInput(event.target.value); }}
-                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validConfirmPassword(event.target.value); }}
+                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validateConfirmPassword(event.target.value); }}
                     />
 
                     {/* Terms Agreement */}
@@ -246,11 +247,15 @@ export default function RegisterForm() {
                     }
 
                     {/* Register Button */}
-                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex justify-center gap-2 transition mt-6"
-                        onClick={(event) => handleRegister(event)}>
-                        Create Account
-                        <span>→</span>
-                    </button>
+                    <div className="mt-6">
+                        <CustomButton
+                            text="Create Account"
+                            enabled={true}
+                            color={ButtonColor.PURPLE}
+                            onClick={(event) => handleRegister(event)}
+                        />
+                    </div>
+
                 </form>
 
                 {/* Divider */}

@@ -4,6 +4,7 @@ import { FaGoogle } from "react-icons/fa";
 import { useState } from "react";
 import CustomPasswordField from "@/components/shared/CustomPasswordField";
 import CustomInputField, { InputFieldIcon } from "../shared/CustomInputField";
+import CustomButton, { ButtonColor } from "../shared/CustomButton";
 
 export default function LoginForm() {
 
@@ -101,11 +102,20 @@ export default function LoginForm() {
                     <a href="#" className="text-blue-500 hover:text-blue-700 text-sm">Forgot password?</a>
 
                     {/* Login Button */}
-                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex justify-center gap-2 transition mt-6"
+                    <div className="mt-6">
+                        <CustomButton
+                            text="Login"
+                            enabled={true}
+                            color={ButtonColor.PURPLE}
+                            onClick={(event) => handleLogin(event)}
+                        />
+                    </div>
+
+                    {/* <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex justify-center gap-2 transition mt-6"
                         onClick={(event) => handleLogin(event)}>
                         Login
                         <span>→</span>
-                    </button>
+                    </button> */}
                 </form>
 
                 {/* Divider */}
