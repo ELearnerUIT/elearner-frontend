@@ -1,49 +1,94 @@
+import Link from "next/link";
+
 export enum ButtonColor {
     PURPLE,
     WHITE
 }
 
-const color_infos = new Map<ButtonColor, { bg_normal: string, bg_hover: string, bg_active: string, bg_disable: string, border: string, text: string }>([
-    [ButtonColor.PURPLE, {
+const color_infos: Record<ButtonColor, { bg_normal: string, bg_hover: string, bg_active: string, bg_disable: string, border: string, text: string }> = {
+    [ButtonColor.PURPLE]: {
         bg_normal: "bg-[rgba(99,102,241,1)]",
         bg_hover: "hover:bg-[rgba(80,71,217,1)]",
         bg_active: "active:bg-[rgba(60,60,194,1)]",
         bg_disable: "bg-purple-300",
         border: "border-[rgba(99,102,241,1)]",
         text: "text-white"
-    }],
-    [ButtonColor.WHITE, {
+    },
+    [ButtonColor.WHITE]: {
         bg_normal: "bg-white",
-        bg_hover: "hover:bg-[rgba(99,102,241,0.05)]",
-        bg_active: "active:bg-[rgba(99,102,241,0.1)]",
-        bg_disable: "bg-[rgba(240,240,240,1)]",
+        bg_hover: "hover:bg-[rgba(224,224,255,1)]",
+        bg_active: "active:bg-[rgba(200,200,255,1)]",
+        bg_disable: "bg-[rgba(224,224,255,1)]",
         border: "border-[rgba(99,102,241,1)]",
         text: "text-[rgba(99,102,241,1)]"
-    }]
-]);
+    }
+};
 
+const get_color_class = (color: ButtonColor, enabled: boolean) => {
+    let color_info = color_infos[color];
+    const default_color_class = "bg-[rgba(99,102,241,1)] hover:bg-[rgba(80,71,217,1)] active:bg-[rgba(60,60,194,1)] border-[rgba(99,102,241,1)] text-white";
+    if (color_info) {
+        return (enabled ? (color_info.bg_normal + " " + color_info.bg_hover + " " + color_info.bg_active) : color_info.bg_disable) + " " + color_info.border + " " + color_info.text;
+    }
+    else {
+        return default_color_class;
+    }
+}
 
-export default function CustomButton(props: {
-    text: string,
-    enabled: boolean,
-    color: ButtonColor,
-    onClick: (event: React.MouseEvent<HTMLButtonElement>) => void
+const default_custom_button_props = {
+    text: "Button",
+    enabled: true,
+    color: ButtonColor.PURPLE,
+    width: "w-full",
+    height: "",
+    onClick: (event: React.MouseEvent<HTMLButtonElement>) => { }
+}
+
+export function CustomButton({
+    text = default_custom_button_props.text,
+    enabled = default_custom_button_props.enabled,
+    color = default_custom_button_props.color,
+    width = default_custom_button_props.width,
+    height = default_custom_button_props.height,
+    onClick = default_custom_button_props.onClick
 }) {
 
-    let color_info = color_infos.get(props.color);
-    let color_class = "";
+    let color_class = get_color_class(color, enabled);
 
-    if (color_info) {
-        color_class = (props.enabled ? (color_info.bg_normal + " " + color_info.bg_hover + " " + color_info.bg_active) : color_info.bg_disable) + " " + color_info.border + " " + color_info.text;
-    }
-
-    console.log("CustomButton render with color_class =", color_class);
+    console.log("width:", width);
+    console.log("height:", height);
 
     return (
-        <button className={`w-full border ${color_class} font-normal py-2 px-4 rounded-lg flex justify-center gap-2 transition`}
-            onClick={(event) => props.onClick(event)}>
-            {props.text}
-            <span>→</span>
+        <button className={`${width} ${height} border ${color_class} font-normal py-2 px-4 rounded-lg flex justify-center gap-2 transition`}
+            onClick={(event) => onClick(event)}>
+            {text}
         </button>
+    )
+}
+
+const default_custom_link_button_props = {
+    text: "Button",
+    enabled: true,
+    color: ButtonColor.PURPLE,
+    width: "w-full",
+    height: "",
+    href: "/"
+}
+
+export function CustomLinkButton({
+    text = default_custom_link_button_props.text,
+    enabled = default_custom_link_button_props.enabled,
+    color = default_custom_link_button_props.color,
+    width = default_custom_link_button_props.width,
+    height = default_custom_link_button_props.height,
+    href = default_custom_link_button_props.href
+}) {
+
+    let color_class = get_color_class(color, enabled);
+
+    return (
+        <Link href={href} className={`${width} ${height} border ${color_class} font-normal py-2 px-4 rounded-lg flex justify-center gap-2 transition`}>
+            {text}
+        </Link>
     )
 }

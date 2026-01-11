@@ -4,7 +4,7 @@ import { FaGoogle, FaGithub } from "react-icons/fa";
 import React, { useState } from "react";
 import CustomInputField, { InputFieldIcon } from "@/components/shared/CustomInputField";
 import CustomPasswordField from "@/components/shared/CustomPasswordField";
-import CustomButton, { ButtonColor } from "../shared/CustomButton";
+import { CustomButton, ButtonColor } from "../shared/CustomButton";
 
 
 export default function RegisterForm() {
@@ -249,7 +249,7 @@ export default function RegisterForm() {
                     {/* Register Button */}
                     <div className="mt-6">
                         <CustomButton
-                            text="Create Account"
+                            text="Create Account →"
                             enabled={true}
                             color={ButtonColor.PURPLE}
                             onClick={(event) => handleRegister(event)}

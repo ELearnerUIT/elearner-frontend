@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Hexagon, Search, ShoppingCart, LayoutGrid, Menu } from "lucide-react";
+import { ButtonColor, CustomLinkButton } from "./CustomButton";
 
 const PublicNavbar = () => {
     return (
@@ -15,7 +16,7 @@ const PublicNavbar = () => {
                     </div>
                     <ul
                         tabIndex={0}
-                        className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+                        className="menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-100 rounded-box w-52"
                     >
                         <li>
                             <Link href="/">Home</Link>
@@ -47,7 +48,7 @@ const PublicNavbar = () => {
                 </div>
             </div>
 
-            <div className="navbar-center hidden md:flex flex-grow max-w-xl mx-4">
+            <div className="navbar-center hidden md:flex grow max-w-xl mx-4">
                 <label className="input input-bordered flex items-center gap-2 w-full h-10 rounded-full focus-within:outline-none focus-within:ring-2 focus-within:ring-primary/20">
                     <Search className="w-4 h-4 opacity-70" />
                     <input
@@ -58,7 +59,7 @@ const PublicNavbar = () => {
                 </label>
             </div>
 
-            <div className="navbar-end flex-grow w-auto lg:w-1/4 gap-2">
+            <div className="navbar-end grow w-auto lg:w-1/4 gap-2">
                 <button className="btn btn-ghost btn-circle md:hidden">
                     <Search className="w-5 h-5" />
                 </button>
@@ -78,19 +79,33 @@ const PublicNavbar = () => {
                 </Link>
 
                 {/* Nút Login / Signup */}
-                <div className="hidden sm:flex gap-2 ml-2">
-                    <Link
+                <div className="px-2 py-2 flex items-center gap-2 ml-2">
+                    {/* <Link
                         href="/login"
                         className="btn btn-outline btn-primary btn-sm px-6"
                     >
                         Log In
-                    </Link>
-                    <Link
+                    </Link> */}
+                    <CustomLinkButton
+                        text="Log In"
+                        enabled={true}
+                        color={ButtonColor.WHITE}
+                        href="/login"
+                        height="h-10"
+                        width="w-30"
+                    />
+                    {/* <Link
                         href="/register"
                         className="btn btn-primary btn-sm px-6 text-white"
                     >
                         Sign Up
-                    </Link>
+                    </Link> */}
+                    <CustomLinkButton
+                        text="Sign Up"
+                        href="/register"
+                        height="h-10"
+                        width="w-30"
+                    />
                 </div>
             </div>
         </div>

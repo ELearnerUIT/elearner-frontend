@@ -4,7 +4,7 @@ import { FaGoogle } from "react-icons/fa";
 import { useState } from "react";
 import CustomPasswordField from "@/components/shared/CustomPasswordField";
 import CustomInputField, { InputFieldIcon } from "../shared/CustomInputField";
-import CustomButton, { ButtonColor } from "../shared/CustomButton";
+import { CustomButton, ButtonColor } from "../shared/CustomButton";
 
 export default function LoginForm() {
 
@@ -104,7 +104,7 @@ export default function LoginForm() {
                     {/* Login Button */}
                     <div className="mt-6">
                         <CustomButton
-                            text="Login"
+                            text="Login →"
                             enabled={true}
                             color={ButtonColor.PURPLE}
                             onClick={(event) => handleLogin(event)}
