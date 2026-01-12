@@ -1,4 +1,5 @@
 import Link from "next/link";
+import React from "react";
 
 export enum ButtonColor {
     PURPLE,
@@ -10,7 +11,7 @@ const color_infos: Record<ButtonColor, { bg_normal: string, bg_hover: string, bg
         bg_normal: "bg-[rgba(99,102,241,1)]",
         bg_hover: "hover:bg-[rgba(80,71,217,1)]",
         bg_active: "active:bg-[rgba(60,60,194,1)]",
-        bg_disable: "bg-purple-300",
+        bg_disable: "bg-[rgb(170,170,241)]",
         border: "border-[rgba(99,102,241,1)]",
         text: "text-white"
     },
@@ -18,7 +19,7 @@ const color_infos: Record<ButtonColor, { bg_normal: string, bg_hover: string, bg
         bg_normal: "bg-white",
         bg_hover: "hover:bg-[rgba(224,224,255,1)]",
         bg_active: "active:bg-[rgba(200,200,255,1)]",
-        bg_disable: "bg-[rgba(224,224,255,1)]",
+        bg_disable: "bg-white",
         border: "border-[rgba(99,102,241,1)]",
         text: "text-[rgba(99,102,241,1)]"
     }
@@ -36,42 +37,55 @@ const get_color_class = (color: ButtonColor, enabled: boolean) => {
 }
 
 const default_custom_button_props = {
-    text: "Button",
+    text: "",
     enabled: true,
     color: ButtonColor.PURPLE,
     width: "w-full",
     height: "",
+    rounded: "rounded-lg",
     onClick: (event: React.MouseEvent<HTMLButtonElement>) => { }
 }
 
-export function CustomButton({
-    text = default_custom_button_props.text,
-    enabled = default_custom_button_props.enabled,
-    color = default_custom_button_props.color,
-    width = default_custom_button_props.width,
-    height = default_custom_button_props.height,
-    onClick = default_custom_button_props.onClick
-}) {
+export function CustomButton(
+    {
+        text = default_custom_button_props.text,
+        enabled = default_custom_button_props.enabled,
+        color = default_custom_button_props.color,
+        width = default_custom_button_props.width,
+        height = default_custom_button_props.height,
+        rounded = default_custom_button_props.rounded,
+        onClick = default_custom_button_props.onClick,
+        children = null
+    }: {
+        children?: React.ReactNode,
+        text?: string,
+        enabled?: boolean,
+        color?: ButtonColor,
+        width?: string,
+        height?: string,
+        rounded?: string,
+        onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
+    }
+) {
 
     let color_class = get_color_class(color, enabled);
 
-    console.log("width:", width);
-    console.log("height:", height);
-
     return (
-        <button className={`${width} ${height} border ${color_class} font-normal py-2 px-4 rounded-lg flex justify-center gap-2 transition`}
+        <button className={`${width} ${height} border ${color_class} font-normal py-2 px-4 ${rounded} flex justify-center items-center gap-2 transition`}
             onClick={(event) => onClick(event)}>
+            {children}
             {text}
         </button>
     )
 }
 
 const default_custom_link_button_props = {
-    text: "Button",
+    text: "",
     enabled: true,
     color: ButtonColor.PURPLE,
     width: "w-full",
     height: "",
+    rounded: "rounded-lg",
     href: "/"
 }
 
@@ -81,14 +95,26 @@ export function CustomLinkButton({
     color = default_custom_link_button_props.color,
     width = default_custom_link_button_props.width,
     height = default_custom_link_button_props.height,
-    href = default_custom_link_button_props.href
+    rounded = default_custom_link_button_props.rounded,
+    href = default_custom_link_button_props.href,
+    children = null
+}: {
+    children?: React.ReactNode,
+    text?: string,
+    enabled?: boolean,
+    color?: ButtonColor,
+    width?: string,
+    height?: string,
+    rounded?: string,
+    href?: string
 }) {
 
     let color_class = get_color_class(color, enabled);
 
     return (
-        <Link href={href} className={`${width} ${height} border ${color_class} font-normal py-2 px-4 rounded-lg flex justify-center gap-2 transition`}>
+        <Link href={href} className={`${width} ${height} border ${color_class} font-normal py-2 px-4 ${rounded} flex justify-center items-center gap-2 transition`}>
             {text}
+            {children}
         </Link>
     )
 }

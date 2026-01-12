@@ -28,9 +28,9 @@ export default function ChapterDropdown(
     return (
         <div>
             <div
-                className="rounded-2xl border border-gray-300 p-4 cursor-pointer transition-all duration-300 ease-in-out"
+                className="rounded-2xl border border-gray-300 px-4 cursor-pointer transition-all duration-300 ease-in-out"
             >
-                <div className="flex items-center justify-between" onClick={() => expandChapter()}>
+                <div className="flex items-center justify-between h-15" onClick={() => expandChapter()}>
                     <div className="grid grid-cols-3 items-center gap-3 w-full">
                         <div className="col-span-2 flex flex-row items-start gap-3">
                             <span className="text-gray-400">
