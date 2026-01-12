@@ -19,7 +19,7 @@ const toneClasses: Record<string, { bg: string; text: string }> = {
 };
 
 export default function CategoryButton({
-    path = "/category/",
+    path = "/categories/",
     name = ""
 }) {
     const convertName = (name: string) => {

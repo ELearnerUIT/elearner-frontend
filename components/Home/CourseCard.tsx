@@ -9,7 +9,7 @@ export default function CourseCard({
     imgSource = "",
     level = "Beginner",
     category = "None",
-    courseName = "No Name",
+    courseTitle = "No Name",
     author = "No Author",
     rating = 0,
     ratingCount = 0,
@@ -19,7 +19,7 @@ export default function CourseCard({
 }
 ) {
     const handleAddToCart = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        alert("Add course to cart: " + courseName)
+        alert("Add course to cart: " + courseTitle)
     }
 
     return (
@@ -33,13 +33,13 @@ export default function CourseCard({
             </div>
             <div className="p-5 bg-white">
                 <p className="text-sm text-indigo-600 font-semibold">{category}</p>
-                <h3 className="text-lg font-semibold text-gray-900 mt-2">{courseName}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mt-2">{courseTitle}</h3>
                 <p className="text-sm text-gray-600 mt-1">by {author}</p>
                 <div className="flex items-center gap-2 mt-3">
                     <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         <span className="text-sm font-semibold text-gray-900">{rating}</span>
-                        <span className="text-xs text-gray-500">{ratingCount}</span>
+                        <span className="text-xs text-gray-500">{ratingCount.toLocaleString()}</span>
                     </div>
                 </div>
                 <p className="text-sm text-gray-600 mt-3 flex items-center gap-1">
@@ -48,9 +48,9 @@ export default function CourseCard({
                 </p>
                 <div className="mt-4 flex items-center justify-between">
                     <span className="text-3xl font-semibold text-indigo-600">
-                        ${price}
+                        ${price.toLocaleString()}
                         <del className="text-xl font-normal text-gray-400 pl-2">
-                            {oldPrice > 0 && "$" + oldPrice}
+                            {oldPrice > 0 && "$" + oldPrice.toLocaleString()}
                         </del>
                     </span>
                     <CustomButton

@@ -291,7 +291,7 @@ export default function Home() {
                                         imgSource={course.imgSource}
                                         level={course.level}
                                         category={course.category}
-                                        courseName={course.courseName}
+                                        courseTitle={course.courseName}
                                         author={course.author}
                                         rating={course.rating}
                                         ratingCount={course.ratingCount}
