@@ -254,9 +254,9 @@ export default function CourseDetail({ params }: {
 
     return (
         <>
-            <div className="min-h-screen bg-gray-900 text-white">
+            <div className="min-h-screen bg-[rgb(16,24,40)] text-white">
                 {/* Breadcrumb */}
-                <div className="bg-gray-800 px-4 py-3 sm:px-6 lg:px-8">
+                <div className="px-4 py-3 sm:px-6 lg:px-8">
                     <div className="max-w-7xl mx-auto">
                         <nav className="flex text-sm text-gray-400">
                             <Link href={"/"} className="hover:text-white cursor-pointer">Home</Link>
@@ -275,7 +275,6 @@ export default function CourseDetail({ params }: {
                         </nav>
                     </div>
                 </div>
-
                 {/* Main Content */}
                 <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
