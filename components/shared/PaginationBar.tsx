@@ -6,9 +6,7 @@ export default function PaginationBar({
     totalPageCount = 0,
     maxPageShown = 3,
     height = "h-10",
-    onSelectPage = (index: number) => { },
-    onPreviousPage = () => { },
-    onNextPage = () => { }
+    onSelectedPageChanged = (index: number) => { }
 }
 
 ) {
@@ -24,7 +22,7 @@ export default function PaginationBar({
                 width='w-30'
                 height='h-10'
                 rounded='rounded-full'
-                onClick={(event) => onPreviousPage()}
+                onClick={(event) => { if (pageIndex > 0) onSelectedPageChanged(pageIndex - 1) }}
                 enabled={pageIndex > 0}
             >
                 <ArrowLeft className='text-white' />
@@ -33,46 +31,38 @@ export default function PaginationBar({
             <CustomButton
                 text="0"
                 color={pageIndex === 0 ? ButtonColor.PURPLE : ButtonColor.WHITE}
-                onClick={(event) => onSelectPage(0)}
+                onClick={(event) => onSelectedPageChanged(0)}
                 width='w-10'
                 height='h-10'
                 rounded='rounded-full'
             />
             {
-                middlePartStart > 1 &&
-                <CustomButton
-                    text="..."
-                    color={ButtonColor.WHITE}
-                    width='w-10'
-                    height='h-10'
-                    rounded='rounded-full'
-                    enabled={false}
-
-                />
-            }
-            {
                 (middlePartEnd - middlePartStart + 1 > 0) && [...Array(middlePartEnd - middlePartStart + 1)].map((_, index) => {
                     if (index === 0 && middlePartStart > 1) {
-                        <CustomButton
-                            key={index}
-                            text={(middlePartStart + index).toString()}
-                            color={ButtonColor.WHITE}
-                            enabled={false}
-                            width='w-10'
-                            height='h-10'
-                            rounded='rounded-full'
-                        />
+                        return (
+                            <CustomButton
+                                key={index}
+                                text="..."
+                                color={ButtonColor.WHITE}
+                                enabled={false}
+                                width='w-10'
+                                height='h-10'
+                                rounded='rounded-full'
+                            />
+                        )
                     }
                     else if (index === middlePartEnd - middlePartStart && middlePartEnd < totalPageCount - 2) {
-                        <CustomButton
-                            key={index}
-                            text={(middlePartStart + index).toString()}
-                            color={ButtonColor.WHITE}
-                            enabled={false}
-                            width='w-10'
-                            height='h-10'
-                            rounded='rounded-full'
-                        />
+                        return (
+                            <CustomButton
+                                key={index}
+                                text="..."
+                                color={ButtonColor.WHITE}
+                                enabled={false}
+                                width='w-10'
+                                height='h-10'
+                                rounded='rounded-full'
+                            />
+                        )
                     }
                     else
                         return (
@@ -80,7 +70,7 @@ export default function PaginationBar({
                                 key={index}
                                 text={(middlePartStart + index).toString()}
                                 color={pageIndex === middlePartStart + index ? ButtonColor.PURPLE : ButtonColor.WHITE}
-                                onClick={(event) => onSelectPage(middlePartStart + index)}
+                                onClick={(event) => onSelectedPageChanged(middlePartStart + index)}
                                 width='w-10'
                                 height='h-10'
                                 rounded='rounded-full'
@@ -89,23 +79,11 @@ export default function PaginationBar({
                 })
             }
             {
-                middlePartEnd > middlePartStart && middlePartEnd < totalPageCount - 2 &&
-                <CustomButton
-                    text="..."
-                    color={ButtonColor.WHITE}
-                    width='w-10'
-                    height='h-10'
-                    rounded='rounded-full'
-                    enabled={false}
-
-                />
-            }
-            {
                 totalPageCount - 1 > 0 &&
                 <CustomButton
                     text={(totalPageCount - 1).toString()}
                     color={pageIndex === totalPageCount - 1 ? ButtonColor.PURPLE : ButtonColor.WHITE}
-                    onClick={(event) => onSelectPage(totalPageCount - 1)}
+                    onClick={(event) => { onSelectedPageChanged(totalPageCount - 1) }}
                     width='w-10'
                     height='h-10'
                     rounded='rounded-full'
@@ -117,7 +95,7 @@ export default function PaginationBar({
                 width='w-30'
                 height='h-10'
                 rounded='rounded-full'
-                onClick={(event) => onNextPage()}
+                onClick={(event) => { if (pageIndex < totalPageCount - 1) onSelectedPageChanged(pageIndex + 1) }}
                 enabled={pageIndex < totalPageCount - 1}
             >
                 Next

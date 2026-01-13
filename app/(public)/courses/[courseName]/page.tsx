@@ -194,6 +194,46 @@ export default function CourseDetail({ params }: {
             date: new Date(),
             content: "This course completely changed my career! The instructor explains everything clearly and the projects are very practical.",
             helpful: 234
+        },
+        {
+            name: "John Doe7",
+            avatar: "https://i.pravatar.cc/300?img=47",
+            rating: 4.5,
+            date: new Date(),
+            content: "This course completely changed my career! The instructor explains everything clearly and the projects are very practical.",
+            helpful: 234
+        },
+        {
+            name: "John Doe7",
+            avatar: "https://i.pravatar.cc/300?img=47",
+            rating: 4.5,
+            date: new Date(),
+            content: "This course completely changed my career! The instructor explains everything clearly and the projects are very practical.",
+            helpful: 234
+        },
+        {
+            name: "John Doe7",
+            avatar: "https://i.pravatar.cc/300?img=47",
+            rating: 4.5,
+            date: new Date(),
+            content: "This course completely changed my career! The instructor explains everything clearly and the projects are very practical.",
+            helpful: 234
+        },
+        {
+            name: "John Doe7",
+            avatar: "https://i.pravatar.cc/300?img=47",
+            rating: 4.5,
+            date: new Date(),
+            content: "This course completely changed my career! The instructor explains everything clearly and the projects are very practical.",
+            helpful: 234
+        },
+        {
+            name: "John Doe7",
+            avatar: "https://i.pravatar.cc/300?img=47",
+            rating: 4.5,
+            date: new Date(),
+            content: "This course completely changed my career! The instructor explains everything clearly and the projects are very practical.",
+            helpful: 234
         }
     ]
 
@@ -485,9 +525,7 @@ export default function CourseDetail({ params }: {
                                         pageIndex={pageIndex}
                                         totalPageCount={Math.ceil(allReviewDetails.length / numberOfReviewPerPage)}
                                         maxPageShown={6}
-                                        onPreviousPage={() => { if (pageIndex > 0) setPageIndex(pageIndex - 1) }}
-                                        onNextPage={() => { if (pageIndex < Math.ceil(allReviewDetails.length / numberOfReviewPerPage) - 1) setPageIndex(pageIndex + 1) }}
-                                        onSelectPage={(index) => setPageIndex(index)}
+                                        onSelectedPageChanged={(index) => setPageIndex(index)}
                                     />
                                 </div>
                             </div>

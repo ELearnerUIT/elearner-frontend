@@ -45,20 +45,24 @@ export default function ChapterDropdown(
                     </div>
                 </div>
                 {expandedChapter && (
-                    <div className="p-4 space-y-3">
+                    <div className="p-4 space-y-2">
                         {
                             lectures.map((lecture, index) => {
                                 return (
-                                    <div key={index} className="grid grid-cols-3 rounded-2xl bg-white hover:bg-gray-300 border-gray-300 py-4 px-2 items-center gap-3 text-black transition cursor-pointer">
-                                        <span className="col-span-2 flex flex-row items-center">
-                                            <Circle size={15} className="mr-3 text-gray-500" />
-                                            {lecture.title}
-                                        </span>
-                                        <div className="flex justify-end items-center col-span-1 gap-3">
-                                            <Clock size={20} className="text-gray-500" />
-                                            <span className="text-gray-500 mr-5">{convertDuration(lecture.duration)}</span>
+                                    <>
+                                        <div key={index} className="grid grid-cols-3 rounded-2xl bg-white hover:bg-gray-300 border-gray-300 py-4 px-2 items-center gap-3 text-black transition cursor-pointer">
+                                            <span className="col-span-2 flex flex-row items-center">
+                                                <Circle size={15} className="mr-3 text-gray-500" />
+                                                {lecture.title}
+                                            </span>
+                                            <div className="flex justify-end items-center col-span-1 gap-3">
+                                                <Clock size={20} className="text-gray-500" />
+                                                <span className="text-gray-500 mr-5">{convertDuration(lecture.duration)}</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                        <hr></hr>
+                                    </>
+
                                 )
                             })
                         }
