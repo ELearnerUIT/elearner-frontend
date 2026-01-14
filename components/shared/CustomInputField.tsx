@@ -2,7 +2,6 @@
 
 import React from "react";
 import { User, Mail, DollarSign } from "lucide-react";
-import { text } from "stream/consumers";
 
 export enum InputFieldIcon {
     USER,
