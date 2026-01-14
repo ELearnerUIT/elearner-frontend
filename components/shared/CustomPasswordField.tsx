@@ -28,7 +28,7 @@ export default function CustomPasswordField(props: {
                     placeholder="Create a strong password"
                     className={"w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 "
                         +
-                        (props.errorMessage && props.errorMessage.length > 0 ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500")
+                        (props.errorMessage && props.errorMessage.length > 0 ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-[rgb(99,102,241)]")
                     }
                 />
                 <button

@@ -1,49 +1,66 @@
 'use client';
 
 import React from "react";
-import { User, Mail } from "lucide-react";
+import { User, Mail, DollarSign } from "lucide-react";
+import { text } from "stream/consumers";
 
 export enum InputFieldIcon {
     USER,
-    MAIL
+    MAIL,
+    DOLLAR,
+    NONE
 }
 
-const getIcon = (icon: InputFieldIcon) => {
+const getIcon = (icon?: InputFieldIcon) => {
     switch (icon) {
         case InputFieldIcon.USER:
             return User
         case InputFieldIcon.MAIL:
             return Mail
+        case InputFieldIcon.DOLLAR:
+            return DollarSign
+        default:
+            return User
     }
 }
 
-export default function CustomInputField(props: {
-    text: string,
-    initValue: string,
-    placeholder: string,
-    errorMessage: string,
-    icon: InputFieldIcon,
-    onValueChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
+export default function CustomInputField({
+    text = "",
+    initValue = "",
+    placeholder = "",
+    errorMessage = "",
+    icon = InputFieldIcon.NONE,
+    onValueChange = (event: React.ChangeEvent<HTMLInputElement>) => { },
+    onValidate = (event: React.ChangeEvent<HTMLInputElement>) => { }
+}: {
+    text?: string,
+    initValue?: string,
+    placeholder?: string,
+    errorMessage?: string,
+    icon?: InputFieldIcon,
+    onValueChange?: (event: React.ChangeEvent<HTMLInputElement>) => void,
     onValidate?: (event: React.ChangeEvent<HTMLInputElement>) => void
 }) {
     return (
         <div>
-            <label className="block text-gray-700 font-medium mb-2">{props.text}</label>
+            <label className="block text-gray-700 font-medium mb-2">{text}</label>
             <div className="relative">
-                {getIcon(props.icon) && React.createElement(getIcon(props.icon), { className: "absolute left-3 top-3 text-gray-300", size: 20 })}
+                {icon !== InputFieldIcon.NONE && getIcon(icon) && React.createElement(getIcon(icon), { className: "absolute left-3 top-3 text-gray-300", size: 20 })}
                 <input
                     type="text"
-                    value={props.initValue}
-                    onChange={(event) => { props.onValueChange(event); props.onValidate && props.onValidate(event); }}
-                    placeholder={props.placeholder}
-                    className={"w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 "
+                    value={initValue}
+                    onChange={(event) => { onValueChange(event); onValidate && onValidate(event); }}
+                    placeholder={placeholder}
+                    className={"w-full pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 "
                         +
-                        (props.errorMessage && props.errorMessage.length > 0 ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500")
+                        (icon == InputFieldIcon.NONE ? " pl-4 " : " pl-10 ")
+                        +
+                        (errorMessage && errorMessage.length > 0 ? "border-red-300 focus:ring-red-500" : "border-gray-300 focus:ring-[rgb(99,102,241)]")
                     }
                 />
                 {
-                    props.errorMessage && props.errorMessage.length > 0 ?
-                        <p className="text-red-500 text-sm mt-1">{props.errorMessage}</p>
+                    errorMessage && errorMessage.length > 0 ?
+                        <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
                         :
                         <></>
                 }

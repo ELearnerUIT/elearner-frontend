@@ -1,7 +1,6 @@
 'use client';
 
 import { Star, Share2, Clock, Users, Globe, Calendar, CheckCircle, Award, ArrowLeft, ArrowRight } from 'lucide-react';
-import Image from 'next/image';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -240,8 +239,8 @@ export default function CourseDetail({ params }: {
     const numberOfReviewPerPage = 2;
     const [pageIndex, setPageIndex] = useState(0);
     const getCurrentPageReviewDetails = () => {
-        const startIndex = pageIndex * numberOfReviewPerPage;
-        const endIndex = startIndex + numberOfReviewPerPage;
+        const startIndex = Math.max(pageIndex * numberOfReviewPerPage, 0);
+        const endIndex = Math.min(startIndex + numberOfReviewPerPage, allReviewDetails.length - 1);
         let result = []
         for (let i = startIndex; i < endIndex; i++) {
             if (i < allReviewDetails.length) {
