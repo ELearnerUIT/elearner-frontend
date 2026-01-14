@@ -1,6 +1,7 @@
 'use client';
 
 import ProfileTab from '@/components/Settings/ProfileTab';
+import SecurityTab from '@/components/Settings/SecurityTab';
 import { useState } from 'react';
 
 export default function Settings() {
@@ -48,9 +49,7 @@ export default function Settings() {
 
                         {/* Security Tab */}
                         {activeTab === Tab.SECURITY && (
-                            <div className="text-center py-8">
-                                <p className="text-gray-600">Security settings coming soon...</p>
-                            </div>
+                            <SecurityTab />
                         )}
 
                         {/* Notifications Tab */}
