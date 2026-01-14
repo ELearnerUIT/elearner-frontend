@@ -14,7 +14,6 @@ export default function RegisterForm() {
     const [emailInput, setEmailInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
     const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
-
     const [agreeToTerms, setAgreeToTerms] = useState(false);
 
     const [errorMessage, setErrorMessage] = useState("");
@@ -42,7 +41,6 @@ export default function RegisterForm() {
         setLastNameError("");
         return true;
     }
-
 
     const validateEmail = (email: string) => {
         if (!email || email.length === 0) {
@@ -110,7 +108,6 @@ export default function RegisterForm() {
         setConfirmPasswordError("");
         return true;
     }
-
 
     const validateAgreeToTerms = () => {
         if (!agreeToTerms) {

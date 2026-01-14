@@ -6,20 +6,12 @@ import { useState } from 'react';
 export default function Settings() {
     const [activeTab, setActiveTab] = useState("Profile");
 
-    // const [formData, setFormData] = useState({
-    //     firstName: 'John',
-    //     lastName: 'Doe',
-    //     email: 'john.doe@example.com',
-    //     username: 'johndoe',
-    //     bio: '',
-    // });
-
-    const tabs = [
-        "Profile",
-        "Security",
-        "Notifications",
-        "Preferences"
-    ]
+    enum Tab {
+        PROFILE = "Profile",
+        SECURITY = "Security",
+        NOTIFICATIONS = "Notifications",
+        PREFERENCES = "Preferences"
+    }
 
     return (
         <div className="min-h-screen bg-[rgb(250,250,250)] py-8 px-4">
@@ -33,7 +25,7 @@ export default function Settings() {
                 {/* Tabs */}
                 <div className="mb-6">
                     <div className="flex h-10 px-1 justify-center items-center bg-[rgb(243,244,246)] rounded-2xl">
-                        {tabs.map((tab) => (
+                        {Object.values(Tab).map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -50,26 +42,26 @@ export default function Settings() {
                     {/* Tab Content */}
                     <div className="p-8 mt-5 bg-white rounded-2xl border-2 border-gray-100">
                         {/* Profile Tab */}
-                        {activeTab === "Profile" &&
+                        {activeTab === Tab.PROFILE &&
                             <ProfileTab />
                         }
 
                         {/* Security Tab */}
-                        {activeTab === 'security' && (
+                        {activeTab === Tab.SECURITY && (
                             <div className="text-center py-8">
                                 <p className="text-gray-600">Security settings coming soon...</p>
                             </div>
                         )}
 
                         {/* Notifications Tab */}
-                        {activeTab === 'notifications' && (
+                        {activeTab === Tab.NOTIFICATIONS && (
                             <div className="text-center py-8">
                                 <p className="text-gray-600">Notifications settings coming soon...</p>
                             </div>
                         )}
 
                         {/* Preferences Tab */}
-                        {activeTab === 'preferences' && (
+                        {activeTab === Tab.PREFERENCES && (
                             <div className="text-center py-8">
                                 <p className="text-gray-600">Preferences settings coming soon...</p>
                             </div>

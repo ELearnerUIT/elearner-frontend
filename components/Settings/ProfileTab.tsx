@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Camera } from 'lucide-react';
 import { ButtonColor, CustomButton } from '../shared/CustomButton';
-import CustomInputField from '../shared/CustomInputField';
+import CustomInputField, { InputFieldIcon } from '../shared/CustomInputField';
 import CustomTextArea from '../shared/CustomTextArea';
 
 export default function ProfileTab() {
@@ -11,9 +11,78 @@ export default function ProfileTab() {
     const [usernameInput, setUsernameInput] = useState("");
     const [bioInput, setBioInput] = useState("");
 
+    const [firstNameError, setFirstNameError] = useState("");
+    const [lastNameError, setLastNameError] = useState("");
+    const [emailError, setEmailError] = useState("");
+    const [usernameError, setUsernameError] = useState("");
+
+    const validateFirstName = (firstName: string) => {
+        if (!firstName || firstName.length === 0) {
+            setFirstNameError("Please enter your first name");
+            return false;
+        }
+        setFirstNameError("");
+        return true;
+    }
+
+    const validateLastName = (lastName: string) => {
+        if (!lastName || lastName.length === 0) {
+            setLastNameError("Please enter your last name");
+            return false;
+        }
+        setLastNameError("");
+        return true;
+    }
+
+    const validateEmail = (email: string) => {
+        if (!email || email.length === 0) {
+            setEmailError("Please enter your email address");
+            return false;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setEmailError("Invalid email address");
+            return false;
+        }
+
+        setEmailError("");
+        return true;
+    }
+
+    const validateUsername = (username: string) => {
+        if (!username || username.length === 0) {
+            setUsernameError("Please enter your username");
+            return false;
+        }
+        setUsernameError("");
+        return true;
+    }
+
     const handleChangePhoto = () => {
         alert("Change photo")
     }
+
+    const handleSaveChanges = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+
+        let isValid = true;
+
+        // if (!validateRequiredFields()) isValid = false;
+        if (!validateFirstName(firstNameInput)) isValid = false;
+        if (!validateLastName(lastNameInput)) isValid = false;
+        if (!validateEmail(emailInput)) isValid = false;
+        if (!validateUsername(usernameInput)) isValid = false;
+
+
+        if (!isValid) {
+            return;
+        }
+
+        // Xu ly dang ky
+        alert("Save changes")
+    }
+
 
     return (
         <div>
@@ -56,13 +125,19 @@ export default function ProfileTab() {
                         text="First Name"
                         initValue={firstNameInput}
                         placeholder="John"
+                        errorMessage={firstNameError}
+                        icon={InputFieldIcon.USER}
                         onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setFirstNameInput(event.target.value)}
+                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validateFirstName(event.target.value); }}
                     />
                     <CustomInputField
                         text="Last Name"
                         initValue={lastNameInput}
                         placeholder="Doe"
-                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setFirstNameInput(event.target.value)}
+                        errorMessage={lastNameError}
+                        icon={InputFieldIcon.USER}
+                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setLastNameInput(event.target.value)}
+                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validateLastName(event.target.value); }}
                     />
                 </div>
 
@@ -72,6 +147,10 @@ export default function ProfileTab() {
                         text="Email Address"
                         initValue={emailInput}
                         placeholder="your.email@example.com"
+                        errorMessage={emailError}
+                        icon={InputFieldIcon.MAIL}
+                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setEmailInput(event.target.value)}
+                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validateEmail(event.target.value); }}
                     />
                 </div>
 
@@ -81,6 +160,10 @@ export default function ProfileTab() {
                         text="Username"
                         initValue={usernameInput}
                         placeholder="johndoe"
+                        errorMessage={usernameError}
+                        icon={InputFieldIcon.USER}
+                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setUsernameInput(event.target.value)}
+                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => { validateUsername(event.target.value); }}
                     />
                 </div>
 
@@ -93,19 +176,12 @@ export default function ProfileTab() {
                     />
                 </div>
 
-                {/* Save Button */}
-                {/* <button
-                    onClick={() => { }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
-                >
-                    Save Changes
-                </button> */}
                 <CustomButton
                     text="Save Changes"
                     enabled={true}
                     color={ButtonColor.PURPLE}
                     width="w-40"
-                    onClick={() => { }}
+                    onClick={(event) => { handleSaveChanges(event) }}
                 />
             </div>
         </div>
