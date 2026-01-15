@@ -103,7 +103,7 @@ export default function SecurityTab() {
                     <CustomPasswordField
                         text="Current Password"
                         initValue={currentPasswordInput}
-                        placeholder="your.email@example.com"
+                        placeholder="Current Password"
                         errorMessage={currentPasswordError}
                         onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setCurrentPasswordInput(event.target.value)}
                     />
@@ -114,7 +114,7 @@ export default function SecurityTab() {
                     <CustomPasswordField
                         text="New Password"
                         initValue={newPasswordInput}
-                        placeholder="your.email@example.com"
+                        placeholder="New Password"
                         errorMessage={newPasswordError}
                         onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setNewPasswordInput(event.target.value)}
                         onValidate={(event: React.ChangeEvent<HTMLInputElement>) => validateNewPassword(event.target.value)}
@@ -126,7 +126,7 @@ export default function SecurityTab() {
                     <CustomPasswordField
                         text="Confirm New Password"
                         initValue={confirmPasswordInput}
-                        placeholder="your.email@example.com"
+                        placeholder="Confirm New Password"
                         errorMessage={confirmPasswordError}
                         onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setConfirmPasswordInput(event.target.value)}
                         onValidate={(event: React.ChangeEvent<HTMLInputElement>) => validateConfirmPassword(event.target.value)}

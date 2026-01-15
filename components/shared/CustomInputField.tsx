@@ -42,7 +42,7 @@ export default function CustomInputField({
 }) {
     return (
         <div>
-            <label className="block text-gray-700 font-medium mb-2">{text}</label>
+            <label className="block text-[rgb(10,10,10)] font-medium mb-2">{text}</label>
             <div className="relative">
                 {icon !== InputFieldIcon.NONE && getIcon(icon) && React.createElement(getIcon(icon), { className: "absolute left-3 top-3 text-gray-300", size: 20 })}
                 <input

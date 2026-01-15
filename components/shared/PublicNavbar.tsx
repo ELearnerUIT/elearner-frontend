@@ -34,7 +34,7 @@ const PublicNavbar = () => {
                     href="/"
                     className="btn btn-ghost text-xl text-primary gap-2 px-2"
                 >
-                    <Hexagon className="fill-current w-8 h-8" />
+                    <img src="favicon.ico" className="h-10 w-10" />
                     <span className="hidden sm:inline-block font-bold tracking-tight">
                         ELearner
                     </span>

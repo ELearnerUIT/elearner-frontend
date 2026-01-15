@@ -1,7 +1,9 @@
 'use client';
 
+import NotificationsTab from '@/components/Settings/NotificationsTab';
 import ProfileTab from '@/components/Settings/ProfileTab';
 import SecurityTab from '@/components/Settings/SecurityTab';
+import ToggleSwitch from '@/components/shared/ToggleSwitch';
 import { useState } from 'react';
 
 export default function Settings() {
@@ -43,21 +45,19 @@ export default function Settings() {
                     {/* Tab Content */}
                     <div className="p-8 mt-5 bg-white rounded-2xl border-2 border-gray-100">
                         {/* Profile Tab */}
-                        {activeTab === Tab.PROFILE &&
+                        <div className={activeTab === Tab.PROFILE ? "" : "hidden"}>
                             <ProfileTab />
-                        }
+                        </div>
 
                         {/* Security Tab */}
-                        {activeTab === Tab.SECURITY && (
+                        <div className={activeTab === Tab.SECURITY ? "" : "hidden"}>
                             <SecurityTab />
-                        )}
+                        </div>
 
                         {/* Notifications Tab */}
-                        {activeTab === Tab.NOTIFICATIONS && (
-                            <div className="text-center py-8">
-                                <p className="text-gray-600">Notifications settings coming soon...</p>
-                            </div>
-                        )}
+                        <div className={activeTab === Tab.NOTIFICATIONS ? "" : "hidden"}>
+                            <NotificationsTab />
+                        </div>
 
                         {/* Preferences Tab */}
                         {activeTab === Tab.PREFERENCES && (

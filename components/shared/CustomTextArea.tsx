@@ -21,7 +21,7 @@ export default function CustomTextArea({
 }) {
     return (
         <div>
-            <label className="block text-gray-700 font-medium mb-2">{text}</label>
+            <label className="block text-[rgb(10,10,10)] font-medium mb-2">{text}</label>
             <div className="relative">
                 <textarea
                     value={initValue}
