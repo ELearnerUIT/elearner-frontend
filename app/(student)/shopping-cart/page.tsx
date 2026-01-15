@@ -1,5 +1,5 @@
 'use client'
-import { CustomButton } from '@/components/shared/CustomButton';
+import { ButtonColor, CustomButton } from '@/components/shared/CustomButton';
 import CustomInputField from '@/components/shared/CustomInputField';
 import ShoppingCartItem from '@/components/ShoppingCart/ShoppingCartItem';
 import { Tag } from 'lucide-react';
@@ -101,8 +101,16 @@ export default function ShoppingCart() {
         console.log("new: ", newSelectedCourses)
     }
 
+    const handleUnSelectCourse = (courseID: string) => {
+        let newSelectedCourses = [...selectedCourses];
+        let indexToRemove = newSelectedCourses.indexOf(courseID);
+        if (indexToRemove >= 0) {
+            newSelectedCourses.splice(indexToRemove, 1);
+        }
+        setSelectedCourses(newSelectedCourses);
+    }
+
     const handleRemoveCourse = (courseID: string) => {
-        alert("Remove: " + courseID);
         let newCoursesInCart = [...coursesInCart];
         let indexToRemove = -1;
         newCoursesInCart.forEach((course, index) => {
@@ -115,6 +123,7 @@ export default function ShoppingCart() {
             newCoursesInCart.splice(indexToRemove, 1);
         }
         setCoursesInCart(newCoursesInCart);
+        alert("Remove Id: " + courseID)
     }
 
     const countTotalPrice = () => {
@@ -128,12 +137,17 @@ export default function ShoppingCart() {
     }
 
     const countDiscount = () => {
-        let totalPrice = countTotalPrice();
+        let discountPercentage = 0;
         if (couponInput && couponInput.length > 0) {
-            totalPrice *= 0.1;
+            discountPercentage = 0.1;
         }
-        return totalPrice;
+        return countTotalPrice() * discountPercentage;
     }
+
+    const handleCheckout = () => {
+        alert("Checkout: " + (countTotalPrice() - countDiscount()));
+    }
+
 
     return (
         <div className="min-h-screen bg-gray-50 p-8">
@@ -166,6 +180,7 @@ export default function ShoppingCart() {
                                             oldPrice={course.oldPrice}
                                             price={course.price}
                                             onSelect={(courseId) => handleSelectCourse(courseId)}
+                                            onUnSelect={(courseId) => handleUnSelectCourse(courseId)}
                                             onRemove={(courseId) => handleRemoveCourse(courseId)}
                                         />
                                     )
@@ -194,20 +209,18 @@ export default function ShoppingCart() {
                             </div>
                         </div>
 
-                        <CustomButton>
-                            Checkout →
-                        </CustomButton>
+                        <CustomButton
+                            text="Checkout →"
+                            enabled={true}
+                            color={ButtonColor.PURPLE}
+                            onClick={(event) => handleCheckout()}
+                        />
 
                         <hr className="text-[rgba(0,0,0,0.1)] mb-5 mt-5" />
 
                         <div className="mb-6">
                             <p className="text-sm text-gray-600 mb-2">Have a coupon?</p>
                             <div className="relative">
-                                {/* <input
-                                    type="text"
-                                    placeholder="Enter code"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-600"
-                                /> */}
                                 <CustomInputField
                                     initValue={couponInput}
                                     placeholder="Enter Code"

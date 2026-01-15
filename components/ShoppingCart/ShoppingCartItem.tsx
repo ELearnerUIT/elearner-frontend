@@ -16,6 +16,7 @@ export default function ShoppingCartItem({
     oldPrice = 199,
     price = 89.99,
     onSelect = (courseId: string) => { },
+    onUnSelect = (courseId: string) => { },
     onRemove = (courseId: string) => { }
 }) {
     return (
@@ -25,7 +26,7 @@ export default function ShoppingCartItem({
                 checked={checked}
                 onChange={(event) => {
                     if (event.target.checked === true) onSelect(id);
-                    else onRemove(id);
+                    else onUnSelect(id);
                 }}
             />
             <img
