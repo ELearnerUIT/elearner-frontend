@@ -16,7 +16,7 @@ export default function CustomDropdown({
             <select
                 value={value}
                 onChange={(e) => onSelectedChanged(e.target.value)}
-                className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-900 cursor-pointer hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-[rgb(99,102,241)]"
+                className="appearance-none w-full bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-900 cursor-pointer hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-[rgb(99,102,241)]"
             >
                 {
                     options && options.map((option, index) => (

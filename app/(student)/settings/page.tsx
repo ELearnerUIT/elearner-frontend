@@ -1,6 +1,7 @@
 'use client';
 
 import NotificationsTab from '@/components/Settings/NotificationsTab';
+import PreferencesTab from '@/components/Settings/PreferencesTab';
 import ProfileTab from '@/components/Settings/ProfileTab';
 import SecurityTab from '@/components/Settings/SecurityTab';
 import ToggleSwitch from '@/components/shared/ToggleSwitch';
@@ -61,9 +62,7 @@ export default function Settings() {
 
                         {/* Preferences Tab */}
                         {activeTab === Tab.PREFERENCES && (
-                            <div className="text-center py-8">
-                                <p className="text-gray-600">Preferences settings coming soon...</p>
-                            </div>
+                            <PreferencesTab />
                         )}
                     </div>
                 </div>
