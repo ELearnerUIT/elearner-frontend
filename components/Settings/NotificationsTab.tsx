@@ -1,11 +1,17 @@
 import ToggleSwitch from "@/components/shared/ToggleSwitch";
 import { Bell, Mail } from "lucide-react";
 import { useState } from "react";
+import { ButtonColor, CustomButton } from "@/components/shared/CustomButton";
+
 export default function NotificationsTab() {
     const [courseUpdate, setCourseUpdate] = useState(false)
     const [newAssignments, setNewAssignments] = useState(false)
     const [gradeUpdates, setGradeUpdates] = useState(false)
     const [marketingEmails, setMarketingEmails] = useState(false)
+
+    const handleSaveNotificationSettings = () => {
+        alert("Notification Settings saved")
+    }
 
     return (
         <div>
@@ -79,6 +85,14 @@ export default function NotificationsTab() {
                     />
                 </div>
                 <hr className="text-[rgba(0,0,0,0.1)] mb-5" />
+                <CustomButton
+                    text="Save Notification Settings"
+                    enabled={true}
+                    color={ButtonColor.PURPLE}
+                    width="w-60"
+                    height="h-10"
+                    onClick={() => { handleSaveNotificationSettings() }}
+                />
             </div>
         </div>
     )
