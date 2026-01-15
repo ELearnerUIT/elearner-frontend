@@ -17,7 +17,7 @@ export default function NotificationsTab() {
             {/* Notification Items */}
             <div className="space-y-6">
                 {/* Course Updates */}
-                <div className="flex items-start justify-between py-4 border-b border-gray-200">
+                <div className="flex items-start justify-between py-4 border-gray-200">
                     <div className="flex items-start gap-3 flex-1">
                         <Bell />
                         <div className="flex-1">
@@ -25,16 +25,15 @@ export default function NotificationsTab() {
                             <p className="text-gray-600 text-sm">Receive notifications about your enrolled courses</p>
                         </div>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer ml-4">
-                        <ToggleSwitch
-                            checked={courseUpdate}
-                            onChange={(value) => setCourseUpdate(value)}
-                        />
-                    </label>
+                    <ToggleSwitch
+                        checked={courseUpdate}
+                        onChange={(value) => setCourseUpdate(value)}
+                    />
                 </div>
+                <hr className="text-[rgba(0,0,0,0.1)] mb-5" />
 
                 {/* New Assignments */}
-                <div className="flex items-start justify-between py-4 border-b border-gray-200">
+                <div className="flex items-start justify-between py-4 border-gray-200">
                     <div className="flex items-start gap-3 flex-1">
                         <Bell />
                         <div className="flex-1">
@@ -42,16 +41,15 @@ export default function NotificationsTab() {
                             <p className="text-gray-600 text-sm">Get notified when instructors post new assignments</p>
                         </div>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer ml-4">
-                        <ToggleSwitch
-                            checked={newAssignments}
-                            onChange={(value) => setNewAssignments(value)}
-                        />
-                    </label>
+                    <ToggleSwitch
+                        checked={newAssignments}
+                        onChange={(value) => setNewAssignments(value)}
+                    />
                 </div>
+                <hr className="text-[rgba(0,0,0,0.1)] mb-5" />
 
                 {/* Grade Updates */}
-                <div className="flex items-start justify-between py-4 border-b border-gray-200">
+                <div className="flex items-start justify-between py-4 border-gray-200">
                     <div className="flex items-start gap-3 flex-1">
                         <Bell />
                         <div className="flex-1">
@@ -59,16 +57,15 @@ export default function NotificationsTab() {
                             <p className="text-gray-600 text-sm">Receive notifications when you receive grades</p>
                         </div>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer ml-4">
-                        <ToggleSwitch
-                            checked={gradeUpdates}
-                            onChange={(value) => setGradeUpdates(value)}
-                        />
-                    </label>
+                    <ToggleSwitch
+                        checked={gradeUpdates}
+                        onChange={(value) => setGradeUpdates(value)}
+                    />
                 </div>
+                <hr className="text-[rgba(0,0,0,0.1)] mb-5" />
 
                 {/* Marketing Emails */}
-                <div className="flex items-start justify-between py-4 border-b border-gray-200">
+                <div className="flex items-start justify-between py-4 border-gray-200">
                     <div className="flex items-start gap-3 flex-1">
                         <Mail />
                         <div className="flex-1">
@@ -76,13 +73,12 @@ export default function NotificationsTab() {
                             <p className="text-gray-600 text-sm">Receive emails about new courses and special offers</p>
                         </div>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer ml-4">
-                        <ToggleSwitch
-                            checked={marketingEmails}
-                            onChange={(value) => setMarketingEmails(value)}
-                        />
-                    </label>
+                    <ToggleSwitch
+                        checked={marketingEmails}
+                        onChange={(value) => setMarketingEmails(value)}
+                    />
                 </div>
+                <hr className="text-[rgba(0,0,0,0.1)] mb-5" />
             </div>
         </div>
     )

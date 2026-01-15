@@ -8,7 +8,7 @@ export default function ToggleSwitch({
 
 ) {
     return (
-        <>
+        <label className="relative inline-flex items-center cursor-pointer ml-4">
             <input
                 type="checkbox"
                 checked={checked}
@@ -31,7 +31,7 @@ export default function ToggleSwitch({
                             after:w-5 
                             after:transition-all 
                             peer-checked:bg-[rgb(99,102,241)]" />
-        </>
+        </label>
 
     )
 }

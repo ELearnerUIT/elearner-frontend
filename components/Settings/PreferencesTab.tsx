@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import CustomDropdown from '@/components/shared/CustomDropdown';
 import ToggleSwitch from '@/components/shared/ToggleSwitch';
-import { CustomButton } from '@/components/shared/CustomButton';
+import { ButtonColor, CustomButton } from '@/components/shared/CustomButton';
 
 export default function PreferencesTab() {
     const [language, setLanguage] = useState('English');
@@ -16,16 +16,17 @@ export default function PreferencesTab() {
     const timezones = ['Eastern Time (EST)', 'Central Time (CST)', 'Mountain Time (MST)', 'Pacific Time (PST)', 'GMT'];
     const videoQualities = ['Auto', '1080p', '720p', '480p', '360p'];
 
-    const handleSavePreferences = () => {
-        alert("Preferences saved")
+    const handleSaveLanguageRegion = () => {
+        alert("Language & Region saved")
     };
+
+    const handleSaveLearningPreferences = () => {
+        alert("Learning Preferences saved")
+    };
+
 
     const handleDeleteAccount = () => {
         alert("Account deleted")
-    };
-
-    const selectLanguage = (language: string) => {
-        setLanguage(language);
     };
 
     return (
@@ -54,13 +55,16 @@ export default function PreferencesTab() {
                         />
                     </div>
                 </div>
-
-                <button
-                    onClick={handleSavePreferences}
-                    className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
-                >
-                    Save Preferences
-                </button>
+                <div className="mt-6">
+                    <CustomButton
+                        text="Save Language & Region"
+                        enabled={true}
+                        color={ButtonColor.PURPLE}
+                        width="w-60"
+                        height="h-10"
+                        onClick={() => { handleSaveLanguageRegion() }}
+                    />
+                </div>
             </div>
 
             {/* Learning Preferences Section */}
@@ -76,8 +80,9 @@ export default function PreferencesTab() {
                         </div>
                         <ToggleSwitch
                             checked={autoPlayNextLesson}
-                            onChange={setAutoPlayNextLesson}
+                            onChange={(value) => setAutoPlayNextLesson(value)}
                         />
+
                     </div>
 
                     <div className="flex items-center justify-between py-3">
@@ -87,7 +92,7 @@ export default function PreferencesTab() {
                         </div>
                         <ToggleSwitch
                             checked={showSubtitlesByDefault}
-                            onChange={setShowSubtitlesByDefault}
+                            onChange={(value) => setShowSubtitlesByDefault(value)}
                         />
                     </div>
 
@@ -100,21 +105,31 @@ export default function PreferencesTab() {
                         />
                     </div>
                 </div>
+                <div className="mt-6">
+                    <CustomButton
+                        text="Save Learning Preferences"
+                        enabled={true}
+                        color={ButtonColor.PURPLE}
+                        width="w-60"
+                        height="h-10"
+                        onClick={() => { handleSaveLearningPreferences() }}
+                    />
+                </div>
             </div>
 
             {/* Danger Zone Section */}
-            <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6">
+            <div className="bg-white border-2 border-red-200 rounded-lg p-6">
                 <h2 className="text-xl font-semibold mb-2 text-red-600">Danger Zone</h2>
                 <p className="text-gray-600 text-sm mb-4">Irreversible and destructive actions</p>
 
-                <div className="bg-white rounded-lg p-4 border border-red-200">
+                <div className="bg-white rounded-lg p-4">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="font-medium text-gray-900">Delete Account</p>
                             <p className="text-gray-600 text-sm">Permanently delete your account and all data</p>
                         </div>
                         <button
-                            onClick={handleDeleteAccount}
+                            onClick={() => handleDeleteAccount()}
                             className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
                         >
                             Delete
