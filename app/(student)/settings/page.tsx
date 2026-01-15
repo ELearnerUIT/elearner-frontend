@@ -22,7 +22,7 @@ export default function Settings() {
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-medium text-black">Account Settings</h1>
+                    <h1 className="text-4xl font-medium text-black">Account Settings</h1>
                     <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
                 </div>
 

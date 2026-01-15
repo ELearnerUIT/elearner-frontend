@@ -11,6 +11,14 @@ import { ButtonColor, CustomButton } from '@/components/shared/CustomButton';
 import PaginationBar from '@/components/shared/PaginationBar';
 import ReviewCard from '@/components/CourseDetail/ReviewCard';
 
+export function convertLinkToTitle(breadCrumb: string) {
+    return breadCrumb.split('-').join(' ')
+}
+
+export function convertTitleToLink(title: string) {
+    return title.toLowerCase().split(' ').join('-')
+}
+
 export default function CourseDetail({ params }: {
     params: Promise<{ courseName: string }>
 }) {
@@ -21,9 +29,6 @@ export default function CourseDetail({ params }: {
     // Use for breadcrumb
     const path = usePathname();
     const breadCrumbs = path.split('/').filter(breadCrumb => breadCrumb !== "")
-    const convertBreadCrump = (breadCrumb: string) => {
-        return breadCrumb.split('-').join(' ')
-    }
     let accumulatedPath = ""
 
     // Use for course detail
@@ -262,7 +267,7 @@ export default function CourseDetail({ params }: {
                             {
                                 breadCrumbs.map((breadCrumb, index) => {
                                     accumulatedPath += "/" + breadCrumb
-                                    const breadCrumbName = convertBreadCrump(breadCrumb)
+                                    const breadCrumbName = convertLinkToTitle(breadCrumb)
                                     return (
                                         <div key={index}>
                                             <span className="mx-2">/</span>
