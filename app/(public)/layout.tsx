@@ -15,7 +15,7 @@ export default function PublicLayout({
             </div>
 
             {/* 2. Nội dung chính của từng trang (Home, Login, Course Detail...) */}
-            <main className="flex-grow">{children}</main>
+            <main className="grow">{children}</main>
 
             {/* 3. Footer chung cho toàn bộ trang Public */}
             <PublicFooter />
