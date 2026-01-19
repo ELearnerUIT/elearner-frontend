@@ -1,5 +1,6 @@
 import PublicFooter from "@/components/shared/PublicFooter";
 import PublicNavbar from "@/components/shared/PublicNavbar";
+import AuthGuard from "@/components/auth/AuthGuard";
 
 export default function StudentLayout({
     children,
@@ -7,17 +8,16 @@ export default function StudentLayout({
     children: React.ReactNode;
 }) {
     return (
+        <AuthGuard allowedRoles={["STUDENT"]}>
+            <div className="flex flex-col min-h-screen bg-base-100">
+                <div className="w-full bg-base-200 text-center">
+                    <PublicNavbar />
+                </div>
 
-        <div className="flex flex-col min-h-screen bg-base-100">
+                <main className="grow">{children}</main>
 
-            <div className="w-full bg-base-200 text-center">
-                <PublicNavbar />
+                <PublicFooter />
             </div>
-
-            <main className="grow">{children}</main>
-
-            <PublicFooter />
-
-        </div>
+        </AuthGuard>
     );
 }
