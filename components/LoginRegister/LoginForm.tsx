@@ -79,7 +79,7 @@ export default function LoginForm() {
 
                 setAuthData(authData);
 
-                router.push("/home");
+                router.push("/my-courses");
             } else {
                 setErrorMessage(
                     data.message ||

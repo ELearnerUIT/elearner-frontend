@@ -1,5 +1,5 @@
 import PublicFooter from "@/components/shared/PublicFooter";
-import PublicNavbar from "@/components/shared/PublicNavbar";
+import StudentNavbar from "@/components/student/StudentNavbar";
 import AuthGuard from "@/components/auth/AuthGuard";
 
 export default function StudentLayout({
@@ -11,7 +11,7 @@ export default function StudentLayout({
         <AuthGuard allowedRoles={["STUDENT"]}>
             <div className="flex flex-col min-h-screen bg-base-100">
                 <div className="w-full bg-base-200 text-center">
-                    <PublicNavbar />
+                    <StudentNavbar />
                 </div>
 
                 <main className="grow">{children}</main>
