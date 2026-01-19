@@ -16,7 +16,7 @@ import {
     ShoppingCart,
     Lightbulb,
 } from "lucide-react";
-import { clearAuthData, getUser } from "@/lib/auth";
+import { clearAuthData, getUser, logout } from "@/lib/auth";
 
 const StudentNavbar = () => {
     const pathname = usePathname();
@@ -30,9 +30,15 @@ const StudentNavbar = () => {
         { name: "Recommendations", href: "/recommendations", icon: Lightbulb },
     ];
 
-    const handleLogout = () => {
-        clearAuthData();
-        router.push("/login");
+    const handleLogout = async () => {
+        try {
+            await logout();
+            router.push("/login");
+        } catch (error) {
+            console.error("Logout failed:", error);
+            clearAuthData();
+            router.push("/login");
+        }
     };
 
     return (

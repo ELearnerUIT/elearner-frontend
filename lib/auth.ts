@@ -52,18 +52,21 @@ function deleteCookie(name: string): void {
 }
 
 export function setAuthData(data: AuthData): void {
-    // Calculate days until token expires
     const accessExpires = new Date(data.accessTokenExpiresAt);
     const refreshExpires = new Date(data.refreshTokenExpiresAt);
     const now = new Date();
 
     const accessDays = Math.max(
         1,
-        Math.ceil((accessExpires.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+        Math.ceil(
+            (accessExpires.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+        ),
     );
     const refreshDays = Math.max(
         1,
-        Math.ceil((refreshExpires.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+        Math.ceil(
+            (refreshExpires.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+        ),
     );
 
     setCookie(ACCESS_TOKEN_KEY, data.accessToken, accessDays);
@@ -115,4 +118,40 @@ export function isTeacher(): boolean {
 
 export function isAdmin(): boolean {
     return hasRole("ADMIN");
+}
+
+export async function logout(): Promise<boolean> {
+    const accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
+
+    if (!accessToken || !refreshToken) {
+        clearAuthData();
+        return true;
+    }
+
+    try {
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/v1/auth/logout`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify({
+                    refreshToken: refreshToken,
+                }),
+            },
+        );
+
+        const data = await response.json();
+
+        clearAuthData();
+
+        return data.success || response.ok;
+    } catch (error) {
+        console.error("Logout error:", error);
+        clearAuthData();
+        return true;
+    }
 }
