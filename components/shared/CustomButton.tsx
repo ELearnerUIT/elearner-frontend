@@ -71,8 +71,12 @@ export function CustomButton(
     let color_class = get_color_class(color, enabled);
 
     return (
-        <button className={`${width} ${height} border ${color_class} font-normal py-2 px-4 ${rounded} flex justify-center items-center gap-2 transition`}
-            onClick={(event) => onClick(event)}>
+        <button
+            type="button"
+            disabled={!enabled}
+            className={`${width} ${height} border ${color_class} font-normal py-2 px-4 ${rounded} flex justify-center items-center gap-2 transition ${!enabled ? "cursor-not-allowed" : "cursor-pointer"}`}
+            onClick={(event) => enabled && onClick(event)}
+        >
             {children}
             {text}
         </button>
