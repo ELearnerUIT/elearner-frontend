@@ -104,10 +104,10 @@ export default function CourseManagement() {
     }
 
     return (
-        <div className="p-6 bg-white min-h-screen">
+        <div className="p-6 bg-white rounded-lg shadow min-h-screen">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Course Management</h1>
+                <h1 className="text-3xl font-medium text-gray-900 mb-2">Course Management</h1>
                 <p className="text-gray-600">Review and manage all courses on the platform</p>
             </div>
 

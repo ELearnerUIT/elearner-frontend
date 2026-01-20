@@ -2,6 +2,7 @@
 
 import CourseManagement from '@/components/admin/CourseManagement/CourseManagement';
 import Dashboard from '@/components/admin/DashBoard/Dashboard';
+import UserManagement from '@/components/admin/UserManagement/UserManagement';
 import NotificationBadge from '@/components/shared/NotificationBadge';
 import { DollarSign, GraduationCap, LayoutDashboard, Users, ChartColumn, Settings, Moon, Bell, Search } from 'lucide-react';
 import { ReactNode, useState } from 'react';
@@ -34,7 +35,7 @@ export default function AdminDashboard() {
             case 'courses':
                 return <CourseManagement />;
             case 'users':
-                return <div>Users</div>;
+                return <UserManagement />;
             case 'finance':
                 return <div>Finance</div>;
             case 'reports':
