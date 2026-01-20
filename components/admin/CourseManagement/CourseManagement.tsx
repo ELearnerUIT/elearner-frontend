@@ -104,105 +104,107 @@ export default function CourseManagement() {
     }
 
     return (
-        <div className="p-6 bg-white rounded-lg shadow min-h-screen">
+        <div className="min-h-screen">
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-medium text-gray-900 mb-2">Course Management</h1>
                 <p className="text-gray-600">Review and manage all courses on the platform</p>
             </div>
+            <div className="p-6 bg-white rounded-lg shadow ">
+                {/* Search and Filter Section */}
+                <div className="mb-8 flex gap-4 items-center justify-center w-full">
+                    <div className="flex-1 justify-center">
+                        <div
+                            onKeyDown={(e) => { if (e.key === "Enter") handleSearch() }}
+                        >
+                            <CustomInputField
+                                icon={InputFieldIcon.SEARCH}
+                                placeholder="Search courses by title or teacher..."
+                                initValue={searchInput}
+                                onValueChange={(e) => setSearchInput(e.target.value)}
+                            />
+                        </div>
 
-            {/* Search and Filter Section */}
-            <div className="mb-8 flex gap-4 items-center justify-center w-full">
-                <div className="flex-1 justify-center">
-                    <div
-                        onKeyDown={(e) => { if (e.key === "Enter") handleSearch() }}
-                    >
-                        <CustomInputField
-                            icon={InputFieldIcon.SEARCH}
-                            placeholder="Search courses by title or teacher..."
-                            initValue={searchInput}
-                            onValueChange={(e) => setSearchInput(e.target.value)}
-                        />
                     </div>
-
+                    <CustomButton
+                        color={ButtonColor.PURPLE}
+                        width="w-15"
+                        onClick={() => handleSearch()}
+                    >
+                        <Search />
+                    </CustomButton>
                 </div>
-                <CustomButton
-                    color={ButtonColor.PURPLE}
-                    width="w-15"
-                    onClick={() => handleSearch()}
-                >
-                    <Search />
-                </CustomButton>
-            </div>
 
-            {/* Courses Table */}
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead>
-                        <tr className="border-b border-gray-200">
-                            <th className="text-left py-4 px-4 text-gray-700 font-semibold">Course Title</th>
-                            <th className="text-left py-4 px-4 text-gray-700 font-semibold">Teacher</th>
-                            <th className="text-left py-4 px-4 text-gray-700 font-semibold">Category</th>
-                            <th className="text-left py-4 px-4 text-gray-700 font-semibold">Status</th>
-                            <th className="text-left py-4 px-4 text-gray-700 font-semibold">Date Created</th>
-                            <th className="text-left py-4 px-4 text-gray-700 font-semibold">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {courses.map((course) => (
-                            <tr key={course.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                                <td className="py-4 px-4">
-                                    <div className="font-medium text-gray-900">{course.title}</div>
-                                    <div className="text-sm text-gray-500">{course.lessons} lessons</div>
-                                </td>
-                                <td className="py-4 px-4 text-gray-700">{course.teacher}</td>
-                                <td className="py-4 px-4 text-gray-700">{course.category}</td>
-                                <td className="py-4 px-4">
-                                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusStyles(course.status)}`}>
-                                        {course.status}
-                                    </span>
-                                </td>
-                                <td className="py-4 px-4 text-gray-700">{course.dateCreated}</td>
-                                <td className="py-4 px-4">
-                                    <div className="flex gap-3">
-                                        <button
-                                            onClick={() => handleViewCourse(course.id)}
-                                            className="p-2 hover:bg-gray-200 rounded-lg transition text-gray-600"
-                                            title="View course"
-                                        >
-                                            <Eye className="w-5 h-5" />
-                                        </button>
-                                        {course.status === 'Pending' && (
-                                            <>
-                                                <button
-                                                    onClick={() => handleApproveCourse(course.id)}
-                                                    className="p-2 hover:bg-green-100 rounded-lg transition text-green-600"
-                                                    title="Approve course"
-                                                >
-                                                    <Check className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleRejectCourse(course.id)}
-                                                    className="p-2 hover:bg-red-100 rounded-lg transition text-red-600"
-                                                    title="Reject course"
-                                                >
-                                                    <X className="w-5 h-5" />
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
-                                </td>
+                {/* Courses Table */}
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="border-b border-gray-200">
+                                <th className="text-left py-4 px-4 text-gray-700 font-semibold">Course Title</th>
+                                <th className="text-left py-4 px-4 text-gray-700 font-semibold">Teacher</th>
+                                <th className="text-left py-4 px-4 text-gray-700 font-semibold">Category</th>
+                                <th className="text-left py-4 px-4 text-gray-700 font-semibold">Status</th>
+                                <th className="text-left py-4 px-4 text-gray-700 font-semibold">Date Created</th>
+                                <th className="text-left py-4 px-4 text-gray-700 font-semibold">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {courses.map((course) => (
+                                <tr key={course.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                                    <td className="py-4 px-4">
+                                        <div className="font-medium text-gray-900">{course.title}</div>
+                                        <div className="text-sm text-gray-500">{course.lessons} lessons</div>
+                                    </td>
+                                    <td className="py-4 px-4 text-gray-700">{course.teacher}</td>
+                                    <td className="py-4 px-4 text-gray-700">{course.category}</td>
+                                    <td className="py-4 px-4">
+                                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusStyles(course.status)}`}>
+                                            {course.status}
+                                        </span>
+                                    </td>
+                                    <td className="py-4 px-4 text-gray-700">{course.dateCreated}</td>
+                                    <td className="py-4 px-4">
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => handleViewCourse(course.id)}
+                                                className="p-2 hover:bg-gray-200 rounded-lg transition text-gray-600"
+                                                title="View course"
+                                            >
+                                                <Eye className="w-5 h-5" />
+                                            </button>
+                                            {course.status === 'Pending' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleApproveCourse(course.id)}
+                                                        className="p-2 hover:bg-green-100 rounded-lg transition text-green-600"
+                                                        title="Approve course"
+                                                    >
+                                                        <Check className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRejectCourse(course.id)}
+                                                        className="p-2 hover:bg-red-100 rounded-lg transition text-red-600"
+                                                        title="Reject course"
+                                                    >
+                                                        <X className="w-5 h-5" />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {courses.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                        No courses found matching your search.
+                    </div>
+                )}
             </div>
 
-            {courses.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                    No courses found matching your search.
-                </div>
-            )}
         </div>
     );
 }
