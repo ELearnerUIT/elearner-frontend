@@ -1,5 +1,6 @@
 'use client';
 
+import CourseManagement from '@/components/admin/CourseManagement/CourseManagement';
 import Dashboard from '@/components/admin/DashBoard/Dashboard';
 import NotificationBadge from '@/components/shared/NotificationBadge';
 import { DollarSign, GraduationCap, LayoutDashboard, Users, ChartColumn, Settings, Moon, Bell, Search } from 'lucide-react';
@@ -31,7 +32,7 @@ export default function AdminDashboard() {
             case 'dashboard':
                 return <Dashboard />;
             case 'courses':
-                return <div>Courses</div>;
+                return <CourseManagement />;
             case 'users':
                 return <div>Users</div>;
             case 'finance':

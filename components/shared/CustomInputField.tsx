@@ -1,12 +1,13 @@
 'use client';
 
 import React from "react";
-import { User, Mail, DollarSign } from "lucide-react";
+import { User, Mail, DollarSign, Search } from "lucide-react";
 
 export enum InputFieldIcon {
     USER,
     MAIL,
     DOLLAR,
+    SEARCH,
     NONE
 }
 
@@ -18,6 +19,8 @@ const getIcon = (icon?: InputFieldIcon) => {
             return Mail
         case InputFieldIcon.DOLLAR:
             return DollarSign
+        case InputFieldIcon.SEARCH:
+            return Search
         default:
             return User
     }
@@ -42,15 +45,18 @@ export default function CustomInputField({
 }) {
     return (
         <div>
-            <label className="block text-[rgb(10,10,10)] font-medium mb-2">{text}</label>
-            <div className="relative">
+            {text && (
+                <label className="block text-[rgb(10,10,10)] font-medium mb-2">{text}</label>
+            )
+            }
+            <div className="relative w-full">
                 {icon !== InputFieldIcon.NONE && getIcon(icon) && React.createElement(getIcon(icon), { className: "absolute left-3 top-3 text-gray-300", size: 20 })}
                 <input
                     type="text"
                     value={initValue}
                     onChange={(event) => { onValueChange(event); onValidate && onValidate(event); }}
                     placeholder={placeholder}
-                    className={"w-full pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 "
+                    className={"flex w-full pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 "
                         +
                         (icon == InputFieldIcon.NONE ? " pl-4 " : " pl-10 ")
                         +
