@@ -1,6 +1,6 @@
 'use client';
 
-import Dashboard from '@/components/admin/Dashboard';
+import Dashboard from '@/components/admin/DashBoard/Dashboard';
 import NotificationBadge from '@/components/shared/NotificationBadge';
 import { DollarSign, GraduationCap, LayoutDashboard, Users, ChartColumn, Settings, Moon, Bell, Search } from 'lucide-react';
 import { ReactNode, useState } from 'react';
