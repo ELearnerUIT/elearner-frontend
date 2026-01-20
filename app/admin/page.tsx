@@ -3,6 +3,7 @@
 import CourseManagement from '@/components/admin/CourseManagement/CourseManagement';
 import Dashboard from '@/components/admin/DashBoard/Dashboard';
 import Finance from '@/components/admin/Finance/Finace';
+import Reports from '@/components/admin/Reports/Reports';
 import UserManagement from '@/components/admin/UserManagement/UserManagement';
 import NotificationBadge from '@/components/shared/NotificationBadge';
 import { DollarSign, GraduationCap, LayoutDashboard, Users, ChartColumn, Settings, Moon, Bell, Search } from 'lucide-react';
@@ -40,7 +41,7 @@ export default function AdminDashboard() {
             case 'finance':
                 return <Finance />;
             case 'reports':
-                return <div>Reports</div>;
+                return <Reports />;
             case 'settings':
                 return <div>Settings</div>;
             default:
