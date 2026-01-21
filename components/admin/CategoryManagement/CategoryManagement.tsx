@@ -189,7 +189,7 @@ export default function CategoryManagement() {
             const response = await apiRequest(
                 `${API_ENDPOINTS.CATEGORIES.RESTORE}/${categoryId}/restore`,
                 {
-                    method: "PUT",
+                    method: "PATCH",
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -256,7 +256,7 @@ export default function CategoryManagement() {
                 },
             );
 
-            if (response.success) {
+            if (response.status === 204) {
                 alert("Category deleted successfully");
                 fetchCategories();
             }

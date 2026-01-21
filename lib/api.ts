@@ -33,7 +33,7 @@ export interface ApiResponse<T = any> {
 
 export async function apiRequest<T = any>(
     url: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
 ): Promise<ApiResponse<T>> {
     try {
         const response = await fetch(url, {
@@ -43,6 +43,15 @@ export async function apiRequest<T = any>(
                 ...options.headers,
             },
         });
+
+        if (response.status === 204) {
+            return {
+                success: true,
+                status: 204,
+                message: "Operation successful",
+                data: undefined,
+            };
+        }
 
         const data = await response.json();
         return data;
