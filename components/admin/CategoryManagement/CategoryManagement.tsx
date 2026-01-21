@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Plus, Edit, Trash2, Eye, FolderTree, X } from "lucide-react";
+import {
+    Search,
+    Plus,
+    Edit,
+    Trash2,
+    Eye,
+    FolderTree,
+    X,
+    RotateCcw,
+    Trash,
+} from "lucide-react";
 import { ButtonColor, CustomButton } from "@/components/shared/CustomButton";
 import CustomInputField, {
     InputFieldIcon,
@@ -32,6 +42,7 @@ export default function CategoryManagement() {
     const [isLoading, setIsLoading] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleted, setShowDeleted] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(
         null,
     );
@@ -47,8 +58,12 @@ export default function CategoryManagement() {
     const [isCreating, setIsCreating] = useState(false);
 
     useEffect(() => {
-        fetchCategories();
-    }, []);
+        if (showDeleted) {
+            fetchDeletedCategories();
+        } else {
+            fetchCategories();
+        }
+    }, [showDeleted]);
 
     const fetchCategories = async () => {
         setIsLoading(true);
@@ -69,6 +84,30 @@ export default function CategoryManagement() {
             }
         } catch (error) {
             console.error("Error fetching categories:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchDeletedCategories = async () => {
+        setIsLoading(true);
+        try {
+            const token = getAccessToken();
+            const response: ApiResponse<Category[]> = await apiRequest(
+                API_ENDPOINTS.CATEGORIES.GET_DELETED,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
+
+            if (response.success && response.data) {
+                setCategories(response.data);
+            }
+        } catch (error) {
+            console.error("Error fetching deleted categories:", error);
         } finally {
             setIsLoading(false);
         }
@@ -139,6 +178,61 @@ export default function CategoryManagement() {
             alert("An error occurred while creating the category");
         } finally {
             setIsCreating(false);
+        }
+    };
+
+    const handleRestoreCategory = async (categoryId: number) => {
+        if (!confirm("Are you sure you want to restore this category?")) return;
+
+        try {
+            const token = getAccessToken();
+            const response = await apiRequest(
+                `${API_ENDPOINTS.CATEGORIES.RESTORE}/${categoryId}/restore`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
+
+            if (response.success) {
+                alert("Category restored successfully");
+                fetchDeletedCategories();
+            }
+        } catch (error) {
+            console.error("Error restoring category:", error);
+            alert("Failed to restore category");
+        }
+    };
+
+    const handlePermanentDelete = async (categoryId: number) => {
+        if (
+            !confirm(
+                "Are you sure you want to PERMANENTLY delete this category? This action cannot be undone!",
+            )
+        )
+            return;
+
+        try {
+            const token = getAccessToken();
+            const response = await apiRequest(
+                `${API_ENDPOINTS.CATEGORIES.DELETE}/${categoryId}/permanent`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
+
+            if (response.success) {
+                alert("Category permanently deleted");
+                fetchDeletedCategories();
+            }
+        } catch (error) {
+            console.error("Error permanently deleting category:", error);
+            alert("Failed to permanently delete category");
         }
     };
 
@@ -246,22 +340,49 @@ export default function CategoryManagement() {
                     </td>
                     <td className="py-4 px-4">
                         <div className="flex gap-3">
-                            <button
-                                onClick={() => handleEditCategory(category)}
-                                className="p-2 hover:bg-blue-100 rounded-lg transition text-blue-600"
-                                title="Edit category"
-                            >
-                                <Edit className="w-5 h-5" />
-                            </button>
-                            <button
-                                onClick={() =>
-                                    handleDeleteCategory(category.id)
-                                }
-                                className="p-2 hover:bg-red-100 rounded-lg transition text-red-600"
-                                title="Delete category"
-                            >
-                                <Trash2 className="w-5 h-5" />
-                            </button>
+                            {showDeleted ? (
+                                <>
+                                    <button
+                                        onClick={() =>
+                                            handleRestoreCategory(category.id)
+                                        }
+                                        className="p-2 hover:bg-green-100 rounded-lg transition text-green-600"
+                                        title="Restore category"
+                                    >
+                                        <RotateCcw className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            handlePermanentDelete(category.id)
+                                        }
+                                        className="p-2 hover:bg-red-100 rounded-lg transition text-red-600"
+                                        title="Permanently delete"
+                                    >
+                                        <Trash className="w-5 h-5" />
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() =>
+                                            handleEditCategory(category)
+                                        }
+                                        className="p-2 hover:bg-blue-100 rounded-lg transition text-blue-600"
+                                        title="Edit category"
+                                    >
+                                        <Edit className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            handleDeleteCategory(category.id)
+                                        }
+                                        className="p-2 hover:bg-red-100 rounded-lg transition text-red-600"
+                                        title="Delete category"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </td>
                 </tr>
@@ -273,7 +394,24 @@ export default function CategoryManagement() {
     };
 
     return (
-        <div className="min-h-screen">
+        <div>
+            <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium text-gray-700">
+                        {showDeleted
+                            ? "Deleted Categories"
+                            : "Active Categories"}
+                    </span>
+                    <ToggleSwitch
+                        checked={showDeleted}
+                        onChange={(checked) => setShowDeleted(checked)}
+                    />
+                    <span className="text-sm text-gray-500">
+                        {showDeleted ? "Showing deleted" : "Show deleted"}
+                    </span>
+                </div>
+            </div>
+
             <div className="mb-8 grid grid-cols-3 gap-4 items-center">
                 <div className="col-span-2">
                     <h1 className="text-3xl font-medium text-gray-900 mb-2">
@@ -366,7 +504,7 @@ export default function CategoryManagement() {
             </div>
 
             {showAddModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between p-6 border-b border-gray-200">
                             <h2 className="text-2xl font-semibold text-gray-900">

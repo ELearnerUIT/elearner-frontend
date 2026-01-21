@@ -14,9 +14,11 @@ export const API_ENDPOINTS = {
         GET_TREE: `${API_BASE_URL}/api/${API_VERSION}/categories/tree`,
         GET_ALL: `${API_BASE_URL}/api/${API_VERSION}/categories`,
         GET_BY_ID: `${API_BASE_URL}/api/${API_VERSION}/categories`,
+        GET_DELETED: `${API_BASE_URL}/api/${API_VERSION}/admin/categories/deleted`,
         CREATE: `${API_BASE_URL}/api/${API_VERSION}/admin/categories`,
         UPDATE: `${API_BASE_URL}/api/${API_VERSION}/admin/categories`,
         DELETE: `${API_BASE_URL}/api/${API_VERSION}/admin/categories`,
+        RESTORE: `${API_BASE_URL}/api/${API_VERSION}/admin/categories`,
     },
 };
 
