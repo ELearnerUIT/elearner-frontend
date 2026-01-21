@@ -10,6 +10,14 @@ export const API_ENDPOINTS = {
         FORGOT_PASSWORD: `${API_BASE_URL}/api/${API_VERSION}/auth/password/forgot`,
         RESET_PASSWORD: `${API_BASE_URL}/api/${API_VERSION}/auth/password/reset`,
     },
+    CATEGORIES: {
+        GET_TREE: `${API_BASE_URL}/api/${API_VERSION}/categories/tree`,
+        GET_ALL: `${API_BASE_URL}/api/${API_VERSION}/categories`,
+        GET_BY_ID: `${API_BASE_URL}/api/${API_VERSION}/categories`,
+        CREATE: `${API_BASE_URL}/api/${API_VERSION}/categories`,
+        UPDATE: `${API_BASE_URL}/api/${API_VERSION}/categories`,
+        DELETE: `${API_BASE_URL}/api/${API_VERSION}/categories`,
+    },
 };
 
 export interface ApiResponse<T = any> {

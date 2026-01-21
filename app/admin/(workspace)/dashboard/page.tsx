@@ -1,6 +1,6 @@
 "use client";
 
-import CourseManagement from "@/components/admin/CourseManagement/CourseManagement";
+import CourseAndCategoryManagement from "@/components/admin/CourseManagement/CourseAndCategoryManagement";
 import Dashboard from "@/components/admin/DashBoard/Dashboard";
 import Finance from "@/components/admin/Finance/Finace";
 import Reports from "@/components/admin/Reports/Reports";
@@ -67,7 +67,7 @@ export default function AdminDashboard() {
             case "dashboard":
                 return <Dashboard />;
             case "courses":
-                return <CourseManagement />;
+                return <CourseAndCategoryManagement />;
             case "users":
                 return <UserManagement />;
             case "finance":
@@ -162,9 +162,6 @@ export default function AdminDashboard() {
                         </label>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <button className="text-black bg-[rgb(243,243,245)] hover:bg-gray-400 h-10 w-10 rounded-xl flex items-center justify-center">
-                            <Moon />
-                        </button>
                         <button className="relative text-black bg-[rgb(243,243,245)] hover:bg-gray-400 h-10 w-10 rounded-xl flex items-center justify-center">
                             <Bell />
                             <NotificationBadge
