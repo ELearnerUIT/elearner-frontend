@@ -8,7 +8,7 @@ const ROOT_DOMAIN = process.env.ROOT_DOMAIN || "localhost:3000";
  *
  * This configuration maps different user roles to specific subdomains:
  * - admin.{domain} -> Admin routes (/admin/*)
- * - teacher.{domain} -> Instructor routes (/instructor/*)
+ * - teacher.{domain} -> Teacher routes (/teacher/*)
  * - {domain} -> Public and Student routes
  *
  * Environment Variables:
@@ -28,12 +28,12 @@ const ROOT_DOMAIN = process.env.ROOT_DOMAIN || "localhost:3000";
  * 3. Access different domains:
  *    - http://localhost:3000 - Public/Student
  *    - http://admin.localhost:3000 - Admin panel
- *    - http://teacher.localhost:3000 - Instructor panel
+ *    - http://teacher.localhost:3000 - Teacher panel
  *
  * Production:
  * - https://elearner.com - Public/Student
  * - https://admin.elearner.com - Admin panel
- * - https://teacher.elearner.com - Instructor panel
+ * - https://teacher.elearner.com - Teacher panel
  */
 
 export async function middleware(req: NextRequest) {

@@ -8,29 +8,33 @@ import { Loader2 } from "lucide-react";
 interface AuthGuardProps {
     children: React.ReactNode;
     allowedRoles?: User["role"][];
+    redirectTo?: string;
 }
 
 export default function AuthGuard({
     children,
     allowedRoles = ["STUDENT"],
+    redirectTo = "/login",
 }: AuthGuardProps) {
     const router = useRouter();
     const [isChecking, setIsChecking] = useState(true);
     const [isAuthorized, setIsAuthorized] = useState(false);
 
     useEffect(() => {
-        const checkAuth = () => {
+        const checkAuth = async () => {
             // Check if user is authenticated
             if (!isAuthenticated()) {
-                router.replace("/login");
+                setIsChecking(false);
+                router.replace(redirectTo);
                 return;
             }
 
             // Check if user has required role
             const user = getUser();
             if (!user || !allowedRoles.includes(user.role)) {
-                // Redirect to login with error or show unauthorized
-                router.replace("/login");
+                // Redirect to appropriate login page
+                setIsChecking(false);
+                router.replace(redirectTo);
                 return;
             }
 
@@ -39,7 +43,7 @@ export default function AuthGuard({
         };
 
         checkAuth();
-    }, [router, allowedRoles]);
+    }, [router, allowedRoles, redirectTo]);
 
     if (isChecking) {
         return (

@@ -1,11 +1,15 @@
-import { GraduationCap, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { useState } from 'react';
-import CustomPasswordField from '../shared/CustomPasswordField';
-import CustomInputField, { InputFieldIcon } from '../shared/CustomInputField';
-import { ButtonColor, CustomButton } from '../shared/CustomButton';
+import { GraduationCap, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import CustomPasswordField from "../shared/CustomPasswordField";
+import CustomInputField, { InputFieldIcon } from "../shared/CustomInputField";
+import { ButtonColor, CustomButton } from "../shared/CustomButton";
+import { API_ENDPOINTS, apiRequest, ApiResponse } from "@/lib/api";
+import { setAuthData, AuthData } from "@/lib/auth";
 
 export default function AdminLoginForm() {
+    const router = useRouter();
     const [loginInput, setLoginInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
     const [loginError, setLoginError] = useState("");
@@ -31,7 +35,7 @@ export default function AdminLoginForm() {
         return true;
     };
 
-    const handleLogin = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleLogin = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
 
         let isValid = true;
@@ -45,13 +49,47 @@ export default function AdminLoginForm() {
 
         setIsLoading(true);
         setErrorMessage("");
+
+        try {
+            const response: ApiResponse<AuthData> = await apiRequest(
+                API_ENDPOINTS.AUTH.LOGIN,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        username: loginInput,
+                        password: passwordInput,
+                    }),
+                },
+            );
+
+            if (response.success && response.data) {
+                if (response.data.user.role !== "ADMIN") {
+                    setErrorMessage(
+                        "Access denied. Admin credentials required.",
+                    );
+                    setIsLoading(false);
+                    return;
+                }
+
+                setAuthData(response.data);
+
+                router.push("/dashboard");
+            } else {
+                setErrorMessage(response.message || "Invalid credentials");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            setErrorMessage("An error occurred. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
     };
     return (
         <div className="w-full max-w-md space-y-8">
             {/* Admin Icon */}
             <div className="flex justify-center">
                 <div className="w-25 h-25 bg-[rgba(99,102,241)] rounded-2xl flex items-center justify-center shadow-lg">
-                    <GraduationCap className='text-white w-16 h-16' />
+                    <GraduationCap className="text-white w-16 h-16" />
                 </div>
             </div>
 
@@ -67,6 +105,13 @@ export default function AdminLoginForm() {
 
             {/* Form Container */}
             <div className="bg-white rounded-lg shadow-md p-8 space-y-4">
+                {/* Error Message */}
+                {errorMessage && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                        {errorMessage}
+                    </div>
+                )}
+
                 {/* Login Field */}
                 <CustomInputField
                     text="Username"
@@ -128,8 +173,10 @@ export default function AdminLoginForm() {
 
             {/* Copyright */}
             <div className="text-center">
-                <p className="text-sm text-gray-500">© 2024 ELearner. All rights reserved.</p>
+                <p className="text-sm text-gray-500">
+                    © 2024 ELearner. All rights reserved.
+                </p>
             </div>
         </div>
-    )
+    );
 }
