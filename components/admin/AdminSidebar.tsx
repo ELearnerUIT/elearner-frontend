@@ -32,32 +32,32 @@ export default function AdminSidebar({
         icon: ReactNode;
     }[] = [
         {
-            href: "/admin/dashboard",
+            href: "/dashboard",
             label: "Dashboard",
             icon: <LayoutDashboard />,
         },
         {
-            href: "/admin/courses",
+            href: "/courses",
             label: "Course Management",
             icon: <GraduationCap />,
         },
         {
-            href: "/admin/users",
+            href: "/users",
             label: "User Management",
             icon: <Users />,
         },
         {
-            href: "/admin/finance",
+            href: "/finance",
             label: "Finance",
             icon: <DollarSign />,
         },
         {
-            href: "/admin/reports",
+            href: "/reports",
             label: "Reports",
             icon: <ChartColumn />,
         },
         {
-            href: "/admin/settings",
+            href: "/settings",
             label: "Settings",
             icon: <Settings />,
         },
