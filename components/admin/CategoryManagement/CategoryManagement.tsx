@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Plus, Edit, Trash2, Eye, FolderTree } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Eye, FolderTree, X } from "lucide-react";
 import { ButtonColor, CustomButton } from "@/components/shared/CustomButton";
 import CustomInputField, {
     InputFieldIcon,
 } from "@/components/shared/CustomInputField";
+import CustomTextArea from "@/components/shared/CustomTextArea";
+import ToggleSwitch from "@/components/shared/ToggleSwitch";
 import { API_ENDPOINTS, apiRequest, ApiResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
 
@@ -33,6 +35,16 @@ export default function CategoryManagement() {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(
         null,
     );
+    const [newCategory, setNewCategory] = useState({
+        name: "",
+        description: "",
+        visible: true,
+    });
+    const [errors, setErrors] = useState({
+        name: "",
+        description: "",
+    });
+    const [isCreating, setIsCreating] = useState(false);
 
     useEffect(() => {
         fetchCategories();
@@ -67,7 +79,67 @@ export default function CategoryManagement() {
     };
 
     const handleAddCategory = () => {
+        setNewCategory({
+            name: "",
+            description: "",
+            visible: true,
+        });
+        setErrors({ name: "", description: "" });
         setShowAddModal(true);
+    };
+
+    const validateForm = () => {
+        const newErrors = { name: "", description: "" };
+        let isValid = true;
+
+        if (!newCategory.name.trim()) {
+            newErrors.name = "Category name is required";
+            isValid = false;
+        }
+
+        if (!newCategory.description.trim()) {
+            newErrors.description = "Description is required";
+            isValid = false;
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
+    const handleCreateCategory = async () => {
+        if (!validateForm()) return;
+
+        setIsCreating(true);
+        try {
+            const token = getAccessToken();
+            const response: ApiResponse<Category> = await apiRequest(
+                API_ENDPOINTS.CATEGORIES.CREATE,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        name: newCategory.name,
+                        description: newCategory.description,
+                        visible: newCategory.visible,
+                    }),
+                },
+            );
+
+            if (response.success && response.data) {
+                alert("Category created successfully!");
+                setShowAddModal(false);
+                fetchCategories();
+            } else {
+                alert(response.message || "Failed to create category");
+            }
+        } catch (error) {
+            console.error("Error creating category:", error);
+            alert("An error occurred while creating the category");
+        } finally {
+            setIsCreating(false);
+        }
     };
 
     const handleEditCategory = (category: Category) => {
@@ -292,6 +364,125 @@ export default function CategoryManagement() {
                     </div>
                 )}
             </div>
+
+            {showAddModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <h2 className="text-2xl font-semibold text-gray-900">
+                                Add New Category
+                            </h2>
+                            <button
+                                onClick={() => setShowAddModal(false)}
+                                className="text-gray-400 hover:text-gray-600 transition"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Category Name *
+                                </label>
+                                <CustomInputField
+                                    placeholder="e.g., Web Development"
+                                    initValue={newCategory.name}
+                                    errorMessage={errors.name}
+                                    onValueChange={(e) =>
+                                        setNewCategory({
+                                            ...newCategory,
+                                            name: e.target.value,
+                                        })
+                                    }
+                                    onValidate={() => {
+                                        if (!newCategory.name.trim()) {
+                                            setErrors({
+                                                ...errors,
+                                                name: "Category name is required",
+                                            });
+                                        } else {
+                                            setErrors({
+                                                ...errors,
+                                                name: "",
+                                            });
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Description *
+                                </label>
+                                <CustomTextArea
+                                    placeholder="Describe this category..."
+                                    initValue={newCategory.description}
+                                    errorMessage={errors.description}
+                                    rows={4}
+                                    onValueChange={(e) =>
+                                        setNewCategory({
+                                            ...newCategory,
+                                            description: e.target.value,
+                                        })
+                                    }
+                                    onValidate={() => {
+                                        if (!newCategory.description.trim()) {
+                                            setErrors({
+                                                ...errors,
+                                                description:
+                                                    "Description is required",
+                                            });
+                                        } else {
+                                            setErrors({
+                                                ...errors,
+                                                description: "",
+                                            });
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Category Visibility
+                                    </label>
+                                    <p className="text-sm text-gray-500">
+                                        Make this category visible to users
+                                    </p>
+                                </div>
+                                <ToggleSwitch
+                                    checked={newCategory.visible}
+                                    onChange={(checked) =>
+                                        setNewCategory({
+                                            ...newCategory,
+                                            visible: checked,
+                                        })
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+                            <button
+                                onClick={() => setShowAddModal(false)}
+                                className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium"
+                                disabled={isCreating}
+                            >
+                                Cancel
+                            </button>
+                            <CustomButton
+                                color={ButtonColor.PURPLE}
+                                onClick={handleCreateCategory}
+                                enabled={!isCreating}
+                            >
+                                {isCreating ? "Creating..." : "Create Category"}
+                            </CustomButton>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
