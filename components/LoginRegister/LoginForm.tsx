@@ -153,7 +153,7 @@ export default function LoginForm() {
                         }}
                     />
                     <a
-                        href="#"
+                        href="/forgot-password"
                         className="text-blue-500 hover:text-blue-700 text-sm"
                     >
                         Forgot password?
