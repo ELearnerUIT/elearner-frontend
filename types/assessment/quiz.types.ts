@@ -1,4 +1,5 @@
 import { QuizType, QuestionType } from '../shared/common.types';
+import type { QuestionResponse, QuestionOptionResponse } from './question.types';
 
 /**
  * Quiz response DTO
@@ -112,28 +113,4 @@ export interface QuizAnswerResponse {
   isCorrect: boolean;
   pointsAwarded: number;
   feedback: string | null;
-}
-
-/**
- * Question response DTO
- */
-export interface QuestionResponse {
-  id: number;
-  quizId: number;
-  questionType: QuestionType;
-  questionText: string;
-  explanation: string | null;
-  points: number;
-  orderIndex: number;
-  options: QuestionOptionResponse[];
-}
-
-/**
- * Question option response
- */
-export interface QuestionOptionResponse {
-  id: number;
-  optionText: string;
-  isCorrect: boolean;
-  orderIndex: number;
 }

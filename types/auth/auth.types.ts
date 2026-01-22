@@ -90,6 +90,11 @@ export interface TokenResponse extends AuthTokens {
 }
 
 /**
+ * Refresh token response (alias for TokenResponse)
+ */
+export type RefreshTokenResponse = TokenResponse;
+
+/**
  * Logout request DTO
  * POST /api/v1/auth/logout
  */

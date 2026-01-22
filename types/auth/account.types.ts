@@ -98,6 +98,11 @@ export interface UpdateStatusRequest {
 }
 
 /**
+ * Alias for backward compatibility
+ */
+export type UpdateAccountStatusRequest = UpdateStatusRequest;
+
+/**
  * Account suspension request DTO
  * POST /api/v1/admin/accounts/{id}/suspend
  */

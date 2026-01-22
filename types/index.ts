@@ -42,6 +42,7 @@ export * from "./billing/revenue.types";
 
 // Assessment types
 export * from "./assessment/quiz.types";
+export * from "./assessment/question.types";
 
 // Admin types
 export * from "./admin/dashboard.types";

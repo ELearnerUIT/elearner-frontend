@@ -136,6 +136,14 @@ export interface UpdateCourseRequest {
 }
 
 /**
+ * Publish course request DTO
+ * POST /api/v1/courses/{id}/publish
+ */
+export interface PublishCourseRequest {
+  publishDate?: string;
+}
+
+/**
  * Course query parameters
  * GET /api/v1/courses
  */
