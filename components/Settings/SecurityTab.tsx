@@ -1,6 +1,11 @@
-import { useState } from 'react';
-import { ButtonColor, CustomButton } from '../shared/CustomButton';
-import CustomPasswordField from '../shared/CustomPasswordField';
+"use client";
+
+import { useState } from "react";
+import { ButtonColor, CustomButton } from "../shared/CustomButton";
+import CustomPasswordField from "../shared/CustomPasswordField";
+import { API_ENDPOINTS, apiRequest } from "@/lib/api";
+import { getAccessToken } from "@/lib/auth";
+import { validateNewPassword } from "@/utils/validatePasswordUtils";
 
 export default function SecurityTab() {
     const [currentPasswordInput, setCurrentPasswordInput] = useState("");
@@ -10,11 +15,22 @@ export default function SecurityTab() {
     const [currentPasswordError, setCurrentPasswordError] = useState("");
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
     const [newPasswordError, setNewPasswordError] = useState("");
+    const [isUpdating, setIsUpdating] = useState(false);
 
-    const validateCurrentPassword = (firstName: string) => {
-        setCurrentPasswordError("Wrong current password")
-        return false;
-    }
+    const handleValidateNewPassword = (password: string) => {
+        const result = validateNewPassword(password);
+        setNewPasswordError(result.errorMessage);
+        return result.isValid;
+    };
+
+    const validateCurrentPassword = (password: string) => {
+        if (!password || password.length === 0) {
+            setCurrentPasswordError("Please enter your current password");
+            return false;
+        }
+        setCurrentPasswordError("");
+        return true;
+    };
 
     const validateConfirmPassword = (confirmPassword: string) => {
         if (confirmPassword !== newPasswordInput) {
@@ -23,69 +39,66 @@ export default function SecurityTab() {
         }
         setConfirmPasswordError("");
         return true;
-    }
+    };
 
-    const validateNewPassword = (newPassword: string) => {
-        if (!newPassword || newPassword.length === 0) {
-            setNewPasswordError("Please enter your new password");
-            return false;
-        }
-
-        let newPasswordErrorMessages: Array<string> = [];
-        if (newPassword.length < 8) {
-            newPasswordErrorMessages.push("8 characters");
-        }
-        if (!/[A-Z]/.test(newPassword)) {
-            newPasswordErrorMessages.push("one uppercase letter");
-        }
-        if (!/[0-9]/.test(newPassword)) {
-            newPasswordErrorMessages.push("one number");
-        }
-        if (!/[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(newPassword)) {
-            newPasswordErrorMessages.push("one special character");
-        }
-
-        if (newPasswordErrorMessages.length > 0) {
-            let newPasswordErrorMessage = "Password must contain at least ";
-            for (let i = 0; i < newPasswordErrorMessages.length; i++) {
-                if (i > 0) {
-                    if (i <= newPasswordErrorMessages.length - 2) {
-                        newPasswordErrorMessage += ", ";
-                    }
-                    else {
-                        newPasswordErrorMessage += " and ";
-                    }
-                }
-                newPasswordErrorMessage += newPasswordErrorMessages[i];
-            }
-            newPasswordErrorMessage += ".";
-            setNewPasswordError(newPasswordErrorMessage);
-            return false;
-        }
-
-        setNewPasswordError("");
-        return true;
-    }
-
-    const handleUpdatePassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleUpdatePassword = async (
+        event: React.MouseEvent<HTMLButtonElement>,
+    ) => {
         event.preventDefault();
 
         let isValid = true;
 
-        // if (!validateRequiredFields()) isValid = false;
         if (!validateCurrentPassword(currentPasswordInput)) isValid = false;
         if (!validateConfirmPassword(confirmPasswordInput)) isValid = false;
-        if (!validateNewPassword(newPasswordInput)) isValid = false;
-
+        if (!handleValidateNewPassword(newPasswordInput)) isValid = false;
 
         if (!isValid) {
             return;
         }
 
-        // Xu ly dang ky
-        alert("Password updated")
-    }
+        setIsUpdating(true);
 
+        try {
+            const token = getAccessToken();
+            const response = await apiRequest(
+                API_ENDPOINTS.AUTH.CHANGE_PASSWORD,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        oldPassword: currentPasswordInput,
+                        newPassword: newPasswordInput,
+                    }),
+                },
+            );
+
+            if (response.success) {
+                alert("Password updated successfully!");
+                setCurrentPasswordInput("");
+                setNewPasswordInput("");
+                setConfirmPasswordInput("");
+                setCurrentPasswordError("");
+                setNewPasswordError("");
+                setConfirmPasswordError("");
+            } else {
+                if (
+                    response.message.includes("incorrect") ||
+                    response.message.includes("wrong")
+                ) {
+                    setCurrentPasswordError("Current password is incorrect");
+                } else {
+                    alert(response.message || "Failed to update password");
+                }
+            }
+        } catch (error) {
+            console.error("Error updating password:", error);
+            alert("An error occurred while updating password");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
 
     return (
         <div>
@@ -105,7 +118,9 @@ export default function SecurityTab() {
                         initValue={currentPasswordInput}
                         placeholder="Current Password"
                         errorMessage={currentPasswordError}
-                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setCurrentPasswordInput(event.target.value)}
+                        onValueChange={(
+                            event: React.ChangeEvent<HTMLInputElement>,
+                        ) => setCurrentPasswordInput(event.target.value)}
                     />
                 </div>
 
@@ -116,8 +131,12 @@ export default function SecurityTab() {
                         initValue={newPasswordInput}
                         placeholder="New Password"
                         errorMessage={newPasswordError}
-                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setNewPasswordInput(event.target.value)}
-                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => validateNewPassword(event.target.value)}
+                        onValueChange={(
+                            event: React.ChangeEvent<HTMLInputElement>,
+                        ) => setNewPasswordInput(event.target.value)}
+                        onValidate={(
+                            event: React.ChangeEvent<HTMLInputElement>,
+                        ) => validateNewPassword(event.target.value)}
                     />
                 </div>
 
@@ -128,19 +147,25 @@ export default function SecurityTab() {
                         initValue={confirmPasswordInput}
                         placeholder="Confirm New Password"
                         errorMessage={confirmPasswordError}
-                        onValueChange={(event: React.ChangeEvent<HTMLInputElement>) => setConfirmPasswordInput(event.target.value)}
-                        onValidate={(event: React.ChangeEvent<HTMLInputElement>) => validateConfirmPassword(event.target.value)}
+                        onValueChange={(
+                            event: React.ChangeEvent<HTMLInputElement>,
+                        ) => setConfirmPasswordInput(event.target.value)}
+                        onValidate={(
+                            event: React.ChangeEvent<HTMLInputElement>,
+                        ) => validateConfirmPassword(event.target.value)}
                     />
                 </div>
 
                 <CustomButton
-                    text="Update Password"
-                    enabled={true}
+                    text={isUpdating ? "Updating..." : "Update Password"}
+                    enabled={!isUpdating}
                     color={ButtonColor.PURPLE}
                     width="w-40"
-                    onClick={(event) => { handleUpdatePassword(event) }}
+                    onClick={(event) => {
+                        handleUpdatePassword(event);
+                    }}
                 />
             </div>
         </div>
-    )
+    );
 }

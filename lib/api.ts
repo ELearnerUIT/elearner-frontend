@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
         VERIFY_EMAIL: `${API_BASE_URL}/api/${API_VERSION}/auth/verify-email`,
         FORGOT_PASSWORD: `${API_BASE_URL}/api/${API_VERSION}/auth/password/forgot`,
         RESET_PASSWORD: `${API_BASE_URL}/api/${API_VERSION}/auth/password/reset`,
+        CHANGE_PASSWORD: `${API_BASE_URL}/api/${API_VERSION}/auth/password/change`,
     },
     CATEGORIES: {
         GET_TREE: `${API_BASE_URL}/api/${API_VERSION}/categories/tree`,
