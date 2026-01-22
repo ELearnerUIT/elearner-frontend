@@ -296,11 +296,8 @@ export default function CategoryManagement() {
         level: number = 0,
     ): React.ReactNode => {
         return (
-            <>
-                <tr
-                    key={category.id}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition"
-                >
+            <React.Fragment key={category.id}>
+                <tr className="border-b border-gray-100 hover:bg-gray-50 transition">
                     <td className="py-4 px-4">
                         <div
                             className="flex items-center gap-2"
@@ -389,7 +386,7 @@ export default function CategoryManagement() {
                 {category.children.map((child) =>
                     renderCategoryRow(child, level + 1),
                 )}
-            </>
+            </React.Fragment>
         );
     };
 
