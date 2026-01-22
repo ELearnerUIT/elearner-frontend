@@ -37,7 +37,7 @@ export default function TeacherSidebar() {
                     active
                 />
                 <NavItem
-                    href="/courses"
+                    href="/my-courses"
                     icon={<BookOpen />}
                     label="My Courses"
                 />
