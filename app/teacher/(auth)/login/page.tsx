@@ -83,7 +83,7 @@ const TeacherLogin: NextPage = () => {
                 setAuthData(authData);
 
                 if (data.data.user.role === "TEACHER") {
-                    router.push("/teacher");
+                    router.push("/dashboard");
                 } else {
                     setErrorMessage(
                         "Invalid account type. Please use the student login.",
