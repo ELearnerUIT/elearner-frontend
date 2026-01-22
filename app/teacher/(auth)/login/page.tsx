@@ -177,7 +177,7 @@ const TeacherLogin: NextPage = () => {
                     <div className="mt-6 text-center text-sm text-gray-600">
                         Don't have an account?{" "}
                         <a
-                            href="/teacher/register"
+                            href="/register"
                             className="text-indigo-600 font-medium hover:underline"
                         >
                             Sign up as an Instructor
