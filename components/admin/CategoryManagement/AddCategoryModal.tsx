@@ -1,4 +1,3 @@
-import React from "react";
 import { X, Plus } from "lucide-react";
 import { ButtonColor, CustomButton } from "@/components/shared/CustomButton";
 import CustomInputField from "@/components/shared/CustomInputField";

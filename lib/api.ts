@@ -22,6 +22,13 @@ export const API_ENDPOINTS = {
         RESTORE: `${API_BASE_URL}/api/${API_VERSION}/admin/categories`,
         GET_PUBLIC: `${API_BASE_URL}/api/${API_VERSION}/public/categories`,
     },
+    TAGS: {
+        GET_ALL: `${API_BASE_URL}/api/${API_VERSION}/admin/tags`,
+        GET_BY_ID: `${API_BASE_URL}/api/${API_VERSION}/tags`,
+        CREATE: `${API_BASE_URL}/api/${API_VERSION}/admin/tags`,
+        UPDATE: `${API_BASE_URL}/api/${API_VERSION}/admin/tags`,
+        DELETE: `${API_BASE_URL}/api/${API_VERSION}/admin/tags`,
+    },
 };
 
 export interface Category {
@@ -37,6 +44,27 @@ export interface Category {
     metaTitle: string;
     metaDescription: string;
     thumbnailUrl: string | null;
+}
+
+export interface Tag {
+    id: number;
+    name: string;
+    slug: string;
+    createdAt: string;
+    updatedAt: string;
+    createdBy: string;
+    updatedBy: string | null;
+    deletedAt: string | null;
+}
+
+export interface PaginatedResponse<T> {
+    items: T[];
+    page: number;
+    size: number;
+    totalItems: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
 }
 
 export interface ApiResponse<T = any> {
