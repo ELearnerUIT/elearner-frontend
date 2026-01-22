@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import CustomPasswordField from "@/components/shared/CustomPasswordField";
 import CustomInputField, { InputFieldIcon } from "../shared/CustomInputField";
 import { CustomButton, ButtonColor } from "../shared/CustomButton";
-import { setAuthData, AuthData } from "@/lib/auth";
+import { setAuthData, AuthData, User } from "@/lib/auth";
+import { authApi } from "@/lib/api/services";
 
 export default function LoginForm() {
     const router = useRouter();
@@ -51,44 +52,32 @@ export default function LoginForm() {
         setErrorMessage("");
 
         try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/v1/auth/login`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        login: loginInput,
-                        password: passwordInput,
-                    }),
-                },
-            );
+            const response = await authApi.login({
+                login: loginInput,
+                password: passwordInput,
+            });
 
-            const data = await response.json();
+            const authData: AuthData = {
+                accessToken: response.accessToken!,
+                refreshToken: response.refreshToken!,
+                accessTokenExpiresAt: response.accessTokenExpiresAt!,
+                refreshTokenExpiresAt: response.refreshTokenExpiresAt!,
+                user: response.user as User,
+            };
 
-            if (data.success) {
-                const authData: AuthData = data.data;
-
-                if (authData.user.role !== "STUDENT") {
-                    setErrorMessage(
-                        "This login is for students only. Please use the appropriate login page for your role.",
-                    );
-                    return;
-                }
-
-                setAuthData(authData);
-
-                router.push("/my-courses");
-            } else {
+            if (authData.user.role !== "STUDENT") {
                 setErrorMessage(
-                    data.message ||
-                        "Wrong email or password. Please try again.",
+                    "This login is for students only. Please use the appropriate login page for your role.",
                 );
+                return;
             }
-        } catch (error) {
+
+            setAuthData(authData);
+            router.push("/my-courses");
+        } catch (error: any) {
+            console.error("Login error:", error);
             setErrorMessage(
-                "Unable to connect to server. Please check your connection and try again.",
+                error.message || "Wrong email or password. Please try again.",
             );
         } finally {
             setIsLoading(false);

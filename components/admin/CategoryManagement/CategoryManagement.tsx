@@ -18,8 +18,8 @@ import CustomInputField, {
 } from "@/components/shared/CustomInputField";
 import CustomTextArea from "@/components/shared/CustomTextArea";
 import ToggleSwitch from "@/components/shared/ToggleSwitch";
-import { API_ENDPOINTS, apiRequest, ApiResponse } from "@/lib/api";
-import { getAccessToken } from "@/lib/auth";
+import { categoryApi } from "@/lib/api/services";
+import type { CategoryResponseDto } from "@/lib/api/services";
 
 interface Category {
     id: number;
@@ -68,20 +68,8 @@ export default function CategoryManagement() {
     const fetchCategories = async () => {
         setIsLoading(true);
         try {
-            const token = getAccessToken();
-            const response: ApiResponse<Category[]> = await apiRequest(
-                API_ENDPOINTS.CATEGORIES.GET_TREE,
-                {
-                    method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            if (response.success && response.data) {
-                setCategories(response.data);
-            }
+            const data = await categoryApi.getTree();
+            setCategories(data as Category[]);
         } catch (error) {
             console.error("Error fetching categories:", error);
         } finally {
@@ -92,20 +80,8 @@ export default function CategoryManagement() {
     const fetchDeletedCategories = async () => {
         setIsLoading(true);
         try {
-            const token = getAccessToken();
-            const response: ApiResponse<Category[]> = await apiRequest(
-                API_ENDPOINTS.CATEGORIES.GET_DELETED,
-                {
-                    method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            if (response.success && response.data) {
-                setCategories(response.data);
-            }
+            const data = await categoryApi.getDeleted();
+            setCategories(data as Category[]);
         } catch (error) {
             console.error("Error fetching deleted categories:", error);
         } finally {
@@ -150,32 +126,18 @@ export default function CategoryManagement() {
 
         setIsCreating(true);
         try {
-            const token = getAccessToken();
-            const response: ApiResponse<Category> = await apiRequest(
-                API_ENDPOINTS.CATEGORIES.CREATE,
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        name: newCategory.name,
-                        description: newCategory.description,
-                        visible: newCategory.visible,
-                    }),
-                },
-            );
+            const data = await categoryApi.create({
+                name: newCategory.name,
+                description: newCategory.description,
+                visible: newCategory.visible,
+            });
 
-            if (response.success && response.data) {
-                alert("Category created successfully!");
-                setShowAddModal(false);
-                fetchCategories();
-            } else {
-                alert(response.message || "Failed to create category");
-            }
-        } catch (error) {
+            alert("Category created successfully!");
+            setShowAddModal(false);
+            fetchCategories();
+        } catch (error: any) {
             console.error("Error creating category:", error);
-            alert("An error occurred while creating the category");
+            alert(error.message || "An error occurred while creating the category");
         } finally {
             setIsCreating(false);
         }
@@ -185,26 +147,15 @@ export default function CategoryManagement() {
         if (!confirm("Are you sure you want to restore this category?")) return;
 
         try {
-            const token = getAccessToken();
-            const response = await apiRequest(
-                `${API_ENDPOINTS.CATEGORIES.RESTORE}/${categoryId}/restore`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            if (response.success) {
-                alert("Category restored successfully");
-                fetchDeletedCategories();
-            }
-        } catch (error) {
+            await categoryApi.restore(categoryId);
+            alert("Category restored successfully");
+            fetchDeletedCategories();
+        } catch (error: any) {
             console.error("Error restoring category:", error);
-            alert("Failed to restore category");
+            alert(error.message || "Failed to restore category");
         }
     };
+
 
     const handlePermanentDelete = async (categoryId: number) => {
         if (
@@ -215,24 +166,12 @@ export default function CategoryManagement() {
             return;
 
         try {
-            const token = getAccessToken();
-            const response = await apiRequest(
-                `${API_ENDPOINTS.CATEGORIES.DELETE}/${categoryId}/permanent`,
-                {
-                    method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            if (response.success) {
-                alert("Category permanently deleted");
-                fetchDeletedCategories();
-            }
-        } catch (error) {
+            await categoryApi.delete(categoryId);
+            alert("Category permanently deleted");
+            fetchDeletedCategories();
+        } catch (error: any) {
             console.error("Error permanently deleting category:", error);
-            alert("Failed to permanently delete category");
+            alert(error.message || "Failed to permanently delete category");
         }
     };
 
@@ -245,49 +184,12 @@ export default function CategoryManagement() {
         if (!confirm("Are you sure you want to delete this category?")) return;
 
         try {
-            const token = getAccessToken();
-            const response = await apiRequest(
-                `${API_ENDPOINTS.CATEGORIES.DELETE}/${categoryId}`,
-                {
-                    method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            if (response.status === 204) {
-                alert("Category deleted successfully");
-                fetchCategories();
-            }
-        } catch (error) {
+            await categoryApi.delete(categoryId);
+            alert("Category deleted successfully");
+            fetchCategories();
+        } catch (error: any) {
             console.error("Error deleting category:", error);
-            alert("Failed to delete category");
-        }
-    };
-
-    const handleToggleVisibility = async (category: Category) => {
-        try {
-            const token = getAccessToken();
-            const response = await apiRequest(
-                `${API_ENDPOINTS.CATEGORIES.UPDATE}/${category.id}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        ...category,
-                        visible: !category.visible,
-                    }),
-                },
-            );
-
-            if (response.success) {
-                fetchCategories();
-            }
-        } catch (error) {
-            console.error("Error updating category:", error);
+            alert(error.message);
         }
     };
 
