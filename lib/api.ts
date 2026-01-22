@@ -20,8 +20,24 @@ export const API_ENDPOINTS = {
         UPDATE: `${API_BASE_URL}/api/${API_VERSION}/admin/categories`,
         DELETE: `${API_BASE_URL}/api/${API_VERSION}/admin/categories`,
         RESTORE: `${API_BASE_URL}/api/${API_VERSION}/admin/categories`,
+        GET_PUBLIC: `${API_BASE_URL}/api/${API_VERSION}/public/categories`,
     },
 };
+
+export interface Category {
+    id: number;
+    name: string;
+    code: string | null;
+    description: string;
+    visible: boolean;
+    parentId: number | null;
+    deletedAt: string | null;
+    children: Category[];
+    slug: string;
+    metaTitle: string;
+    metaDescription: string;
+    thumbnailUrl: string | null;
+}
 
 export interface ApiResponse<T = any> {
     success: boolean;

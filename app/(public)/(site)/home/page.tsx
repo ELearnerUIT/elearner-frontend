@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import {
     Star,
     CheckCircle,
@@ -16,6 +17,7 @@ import {
 import CategoryButton from "@/components/Home/CategoryButton";
 import CourseCard from "@/components/Home/CourseCard";
 import ReviewCard from "@/components/Home/ReviewCard";
+import { API_ENDPOINTS, apiRequest, Category } from "@/lib/api";
 
 export default function Home() {
     const averageRating = 3.5;
@@ -24,14 +26,28 @@ export default function Home() {
     const expertInstructorCount = "50K+";
     const onlineCoursesCount = "100K+";
 
-    const categories = [
-        "Web Development",
-        "Data Science",
-        "Business",
-        "Design",
-        "Marketing",
-        "Photography",
-    ];
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setIsLoadingCategories(true);
+                const response = await apiRequest<Category[]>(
+                    API_ENDPOINTS.CATEGORIES.GET_PUBLIC
+                );
+                if (response.success && response.data) {
+                    setCategories(response.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch categories:", error);
+            } finally {
+                setIsLoadingCategories(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     const demoPopularCourses = [
         {
@@ -289,14 +305,18 @@ export default function Home() {
                     </div>
 
                     <div className="flex flex-wrap justify-items-center justify-evenly">
-                        {categories.map((category) => {
-                            return (
+                        {isLoadingCategories ? (
+                            <p className="text-gray-500">Loading categories...</p>
+                        ) : categories.length > 0 ? (
+                            categories.map((category) => (
                                 <CategoryButton
-                                    key={category}
-                                    name={category}
+                                    key={category.id}
+                                    name={category.name}
                                 />
-                            );
-                        })}
+                            ))
+                        ) : (
+                            <p className="text-gray-500">No categories available</p>
+                        )}
                     </div>
                 </div>
             </div>
