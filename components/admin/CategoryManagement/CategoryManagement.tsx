@@ -8,7 +8,6 @@ import {
     Trash2,
     Eye,
     FolderTree,
-    X,
     RotateCcw,
     Trash,
 } from "lucide-react";
@@ -16,10 +15,11 @@ import { ButtonColor, CustomButton } from "@/components/shared/CustomButton";
 import CustomInputField, {
     InputFieldIcon,
 } from "@/components/shared/CustomInputField";
-import CustomTextArea from "@/components/shared/CustomTextArea";
 import ToggleSwitch from "@/components/shared/ToggleSwitch";
 import { API_ENDPOINTS, apiRequest, ApiResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import AddCategoryModal from "./AddCategoryModal";
+import EditCategoryModal from "./EditCategoryModal";
 
 interface Category {
     id: number;
@@ -56,6 +56,7 @@ export default function CategoryManagement() {
         description: "",
     });
     const [isCreating, setIsCreating] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
     useEffect(() => {
         if (showDeleted) {
@@ -238,7 +239,63 @@ export default function CategoryManagement() {
 
     const handleEditCategory = (category: Category) => {
         setSelectedCategory(category);
+        setErrors({ name: "", description: "" });
         setShowEditModal(true);
+    };
+
+    const validateEditForm = () => {
+        const newErrors = { name: "", description: "" };
+        let isValid = true;
+
+        if (!selectedCategory?.name.trim()) {
+            newErrors.name = "Category name is required";
+            isValid = false;
+        }
+
+        if (!selectedCategory?.description.trim()) {
+            newErrors.description = "Description is required";
+            isValid = false;
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
+    const handleUpdateCategory = async () => {
+        if (!validateEditForm() || !selectedCategory) return;
+
+        setIsUpdating(true);
+        try {
+            const token = getAccessToken();
+            const response: ApiResponse<Category> = await apiRequest(
+                `${API_ENDPOINTS.CATEGORIES.UPDATE}/${selectedCategory.id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        name: selectedCategory.name,
+                        description: selectedCategory.description,
+                        visible: selectedCategory.visible,
+                    }),
+                },
+            );
+
+            if (response.success) {
+                alert("Category updated successfully!");
+                setShowEditModal(false);
+                setSelectedCategory(null);
+                fetchCategories();
+            } else {
+                alert(response.message || "Failed to update category");
+            }
+        } catch (error) {
+            console.error("Error updating category:", error);
+            alert("An error occurred while updating the category");
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
     const handleDeleteCategory = async (categoryId: number) => {
@@ -500,124 +557,30 @@ export default function CategoryManagement() {
                 )}
             </div>
 
-            {showAddModal && (
-                <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                            <h2 className="text-2xl font-semibold text-gray-900">
-                                Add New Category
-                            </h2>
-                            <button
-                                onClick={() => setShowAddModal(false)}
-                                className="text-gray-400 hover:text-gray-600 transition"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
+            <AddCategoryModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                categoryData={newCategory}
+                errors={errors}
+                isCreating={isCreating}
+                onCategoryDataChange={setNewCategory}
+                onErrorsChange={setErrors}
+                onCreate={handleCreateCategory}
+            />
 
-                        <div className="p-6 space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Category Name *
-                                </label>
-                                <CustomInputField
-                                    placeholder="e.g., Web Development"
-                                    initValue={newCategory.name}
-                                    errorMessage={errors.name}
-                                    onValueChange={(e) =>
-                                        setNewCategory({
-                                            ...newCategory,
-                                            name: e.target.value,
-                                        })
-                                    }
-                                    onValidate={() => {
-                                        if (!newCategory.name.trim()) {
-                                            setErrors({
-                                                ...errors,
-                                                name: "Category name is required",
-                                            });
-                                        } else {
-                                            setErrors({
-                                                ...errors,
-                                                name: "",
-                                            });
-                                        }
-                                    }}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Description *
-                                </label>
-                                <CustomTextArea
-                                    placeholder="Describe this category..."
-                                    initValue={newCategory.description}
-                                    errorMessage={errors.description}
-                                    rows={4}
-                                    onValueChange={(e) =>
-                                        setNewCategory({
-                                            ...newCategory,
-                                            description: e.target.value,
-                                        })
-                                    }
-                                    onValidate={() => {
-                                        if (!newCategory.description.trim()) {
-                                            setErrors({
-                                                ...errors,
-                                                description:
-                                                    "Description is required",
-                                            });
-                                        } else {
-                                            setErrors({
-                                                ...errors,
-                                                description: "",
-                                            });
-                                        }
-                                    }}
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">
-                                        Category Visibility
-                                    </label>
-                                    <p className="text-sm text-gray-500">
-                                        Make this category visible to users
-                                    </p>
-                                </div>
-                                <ToggleSwitch
-                                    checked={newCategory.visible}
-                                    onChange={(checked) =>
-                                        setNewCategory({
-                                            ...newCategory,
-                                            visible: checked,
-                                        })
-                                    }
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-                            <button
-                                onClick={() => setShowAddModal(false)}
-                                className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium"
-                                disabled={isCreating}
-                            >
-                                Cancel
-                            </button>
-                            <CustomButton
-                                color={ButtonColor.PURPLE}
-                                onClick={handleCreateCategory}
-                                enabled={!isCreating}
-                            >
-                                {isCreating ? "Creating..." : "Create Category"}
-                            </CustomButton>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <EditCategoryModal
+                isOpen={showEditModal}
+                onClose={() => {
+                    setShowEditModal(false);
+                    setSelectedCategory(null);
+                }}
+                category={selectedCategory}
+                errors={errors}
+                isUpdating={isUpdating}
+                onCategoryChange={setSelectedCategory}
+                onErrorsChange={setErrors}
+                onUpdate={handleUpdateCategory}
+            />
         </div>
     );
 }
