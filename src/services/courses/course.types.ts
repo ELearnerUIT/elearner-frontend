@@ -244,9 +244,17 @@ export interface CategoryStatsResponse {
 
 /** Backend: TagStatsResponse */
 export interface TagStatsResponse {
-  tagId: number;
-  tagName: string;
+  id: number;
+  name: string;
   courseCount: number;
+}
+
+/** Backend: TagOverviewResponse */
+export interface TagOverviewResponse {
+  totalTags: number;
+  activeTags: number;
+  deletedTags: number;
+  mostPopularTag: TagStatsResponse | null;
 }
 
 /** Backend: CourseStatsResponse */

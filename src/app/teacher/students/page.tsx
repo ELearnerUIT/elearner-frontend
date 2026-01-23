@@ -68,6 +68,7 @@ export default function TeacherStudentsPage() {
             return matchesSearch && matchesStatus;
         });
     }, [enrollmentsData, searchTerm, filterStatus]);
+    console.log("Courses:", filteredStudents);
 
     const topPerformers = useMemo(() => {
         // Use API data if available, otherwise use mock data

@@ -24,6 +24,8 @@ export function AdminSidebar({ stats }: Props) {
     { id: "violation_report", label: "Violation Report", icon: MessageSquare, href: "/admin/violation-report" },
     { id: "certificates", label: "Certificates", icon: Award, href: "/admin/certificate" },
     // { id: "reports", label: "Reports", icon: BarChart3, href: "/admin/reports" },
+    { id: "tags", label: "Tags", icon: DollarSignIcon, href: "/admin/tags" },
+    { id: "categories", label: "Categories", icon: BookOpen, href: "/admin/categories" }, 
     { id: "settings", label: "Settings", icon: Settings, href: "/admin/settings" },
   ];
 

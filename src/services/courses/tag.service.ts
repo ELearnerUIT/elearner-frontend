@@ -2,6 +2,7 @@ import {
   TagRequest,
   TagResponse,
   TagStatsResponse,
+  TagOverviewResponse,
   BulkTagRequest,
 } from "./course.types";
 import { axiosClient } from "@/lib/api/axios";
@@ -131,6 +132,17 @@ export const tagService = {
   getTagStatistics: async (): Promise<TagStatsResponse[]> => {
     const response = await axiosClient.get<ApiResponse<TagStatsResponse[]>>(
       `${TAG_PREFIX}/admin/stats`,
+    );
+
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Get tag overview (Admin only)
+   */
+  getTagOverview: async (): Promise<TagOverviewResponse> => {
+    const response = await axiosClient.get<ApiResponse<TagOverviewResponse>>(
+      `${TAG_PREFIX}/admin/overview`,
     );
 
     return unwrapResponse(response);
