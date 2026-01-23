@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { paymentService } from "@/services/billing/payment.service";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 type PaymentResult = "success" | "failed" | "pending" | "verifying";
 
-export default function PaymentCallbackPage() {
+function PaymentCallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [paymentResult, setPaymentResult] = useState<PaymentResult>("verifying");
@@ -219,5 +219,17 @@ export default function PaymentCallbackPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function PaymentCallbackPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="size-8 animate-spin text-[var(--brand-600)]" />
+            </div>
+        }>
+            <PaymentCallbackContent />
+        </Suspense>
     );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { courseService } from "@/services/courses/course.service";
@@ -8,7 +8,7 @@ import { categoryService } from "@/services/courses/category.service";
 import { tagService } from "@/services/courses/tag.service";
 import CourseCard, { type Course } from "@/core/components/course/CourseCard";
 import CategoryTree from "@/core/components/course/CategoryTree";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // Import components form Incoming change
@@ -18,7 +18,7 @@ import TrendingTopics from "@/core/components/public/explore/ExploreTopics";
 import FeaturedCollections from "@/core/components/public/explore/ExploreRecommended";
 import PopularCoursesSection from "@/core/components/public/explore/ExplorePopular";
 
-export default function ExplorePage() {
+function ExplorePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -406,5 +406,17 @@ export default function ExplorePage() {
       {/* 5. Popular Courses (from Incoming - Optional, maybe redundant with main grid) */}
       {/* <PopularCoursesSection /> */}
     </div>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="size-8 animate-spin text-[var(--brand-600)]" />
+      </div>
+    }>
+      <ExplorePageContent />
+    </Suspense>
   );
 }
