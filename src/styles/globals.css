@@ -241,12 +241,17 @@ body {
 .searchbar {
   position: relative;
   border-radius: 9999px;
-  background: #0c1525;
-  /* viền neon nhạt ở trạng thái idle */
+  background: #f1f5f9;
   border: 1px solid color-mix(in srgb, var(--brand-primary) 35%, var(--border));
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
+.dark .searchbar {
+  background: #0c1525;
+}
 .searchbar:hover {
+  background: color-mix(in srgb, #f1f5f9 90%, black 10%);
+}
+.dark .searchbar:hover {
   background: color-mix(in srgb, #0c1525 90%, white 10%);
   border-color: color-mix(in srgb, var(--brand-primary) 55%, var(--border));
 }
