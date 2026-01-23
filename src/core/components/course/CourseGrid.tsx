@@ -31,10 +31,9 @@ export default function CourseGrid() {
     id: c.id.toString(),
     title: c.title,
     teacher: c.teacherName || "Instructor",
-    price: c.salePrice ? `₫${c.salePrice.toLocaleString()}` : c.price ? `₫${c.price.toLocaleString()}` : "Free",
+    price: c.price ? `${Math.floor(c.price).toLocaleString('vi-VN')} ₫` : "Free",
     rating: c.averageRating || 0,
     image: c.thumbnailUrl || "/images/lesson_thum.png",
-    originalPrice: c.salePrice && c.price ? `₫${c.price.toLocaleString()}` : undefined,
     ratingCount: c.totalReviews,
     href: `/courses/${c.slug}`,
   }));

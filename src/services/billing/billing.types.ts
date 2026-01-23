@@ -23,10 +23,12 @@ export type PayoutStatus =
 /** Backend: CreatePaymentRequest */
 export interface CreatePaymentRequest {
   courseId: number;
+  courseVersionId: number;
   amount: number;
   gateway: PaymentGateway;
-  returnUrl?: string;
-  cancelUrl?: string;
+  returnUrl?: string; // URL to redirect user after payment (success page)
+  cancelUrl?: string; // URL to redirect user on cancel
+  callbackUrl?: string; // URL for gateway to POST result to backend
 }
 
 /** Backend: RefundRequest */
