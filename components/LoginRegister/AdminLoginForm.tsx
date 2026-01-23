@@ -10,7 +10,7 @@ import { useLogin } from "@/lib/hooks";
 export default function AdminLoginForm() {
     const router = useRouter();
     const { mutate: login, isPending } = useLogin();
-    
+
     const [loginInput, setLoginInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
     const [loginError, setLoginError] = useState("");
@@ -62,7 +62,7 @@ export default function AdminLoginForm() {
                         );
                         return;
                     }
-                    router.push("/admin");
+                    router.push("/dashboard");
                 },
                 onError: (error) => {
                     setErrorMessage(error.message || "Invalid credentials");

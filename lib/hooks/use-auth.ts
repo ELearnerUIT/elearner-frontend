@@ -15,6 +15,7 @@ import {
 import * as authApi from "@/lib/api/auth.api";
 import { queryKeys } from "./query-keys";
 import { tokenManager } from "@/lib/api/token-manager";
+import { setAuthData, clearAuthData } from "@/lib/auth";
 import type {
     RegisterRequest,
     RegisterResponse,
@@ -71,10 +72,16 @@ export function useLogin(
     return useMutation({
         mutationFn: (data: LoginRequest) => authApi.login(data),
         onSuccess: (response) => {
+            // Store tokens in localStorage (for API requests)
             tokenManager.setTokens(response);
+            
+            // Store tokens in cookies (for AuthGuard compatibility)
+            setAuthData(response);
 
+            // Cache user data in React Query
             queryClient.setQueryData(queryKeys.auth.currentUser, response.user);
 
+            // Invalidate all queries to refresh with new auth
             queryClient.invalidateQueries();
         },
         ...options,
@@ -90,8 +97,11 @@ export function useLogout(options?: UseMutationOptions<void, Error, string>) {
     return useMutation({
         mutationFn: (refreshToken: string) => authApi.logout({ refreshToken }),
         onSuccess: () => {
-            // Clear tokens
+            // Clear tokens from localStorage
             tokenManager.clearTokens();
+            
+            // Clear tokens from cookies (for AuthGuard compatibility)
+            clearAuthData();
 
             // Clear all cache
             queryClient.clear();
@@ -115,8 +125,11 @@ export function useRefreshToken(
     return useMutation({
         mutationFn: (data: RefreshTokenRequest) => authApi.refreshToken(data),
         onSuccess: (response) => {
-            // Update tokens
+            // Update tokens in localStorage
             tokenManager.setTokens(response);
+            
+            // Update tokens in cookies (for AuthGuard compatibility)
+            setAuthData(response);
 
             // Update user in cache
             queryClient.setQueryData(queryKeys.auth.currentUser, response.user);
