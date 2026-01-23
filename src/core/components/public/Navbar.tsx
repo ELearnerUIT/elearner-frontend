@@ -166,7 +166,7 @@ export default function Navbar() {
                         <>
                             {/* Log in – outline strong (nổi bật) */}
                             <Link href="/login">
-                                <button className="btn btn-outline strong">
+                                <button className="btn btn-outline strong text-black dark:text-white">
                                     Log in
                                 </button>
                             </Link>

@@ -162,8 +162,11 @@ body {
 /* tăng tương phản cho nút outline (Log in) */
 .btn-outline.strong {
   border-color: color-mix(in srgb, var(--primary) 50%, var(--border));
-  color: #fff;
+  color: #000;
   background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+.dark .btn-outline.strong {
+  color: #fff;
 }
 .btn-outline.strong:hover {
   background: color-mix(in srgb, var(--primary) 10%, transparent);
