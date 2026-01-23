@@ -8,7 +8,6 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { useAssistantStore } from "@/core/components/public/store";
 import { useTheme } from "next-themes";
-import { useCart } from "@/core/providers/cart-provider";
 import { tokenStorage } from "@/lib/api/tokenStorage";
 
 function NavItem({ href, label, className }: { href: string; label: string; className?: string }) {
@@ -27,7 +26,6 @@ export default function Navbar() {
 
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { itemCount } = useCart();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -108,11 +106,6 @@ export default function Navbar() {
           {/* Cart */}
           <Link href="/cart" className="btn-icon hidden sm:inline-flex relative" aria-label="Cart">
             <ShoppingCart size={18} />
-            {itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[var(--brand-primary)] text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                {itemCount}
-              </span>
-            )}
           </Link>
 
           {/* Conditional Auth Buttons */}

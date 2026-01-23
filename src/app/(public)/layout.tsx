@@ -8,10 +8,10 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <CartProvider>
+    <>
       <Navbar />
       <main className="min-h-[72vh]">{children}</main>
       <Footer />
-    </CartProvider>
+    </>
   );
 }
