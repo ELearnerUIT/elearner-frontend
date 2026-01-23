@@ -12,6 +12,8 @@ import {
   TableSkeleton
 } from "@/core/components/teacher/skeletons";
 
+export const dynamic = 'force-dynamic';
+
 export default async function TeacherDashboardPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">

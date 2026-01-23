@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle, ArrowRight, BookOpen } from "lucide-react";
+import { CheckCircle, ArrowRight, BookOpen, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const courseId = searchParams.get("courseId");
@@ -66,5 +66,17 @@ export default function PaymentSuccessPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function PaymentSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="size-8 animate-spin text-[var(--brand-600)]" />
+            </div>
+        }>
+            <PaymentSuccessContent />
+        </Suspense>
     );
 }
