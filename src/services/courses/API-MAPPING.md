@@ -2,14 +2,18 @@
 
 Tài liệu này mapping toàn bộ API giữa Frontend và Backend cho module **Courses**, bao gồm role, chức năng và ghi chú thiếu/thừa.
 
+**Last Updated**: January 23, 2026
+
 ---
 
 ## 📊 Tổng Quan
 
-- **Tổng số API Frontend**: 46 APIs
+- **Tổng số API Frontend**: 64 APIs ✅
 - **Tổng số API Backend**: 64 APIs
-- **APIs Khớp**: 46 APIs
-- **APIs Thiếu ở Frontend**: 18 APIs ⚠️
+- **APIs Khớp**: 64 APIs ✅
+- **APIs Thiếu ở Frontend**: 0 APIs 🎉
+
+**Status**: ✅ **HOÀN THÀNH - Tất cả API đã được mapping đầy đủ!**
 
 ---
 
@@ -21,9 +25,9 @@ Tài liệu này mapping toàn bộ API giữa Frontend và Backend cho module *
 
 - **Role**: `ADMIN`
 - **Method**: POST
-- **Frontend Endpoint**: `/admin/categories` ❌ **SAI PATH**
+- **Frontend Endpoint**: `/categories`
 - **Backend Endpoint**: `/api/v1/categories` (với @AdminOnly annotation)
-- **Status**: ⚠️ **FRONTEND PATH SAI - CẦN SỬA**
+- **Status**: ✅ **MATCHED**
 - **Description**: Admin tạo category mới cho khóa học
 - **Use Case**: Admin muốn thêm danh mục mới (VD: "Web Development", "Mobile Development")
 
@@ -40,9 +44,9 @@ Tài liệu này mapping toàn bộ API giữa Frontend và Backend cho module *
 
 - **Role**: `ADMIN`
 - **Method**: GET
-- **Frontend Endpoint**: `/admin/categories/{id}` ❌ **SAI PATH**
+- **Frontend Endpoint**: `/categories/admin/{id}`
 - **Backend Endpoint**: `/api/v1/categories/admin/{id}`
-- **Status**: ⚠️ **FRONTEND PATH SAI - CẦN SỬA**
+- **Status**: ✅ **MATCHED**
 - **Description**: Admin lấy category kể cả đã xóa
 - **Use Case**: Admin xem chi tiết category đã bị xóa mềm
 
@@ -59,9 +63,9 @@ Tài liệu này mapping toàn bộ API giữa Frontend và Backend cho module *
 
 - **Role**: `ADMIN`
 - **Method**: GET
-- **Frontend Endpoint**: `/admin/categories/deleted` ❌ **SAI PATH**
+- **Frontend Endpoint**: `/categories/admin/deleted`
 - **Backend Endpoint**: `/api/v1/categories/admin/deleted`
-- **Status**: ⚠️ **FRONTEND PATH SAI - CẦN SỬA**
+- **Status**: ✅ **MATCHED**
 - **Description**: Admin xem danh sách categories đã xóa mềm
 - **Use Case**: Admin muốn khôi phục lại category đã xóa nhầm
 
@@ -69,9 +73,9 @@ Tài liệu này mapping toàn bộ API giữa Frontend và Backend cho module *
 
 - **Role**: `ADMIN`
 - **Method**: DELETE
-- **Frontend Endpoint**: `/admin/categories/{id}` ❌ **SAI PATH**
+- **Frontend Endpoint**: `/categories/{id}`
 - **Backend Endpoint**: `/api/v1/categories/{id}` (với @AdminOnly annotation)
-- **Status**: ⚠️ **FRONTEND PATH SAI - CẦN SỬA**
+- **Status**: ✅ **MATCHED**
 - **Description**: Admin xóa mềm một category
 - **Use Case**: Admin ẩn category không còn sử dụng
 
@@ -79,9 +83,9 @@ Tài liệu này mapping toàn bộ API giữa Frontend và Backend cho module *
 
 - **Role**: `ADMIN`
 - **Method**: PATCH
-- **Frontend Endpoint**: `/admin/categories/{id}/restore` ❌ **SAI PATH**
+- **Frontend Endpoint**: `/categories/{id}/restore`
 - **Backend Endpoint**: `/api/v1/categories/{id}/restore` (với @AdminOnly annotation)
-- **Status**: ⚠️ **FRONTEND PATH SAI - CẦN SỬA**
+- **Status**: ✅ **MATCHED**
 - **Description**: Admin khôi phục category đã xóa mềm
 - **Use Case**: Admin khôi phục lại category đã xóa nhầm
 
@@ -89,9 +93,9 @@ Tài liệu này mapping toàn bộ API giữa Frontend và Backend cho module *
 
 - **Role**: `ADMIN`
 - **Method**: PUT
-- **Frontend Endpoint**: `/admin/categories/{id}` ❌ **SAI PATH**
+- **Frontend Endpoint**: `/categories/{id}`
 - **Backend Endpoint**: `/api/v1/categories/{id}` (với @AdminOnly annotation)
-- **Status**: ⚠️ **FRONTEND PATH SAI - CẦN SỬA**
+- **Status**: ✅ **MATCHED**
 - **Description**: Admin chỉnh sửa thông tin category
 - **Use Case**: Admin sửa tên, mô tả, thumbnail của category
 
@@ -104,47 +108,25 @@ Tài liệu này mapping toàn bộ API giữa Frontend và Backend cho module *
 - **Description**: Lấy category bằng slug thay vì ID (SEO-friendly)
 - **Use Case**: Hiển thị category trên URL như /categories/web-development
 
-### ⚠️ APIs THIẾU Ở Frontend (Category)
-
-#### `getActiveCategories` - Lấy tất cả categories đang hoạt động
+#### 1.10. `getActiveCategories` - Lấy tất cả categories đang hoạt động
 
 - **Role**: `PUBLIC`
 - **Method**: GET
+- **Frontend Endpoint**: `/categories`
 - **Backend Endpoint**: `/api/v1/categories`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **HIGH** - Cần cho trang danh sách categories
+- **Status**: ✅ **MATCHED**
 - **Description**: Lấy tất cả categories đang visible (không bị xóa)
 - **Use Case**: Hiển thị dropdown chọn category khi tạo khóa học
-- **Implementation**: Thêm vào `category.service.ts`:
 
-```typescript
-getActiveCategories: async (): Promise<CategoryResponse[]> => {
-  const response = await axiosClient.get<ApiResponse<CategoryResponse[]>>(
-    `${CATEGORY_PREFIX}`,
-  );
-  return unwrapResponse(response);
-};
-```
-
-#### `getCategoryStatistics` - Lấy thống kê categories
+#### 1.11. `getCategoryStatistics` - Lấy thống kê categories
 
 - **Role**: `ADMIN`
 - **Method**: GET
+- **Frontend Endpoint**: `/categories/admin/stats`
 - **Backend Endpoint**: `/api/v1/categories/admin/stats`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **MEDIUM** - Cần cho dashboard admin
+- **Status**: ✅ **MATCHED**
 - **Description**: Thống kê số khóa học, số học viên theo từng category
 - **Use Case**: Admin xem báo cáo hiệu suất của từng danh mục
-- **Implementation**: Thêm vào `category.service.ts`:
-
-```typescript
-getCategoryStatistics: async (): Promise<CategoryStatsResponse[]> => {
-  const response = await axiosClient.get<ApiResponse<CategoryStatsResponse[]>>(
-    `/admin/categories/stats`, // Note: Phải fix path trên backend hoặc dùng /categories/admin/stats
-  );
-  return unwrapResponse(response);
-};
-```
 
 ---
 
@@ -251,135 +233,149 @@ getCategoryStatistics: async (): Promise<CategoryStatsResponse[]> => {
 - **Description**: Giáo viên xem danh sách khóa học của mình
 - **Use Case**: Trang "My Courses" của giáo viên
 
-### ⚠️ APIs THIẾU Ở Frontend (Course)
-
-#### `cloneCourse` - Nhân bản khóa học
+#### 2.12. `cloneCourse` - Nhân bản khóa học
 
 - **Role**: `TEACHER`
 - **Method**: POST
+- **Frontend Endpoint**: `/teacher/courses/{id}/clone`
 - **Backend Endpoint**: `/api/v1/teacher/courses/{id}/clone`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **HIGH** - Tính năng hữu ích cho giáo viên
+- **Status**: ✅ **MATCHED**
 - **Description**: Tạo bản sao khóa học với tất cả nội dung (chapters, lessons, quizzes)
 - **Use Case**: Giáo viên tái sử dụng khóa học cho học kỳ mới
-- **Implementation**: Thêm vào `course.service.ts`:
 
-```typescript
-cloneCourse: async (
-  id: number,
-  newTitle?: string,
-): Promise<CourseDetailResponse> => {
-  const response = await axiosClient.post<ApiResponse<CourseDetailResponse>>(
-    `${TEACHER_COURSE_PREFIX}/${id}/clone`,
-    null,
-    { params: { newTitle } },
-  );
-  return unwrapResponse(response);
-};
-```
-
-#### `getCourseStatistics` - Lấy thống kê khóa học
+#### 2.13. `getCourseStatistics` - Lấy thống kê khóa học
 
 - **Role**: `TEACHER`
 - **Method**: GET
+- **Frontend Endpoint**: `/teacher/courses/{id}/stats`
 - **Backend Endpoint**: `/api/v1/teacher/courses/{id}/stats`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **HIGH** - Cần cho dashboard giáo viên
+- **Status**: ✅ **MATCHED**
 - **Description**: Thống kê tổng học viên, rating trung bình, tỷ lệ hoàn thành, doanh thu
 - **Use Case**: Giáo viên xem hiệu quả khóa học của mình
-- **Implementation**: Thêm vào `course.service.ts`:
 
-```typescript
-getCourseStatistics: async (id: number): Promise<CourseStatsResponse> => {
-  const response = await axiosClient.get<ApiResponse<CourseStatsResponse>>(
-    `${TEACHER_COURSE_PREFIX}/${id}/stats`,
-  );
-  return unwrapResponse(response);
-};
-```
-
-#### `getPublishedCourses` - Lấy tất cả khóa học đã publish (Public)
+#### 2.14. `getPublishedCourses` - Lấy tất cả khóa học đã publish (Public)
 
 - **Role**: `PUBLIC`
 - **Method**: GET
+- **Frontend Endpoint**: `/public/courses`
 - **Backend Endpoint**: `/api/v1/public/courses`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **HIGH** - Cần cho trang public
-- **Description**: Lấy tất cả khóa học đã có published version
-- **Use Case**: Trang chủ, trang explore courses
-- **Implementation**: Thêm vào `course.service.ts`:
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy tất cả khóa học có phiên bản published
+- **Use Case**: Trang danh sách khóa học cho người chưa đăng nhập
 
-```typescript
-getPublishedCourses: async (
-  page?: number,
-  size?: number,
-  filter?: string,
-): Promise<PageResponse<CourseResponse>> => {
-  const response = await axiosClient.get<
-    ApiResponse<PageResponse<CourseResponse>>
-  >("/public/courses", { params: { page, size, filter } });
-  return unwrapResponse(response);
-};
-```
-
-#### `getPublishedCourseBySlug` - Lấy khóa học đã publish theo slug (Public)
+#### 2.15. `getPublishedCourseBySlug` - Lấy khóa học published theo slug (Public)
 
 - **Role**: `PUBLIC`
 - **Method**: GET
+- **Frontend Endpoint**: `/public/courses/{slug}`
 - **Backend Endpoint**: `/api/v1/public/courses/{slug}`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **HIGH** - Quan trọng cho trang landing
-- **Description**: Lấy chi tiết khóa học đã publish (chỉ thông tin published version)
-- **Use Case**: Trang landing page của khóa học cho người chưa đăng ký
-- **Implementation**: Thêm vào `course.service.ts`:
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy chi tiết khóa học published
+- **Use Case**: Trang chi tiết khóa học công khai
 
-```typescript
-getPublishedCourseBySlug: async (
-  slug: string,
-): Promise<CourseDetailResponse> => {
-  const response = await axiosClient.get<ApiResponse<CourseDetailResponse>>(
-    `/public/courses/${slug}`,
-  );
-  return unwrapResponse(response);
-};
-```
-
-#### `searchPublishedCourses` - Tìm kiếm khóa học đã publish (Public)
+#### 2.16. `searchPublishedCourses` - Tìm kiếm khóa học published (Public)
 
 - **Role**: `PUBLIC`
 - **Method**: GET
+- **Frontend Endpoint**: `/public/courses/search`
 - **Backend Endpoint**: `/api/v1/public/courses/search`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **HIGH** - Cần cho trang search
-- **Description**: Tìm kiếm khóa học theo title, description, tags, category, difficulty
-- **Use Case**: Người dùng tìm kiếm khóa học theo từ khóa
-- **Implementation**: Thêm vào `course.service.ts`:
-
-```typescript
-searchPublishedCourses: async (
-  query?: string,
-  categoryId?: number,
-  difficulty?: string,
-  tags?: string,
-  page?: number,
-  size?: number,
-): Promise<PageResponse<CourseResponse>> => {
-  const response = await axiosClient.get<
-    ApiResponse<PageResponse<CourseResponse>>
-  >("/public/courses/search", {
-    params: { query, categoryId, difficulty, tags, page, size },
-  });
-  return unwrapResponse(response);
-};
-```
+- **Status**: ✅ **MATCHED**
+- **Description**: Tìm kiếm khóa học theo query, category, difficulty, tags
+- **Use Case**: Trang tìm kiếm khóa học nâng cao
 
 ---
 
-## 3️⃣ COURSE REVIEW MODULE
+## 3️⃣ COURSE PREVIEW MODULE (Public APIs)
+
+### Frontend Service: `course-preview.service.ts`
+
+#### 3.1. `getCoursePreview` - Lấy preview khóa học
+
+- **Role**: `PUBLIC`
+- **Method**: GET
+- **Frontend Endpoint**: `/public/courses/{slug}/preview`
+- **Backend Endpoint**: `/api/v1/public/courses/{slug}/preview`
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy preview khóa học bao gồm chapters và preview lessons
+- **Use Case**: Trang landing page khóa học cho người chưa mua
+
+#### 3.2. `getPreviewVideoStreamUrl` - Lấy URL streaming video preview
+
+- **Role**: `PUBLIC`
+- **Method**: GET
+- **Frontend Endpoint**: `/public/lessons/{lessonId}/preview/stream-url`
+- **Backend Endpoint**: `/api/v1/public/lessons/{lessonId}/preview/stream-url`
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy URL streaming cho video preview lesson
+- **Use Case**: Xem trước video bài giảng miễn phí
+
+#### 3.3. `isCoursePublished` - Kiểm tra khóa học đã publish chưa
+
+- **Role**: `PUBLIC`
+- **Method**: GET
+- **Frontend Endpoint**: `/public/courses/{slug}/is-published`
+- **Backend Endpoint**: `/api/v1/public/courses/{slug}/is-published`
+- **Status**: ✅ **MATCHED**
+- **Description**: Kiểm tra nhanh khóa học có phiên bản published không
+- **Use Case**: Kiểm tra trước khi hiển thị trang course
+
+#### 3.4. `getPublicCourseReviews` - Lấy reviews công khai của khóa học
+
+- **Role**: `PUBLIC`
+- **Method**: GET
+- **Frontend Endpoint**: `/public/courses/{courseId}/reviews`
+- **Backend Endpoint**: `/api/v1/public/courses/{courseId}/reviews`
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy danh sách reviews với sort (newest, rating_desc, rating_asc)
+- **Use Case**: Hiển thị reviews trên landing page
+
+#### 3.5. `getCourseRatingSummary` - Lấy tổng hợp rating
+
+- **Role**: `PUBLIC`
+- **Method**: GET
+- **Frontend Endpoint**: `/public/courses/{courseId}/rating-summary`
+- **Backend Endpoint**: `/api/v1/public/courses/{courseId}/rating-summary`
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy rating trung bình, tổng reviews, phân bố rating
+- **Use Case**: Hiển thị rating stars và phân bố
+
+#### 3.6. `getTeacherPublicProfile` - Lấy profile công khai giáo viên
+
+- **Role**: `PUBLIC`
+- **Method**: GET
+- **Frontend Endpoint**: `/public/teachers/{teacherId}/profile`
+- **Backend Endpoint**: `/api/v1/public/teachers/{teacherId}/profile`
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy thông tin giáo viên, danh sách khóa học
+- **Use Case**: Section "About the Instructor"
+
+#### 3.7. `getRelatedCourses` - Lấy khóa học liên quan
+
+- **Role**: `PUBLIC`
+- **Method**: GET
+- **Frontend Endpoint**: `/public/courses/{courseId}/related`
+- **Backend Endpoint**: `/api/v1/public/courses/{courseId}/related`
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy khóa học cùng category/tags
+- **Use Case**: Section "Related Courses"
+
+#### 3.8. `getPopularCourses` - Lấy khóa học phổ biến
+
+- **Role**: `PUBLIC`
+- **Method**: GET
+- **Frontend Endpoint**: `/public/courses/popular`
+- **Backend Endpoint**: `/api/v1/public/courses/popular`
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy khóa học có nhiều enrollment và rating cao
+- **Use Case**: Featured section trên homepage
+
+---
+
+## 4️⃣ COURSE REVIEW MODULE
 
 ### Frontend Service: `course-review.service.ts`
 
-#### 3.1. `createReview` - Tạo đánh giá khóa học
+#### 4.1. `createReview` - Tạo đánh giá khóa học
 
 - **Role**: `STUDENT`
 - **Method**: POST
@@ -388,7 +384,7 @@ searchPublishedCourses: async (
 - **Description**: Học viên đánh giá khóa học (rating 1-5 sao và nội dung)
 - **Use Case**: Học viên viết review sau khi hoàn thành khóa học
 
-#### 3.2. `getCourseReviews` - Lấy đánh giá của khóa học
+#### 4.2. `getCourseReviews` - Lấy đánh giá của khóa học
 
 - **Role**: `PUBLIC`
 - **Method**: GET
@@ -397,7 +393,7 @@ searchPublishedCourses: async (
 - **Description**: Lấy danh sách reviews của khóa học (có pagination)
 - **Use Case**: Hiển thị reviews trên trang chi tiết khóa học
 
-#### 3.3. `updateReview` - Cập nhật đánh giá
+#### 4.3. `updateReview` - Cập nhật đánh giá
 
 - **Role**: `STUDENT`
 - **Method**: PUT
@@ -406,7 +402,7 @@ searchPublishedCourses: async (
 - **Description**: Học viên sửa đánh giá của mình
 - **Use Case**: Học viên muốn cập nhật nội dung review
 
-#### 3.4. `deleteReview` - Xóa đánh giá
+#### 4.4. `deleteReview` - Xóa đánh giá
 
 - **Role**: `STUDENT`
 - **Method**: DELETE
@@ -415,7 +411,7 @@ searchPublishedCourses: async (
 - **Description**: Học viên xóa đánh giá của mình
 - **Use Case**: Học viên muốn gỡ review đã viết
 
-#### 3.5. `getRatingSummary` - Lấy tổng kết rating
+#### 4.5. `getRatingSummary` - Lấy tổng kết rating
 
 - **Role**: `PUBLIC`
 - **Method**: GET
@@ -426,11 +422,11 @@ searchPublishedCourses: async (
 
 ---
 
-## 4️⃣ COURSE VERSION MODULE
+## 5️⃣ COURSE VERSION MODULE
 
 ### Frontend Service: `course-version.service.ts`
 
-#### 4.1. `createCourseVersion` - Tạo version mới
+#### 5.1. `createCourseVersion` - Tạo version mới
 
 - **Role**: `TEACHER`
 - **Method**: POST
@@ -439,7 +435,7 @@ searchPublishedCourses: async (
 - **Description**: Giáo viên tạo version mới cho khóa học
 - **Use Case**: Cập nhật nội dung khóa học, thay đổi giá, thời hạn
 
-#### 4.2. `getCourseVersions` - Lấy tất cả versions
+#### 5.2. `getCourseVersions` - Lấy tất cả versions
 
 - **Role**: `TEACHER`
 - **Method**: GET
@@ -448,7 +444,7 @@ searchPublishedCourses: async (
 - **Description**: Giáo viên xem danh sách versions của khóa học
 - **Use Case**: Trang quản lý versions của giáo viên
 
-#### 4.3. `getDeletedCourseVersions` - Lấy versions đã xóa
+#### 5.3. `getDeletedCourseVersions` - Lấy versions đã xóa
 
 - **Role**: `TEACHER`
 - **Method**: GET
@@ -457,7 +453,7 @@ searchPublishedCourses: async (
 - **Description**: Giáo viên xem versions đã xóa mềm
 - **Use Case**: Khôi phục lại version đã xóa nhầm
 
-#### 4.4. `getCourseVersionById` - Lấy version theo ID
+#### 5.4. `getCourseVersionById` - Lấy version theo ID
 
 - **Role**: `TEACHER` or `ADMIN`
 - **Method**: GET
@@ -466,7 +462,7 @@ searchPublishedCourses: async (
 - **Description**: Lấy chi tiết một version cụ thể
 - **Use Case**: Xem chi tiết version trước khi submit/publish
 
-#### 4.5. `updateCourseVersion` - Cập nhật version
+#### 5.5. `updateCourseVersion` - Cập nhật version
 
 - **Role**: `TEACHER`
 - **Method**: PUT
@@ -475,7 +471,7 @@ searchPublishedCourses: async (
 - **Description**: Giáo viên sửa version (chỉ DRAFT/REJECTED)
 - **Use Case**: Sửa thông tin version trước khi submit
 
-#### 4.6. `deleteCourseVersion` - Xóa version
+#### 5.6. `deleteCourseVersion` - Xóa version
 
 - **Role**: `TEACHER`
 - **Method**: DELETE
@@ -484,7 +480,7 @@ searchPublishedCourses: async (
 - **Description**: Giáo viên xóa version (chỉ DRAFT/PENDING/REJECTED)
 - **Use Case**: Xóa version không còn cần thiết
 
-#### 4.7. `getCourseVersionsByStatus` - Lấy versions theo status
+#### 5.7. `getCourseVersionsByStatus` - Lấy versions theo status
 
 - **Role**: `TEACHER`
 - **Method**: GET
@@ -493,7 +489,7 @@ searchPublishedCourses: async (
 - **Description**: Lấy versions theo trạng thái (DRAFT, PENDING, APPROVED, REJECTED, PUBLISHED)
 - **Use Case**: Filter versions theo status trong dashboard
 
-#### 4.8. `submitApproval` - Submit version để duyệt
+#### 5.8. `submitApproval` - Submit version để duyệt
 
 - **Role**: `TEACHER`
 - **Method**: POST
@@ -502,7 +498,7 @@ searchPublishedCourses: async (
 - **Description**: Giáo viên gửi version cho admin duyệt
 - **Use Case**: Submit version hoàn chỉnh để được phê duyệt
 
-#### 4.9. `approveCourseVersion` - Duyệt version
+#### 5.9. `approveCourseVersion` - Duyệt version
 
 - **Role**: `ADMIN`
 - **Method**: POST
@@ -511,7 +507,7 @@ searchPublishedCourses: async (
 - **Description**: Admin phê duyệt version
 - **Use Case**: Admin duyệt version đủ tiêu chuẩn
 
-#### 4.10. `rejectCourseVersion` - Từ chối version
+#### 5.10. `rejectCourseVersion` - Từ chối version
 
 - **Role**: `ADMIN`
 - **Method**: POST
@@ -520,7 +516,7 @@ searchPublishedCourses: async (
 - **Description**: Admin từ chối version (kèm lý do)
 - **Use Case**: Admin từ chối version vi phạm quy định
 
-#### 4.11. `publishCourseVersion` - Publish version
+#### 5.11. `publishCourseVersion` - Publish version
 
 - **Role**: `TEACHER`
 - **Method**: POST
@@ -601,7 +597,55 @@ getPublicCourseVersionById: async (
 - **Description**: Admin tạo tag mới cho khóa học
 - **Use Case**: Admin thêm tag như "Java", "Spring Boot", "React"
 
-#### 5.2. `getTags` - Lấy tất cả tags active
+- **Use Case**: Giáo viên publish version để học viên có thể đăng ký
+
+#### 5.12. `getAllPendingCourseVersions` - Lấy tất cả versions đang chờ duyệt
+
+- **Role**: `ADMIN`
+- **Method**: GET
+- **Frontend Endpoint**: `/courses/admin/versions/pending`
+- **Backend Endpoint**: `/api/v1/courses/admin/versions/pending`
+- **Status**: ✅ **MATCHED**
+- **Description**: Admin xem tất cả versions đang chờ duyệt (từ mọi khóa học)
+- **Use Case**: Trang quản lý duyệt version của admin
+
+#### 5.13. `getPublishedVersionBySlug` - Lấy version published theo slug (Public)
+
+- **Role**: `PUBLIC`
+- **Method**: GET
+- **Frontend Endpoint**: `/public/courses/{courseSlug}/version/published`
+- **Backend Endpoint**: `/api/v1/public/courses/{courseSlug}/version/published`
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy version đang published của khóa học theo slug
+- **Use Case**: Người dùng xem thông tin version hiện tại
+
+#### 5.14. `getPublicCourseVersionById` - Lấy version theo ID (Public)
+
+- **Role**: `PUBLIC`
+- **Method**: GET
+- **Frontend Endpoint**: `/public/courses/{courseId}/versions/{versionId}`
+- **Backend Endpoint**: `/api/v1/public/courses/{courseId}/versions/{versionId}`
+- **Status**: ✅ **MATCHED**
+- **Description**: Lấy chi tiết version cụ thể (chỉ published)
+- **Use Case**: Xem thông tin phiên bản cũ của khóa học
+
+---
+
+## 6️⃣ TAG MANAGEMENT MODULE
+
+### Frontend Service: `tag.service.ts`
+
+#### 6.1. `createTag` - Tạo tag mới
+
+- **Role**: `ADMIN`
+- **Method**: POST
+- **Frontend Endpoint**: `/tags`
+- **Backend Endpoint**: `/api/v1/tags` (với @AdminOnly annotation)
+- **Status**: ✅ **MATCHED**
+- **Description**: Admin tạo tag mới
+- **Use Case**: Admin thêm tag cho hệ thống
+
+#### 6.2. `getTags` - Lấy tất cả tags active
 
 - **Role**: `PUBLIC`
 - **Method**: GET
@@ -610,204 +654,131 @@ getPublicCourseVersionById: async (
 - **Description**: Lấy danh sách tags đang active (có pagination)
 - **Use Case**: Hiển thị danh sách tags để filter khóa học
 
-#### 5.3. `getAllTags` - Lấy tất cả tags (Admin)
+#### 6.3. `getAllTags` - Lấy tất cả tags (Admin)
 
 - **Role**: `ADMIN`
 - **Method**: GET
-- **Frontend Endpoint**: `/admin/tags` ❌ **SAI PATH**
+- **Frontend Endpoint**: `/tags/admin`
 - **Backend Endpoint**: `/api/v1/tags/admin`
-- **Status**: ⚠️ **FRONTEND PATH SAI - CẦN SỬA**
+- **Status**: ✅ **MATCHED**
 - **Description**: Admin xem tất cả tags (kể cả đã xóa)
 - **Use Case**: Admin quản lý tags trong hệ thống
 
-#### 5.4. `updateTag` - Cập nhật tag
+#### 6.4. `updateTag` - Cập nhật tag
 
 - **Role**: `ADMIN`
 - **Method**: PUT
-- **Frontend Endpoint**: `/admin/tags/{id}` ❌ **SAI PATH**
+- **Frontend Endpoint**: `/tags/{id}`
 - **Backend Endpoint**: `/api/v1/tags/{id}` (với @AdminOnly annotation)
-- **Status**: ⚠️ **FRONTEND PATH SAI - CẦN SỬA**
+- **Status**: ✅ **MATCHED**
 - **Description**: Admin sửa thông tin tag
 - **Use Case**: Admin đổi tên tag hoặc sửa slug
 
-#### 5.5. `deleteTag` - Xóa tag
+#### 6.5. `deleteTag` - Xóa tag
 
 - **Role**: `ADMIN`
 - **Method**: DELETE
-- **Frontend Endpoint**: `/admin/tags/{id}` ❌ **SAI PATH**
+- **Frontend Endpoint**: `/tags/{id}`
 - **Backend Endpoint**: `/api/v1/tags/{id}` (với @AdminOnly annotation)
-- **Status**: ⚠️ **FRONTEND PATH SAI - CẦN SỬA**
+- **Status**: ✅ **MATCHED**
 - **Description**: Admin xóa mềm tag
 - **Use Case**: Admin ẩn tag không còn sử dụng
 
-#### 5.6. `restoreTag` - Khôi phục tag
+#### 6.6. `restoreTag` - Khôi phục tag
 
 - **Role**: `ADMIN`
 - **Method**: PATCH
-- **Frontend Endpoint**: `/admin/tags/{id}/restore` ❌ **SAI PATH**
+- **Frontend Endpoint**: `/tags/{id}/restore`
 - **Backend Endpoint**: `/api/v1/tags/{id}/restore` (với @AdminOnly annotation)
-- **Status**: ⚠️ **FRONTEND PATH SAI - CẦN SỬA**
+- **Status**: ✅ **MATCHED**
 - **Description**: Admin khôi phục tag đã xóa
 - **Use Case**: Admin khôi phục lại tag đã xóa nhầm
 
-### ⚠️ APIs THIẾU Ở Frontend (Tag)
-
-#### `getPopularTags` - Lấy tags phổ biến
+#### 6.7. `getPopularTags` - Lấy tags phổ biến
 
 - **Role**: `PUBLIC`
 - **Method**: GET
+- **Frontend Endpoint**: `/tags/popular`
 - **Backend Endpoint**: `/api/v1/tags/popular`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **MEDIUM** - Hay dùng cho trending section
+- **Status**: ✅ **MATCHED**
 - **Description**: Lấy top tags được dùng nhiều nhất (theo số khóa học)
 - **Use Case**: Hiển thị trending tags trên trang chủ
-- **Implementation**: Thêm vào `tag.service.ts`:
 
-```typescript
-getPopularTags: async (limit: number = 10): Promise<TagStatsResponse[]> => {
-  const response = await axiosClient.get<ApiResponse<TagStatsResponse[]>>(
-    `${TAG_PREFIX}/popular`,
-    { params: { limit } },
-  );
-  return unwrapResponse(response);
-};
-```
-
-#### `searchTags` - Tìm kiếm tags
+#### 6.8. `searchTags` - Tìm kiếm tags
 
 - **Role**: `PUBLIC`
 - **Method**: GET
+- **Frontend Endpoint**: `/tags/search`
 - **Backend Endpoint**: `/api/v1/tags/search`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **HIGH** - Cần cho autocomplete
+- **Status**: ✅ **MATCHED**
 - **Description**: Tìm kiếm tags theo tên (prefix matching)
 - **Use Case**: Autocomplete khi giáo viên nhập tags cho khóa học
-- **Implementation**: Thêm vào `tag.service.ts`:
 
-```typescript
-searchTags: async (query: string): Promise<TagResponse[]> => {
-  const response = await axiosClient.get<ApiResponse<TagResponse[]>>(
-    `${TAG_PREFIX}/search`,
-    { params: { query } },
-  );
-  return unwrapResponse(response);
-};
-```
-
-#### `bulkCreateTags` - Tạo nhiều tags cùng lúc
+#### 6.9. `bulkCreateTags` - Tạo nhiều tags cùng lúc
 
 - **Role**: `ADMIN`
 - **Method**: POST
+- **Frontend Endpoint**: `/tags/bulk`
 - **Backend Endpoint**: `/api/v1/tags/bulk`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **LOW** - Ít dùng
+- **Status**: ✅ **MATCHED**
 - **Description**: Tạo nhiều tags từ danh sách tên (tự động bỏ qua duplicates)
 - **Use Case**: Admin import tags từ file CSV
-- **Implementation**: Thêm vào `tag.service.ts`:
 
-```typescript
-bulkCreateTags: async (tagNames: string[]): Promise<TagResponse[]> => {
-  const response = await axiosClient.post<ApiResponse<TagResponse[]>>(
-    `${TAG_PREFIX}/bulk`,
-    { tagNames },
-  );
-  return unwrapResponse(response);
-};
-```
-
-#### `getTagStatistics` - Lấy thống kê tags
+#### 6.10. `getTagStatistics` - Lấy thống kê tags
 
 - **Role**: `ADMIN`
 - **Method**: GET
+- **Frontend Endpoint**: `/tags/admin/stats`
 - **Backend Endpoint**: `/api/v1/tags/admin/stats`
-- **Status**: ❌ **THIẾU Ở FRONTEND**
-- **Priority**: **MEDIUM** - Cần cho dashboard admin
+- **Status**: ✅ **MATCHED**
 - **Description**: Thống kê số khóa học theo từng tag
 - **Use Case**: Admin xem báo cáo sử dụng tags
-- **Implementation**: Thêm vào `tag.service.ts`:
-
-```typescript
-getTagStatistics: async (): Promise<TagStatsResponse[]> => {
-  const response = await axiosClient.get<ApiResponse<TagStatsResponse[]>>(
-    `${TAG_PREFIX}/admin/stats`,
-  );
-  return unwrapResponse(response);
-};
-```
 
 ---
 
-## 6️⃣ COURSE PREVIEW MODULE (Public)
+## ✅ KẾT LUẬN
 
-### ⚠️ APIs THIẾU Ở Frontend - CẦN TẠO SERVICE MỚI
+### 📋 Tổng Kết Mapping
 
-Backend có controller `CoursePreviewController` nhưng **FRONTEND CHƯA CÓ SERVICE** tương ứng.
+| Module                  | APIs Frontend | APIs Backend | Status        |
+| ----------------------- | ------------- | ------------ | ------------- |
+| **Category Management** | 11            | 11           | ✅ 100% Match |
+| **Course Management**   | 16            | 16           | ✅ 100% Match |
+| **Course Preview**      | 8             | 8            | ✅ 100% Match |
+| **Course Review**       | 5             | 5            | ✅ 100% Match |
+| **Course Version**      | 14            | 14           | ✅ 100% Match |
+| **Tag Management**      | 10            | 10           | ✅ 100% Match |
+| **TỔNG CỘNG**           | **64**        | **64**       | ✅ **100%**   |
 
-**❗ KHUYẾN NGHỊ**: Tạo file mới `course-preview.service.ts` với các APIs sau:
+### 🎉 Thành Tựu
 
-#### `getCoursePreview` - Xem preview khóa học (Public)
+- ✅ **Tất cả 64 APIs đã được mapping đầy đủ**
+- ✅ **Tất cả endpoints đã được sửa đúng** (không còn path sai)
+- ✅ **Service mới `course-preview.service.ts` đã được tạo**
+- ✅ **Tất cả types mới đã được thêm vào `course.types.ts`**
+- ✅ **Không còn API nào thiếu**
 
-- **Role**: `PUBLIC`
-- **Method**: GET
-- **Backend Endpoint**: `/api/v1/public/courses/{slug}/preview`
-- **Status**: ❌ **THIẾU HOÀN TOÀN**
-- **Priority**: **CRITICAL** - Rất quan trọng cho landing page
-- **Description**: Lấy preview chi tiết khóa học bao gồm chapters và preview lessons
-- **Use Case**: Người chưa đăng ký xem nội dung mẫu của khóa học
-- **Implementation**: Tạo `course-preview.service.ts`:
+### 📝 Files Đã Update
 
-```typescript
-getCoursePreview: async (slug: string): Promise<CoursePreviewResponse> => {
-  const response = await axiosClient.get<ApiResponse<CoursePreviewResponse>>(
-    `/public/courses/${slug}/preview`,
-  );
-  return unwrapResponse(response);
-};
-```
+1. ✅ `category.service.ts` - Sửa endpoints + thêm 2 APIs
+2. ✅ `course.service.ts` - Thêm 5 APIs mới
+3. ✅ `course-preview.service.ts` - Tạo mới với 8 APIs
+4. ✅ `course-review.service.ts` - Đã đúng, chỉ format
+5. ✅ `course-version.service.ts` - Thêm 2 APIs public
+6. ✅ `tag.service.ts` - Sửa endpoints + thêm 4 APIs
+7. ✅ `course.types.ts` - Thêm 10+ types mới
 
-#### `getPreviewVideoStreamUrl` - Lấy URL video preview (Public)
+### 🚀 Sẵn Sàng Production
 
-- **Role**: `PUBLIC`
-- **Method**: GET
-- **Backend Endpoint**: `/api/v1/public/lessons/{lessonId}/preview/stream-url`
-- **Status**: ❌ **THIẾU HOÀN TOÀN**
-- **Priority**: **CRITICAL** - Cần để xem video mẫu
-- **Description**: Lấy streaming URL cho lesson được đánh dấu isPreview=true
-- **Use Case**: Người chưa đăng ký xem video bài học mẫu miễn phí
-- **Implementation**:
+Module **Courses** đã hoàn thành mapping 100% với backend và sẵn sàng cho development!
+const response = await axiosClient.get<
+ApiResponse<CoursePublishedStatusResponse>
 
-```typescript
-getPreviewVideoStreamUrl: async (
-  lessonId: number,
-): Promise<PreviewVideoUrlResponse> => {
-  const response = await axiosClient.get<ApiResponse<PreviewVideoUrlResponse>>(
-    `/public/lessons/${lessonId}/preview/stream-url`,
-  );
-  return unwrapResponse(response);
-};
-```
+> (`/public/courses/${slug}/is-published`);
+> return unwrapResponse(response);
+> };
 
-#### `isCoursePublished` - Kiểm tra khóa học đã publish (Public)
-
-- **Role**: `PUBLIC`
-- **Method**: GET
-- **Backend Endpoint**: `/api/v1/public/courses/{slug}/is-published`
-- **Status**: ❌ **THIẾU HOÀN TOÀN**
-- **Priority**: **HIGH** - Cần để check trạng thái
-- **Description**: Kiểm tra nhanh xem khóa học có version published không
-- **Use Case**: Điều hướng user nếu khóa học chưa publish
-- **Implementation**:
-
-```typescript
-isCoursePublished: async (
-  slug: string,
-): Promise<CoursePublishedStatusResponse> => {
-  const response = await axiosClient.get<
-    ApiResponse<CoursePublishedStatusResponse>
-  >(`/public/courses/${slug}/is-published`);
-  return unwrapResponse(response);
-};
-```
+````
 
 #### `getPublicCourseReviews` - Lấy reviews công khai (Public)
 
@@ -832,7 +803,7 @@ getPublicCourseReviews: async (
   >(`/public/courses/${courseId}/reviews`, { params: { sort, page, size } });
   return unwrapResponse(response);
 };
-```
+````
 
 #### `getCourseRatingSummary` - Lấy tổng kết rating (Public)
 
@@ -978,40 +949,33 @@ const ADMIN_TAG_PREFIX = "/tags"; // Không cần /admin prefix
 3. ✅ Thêm `getActiveCategories` cho dropdown chọn category
 4. ✅ Thêm `searchPublishedCourses` cho trang search
 
-### Phase 2 - HIGH (Trong tuần này)
-
-5. ✅ Thêm `cloneCourse` và `getCourseStatistics` cho teacher
-6. ✅ Thêm `getPublishedCourses` và `getPublishedCourseBySlug` cho public
-7. ✅ Thêm `searchTags` cho autocomplete
-8. ✅ Thêm `getPublishedVersionBySlug` cho pricing info
-
-### Phase 3 - MEDIUM/LOW (Có thể làm sau)
-
-9. ✅ Thêm `getCategoryStatistics` và `getTagStatistics` cho admin dashboard
-10. ✅ Thêm `getPopularTags` cho trending section
-11. ✅ Thêm `bulkCreateTags` cho admin bulk operations
-12. ✅ Thêm `getPublicCourseVersionById` (ít dùng)
-
 ---
 
 ## 📝 Notes
 
-1. **Backend Security**: Tất cả admin APIs đều có @AdminOnly annotation, không cần thêm /admin vào path
-2. **Filter & Pagination**: Backend hỗ trợ SpringFilter và Pageable cho hầu hết list APIs
-3. **Public APIs**: Không cần authentication, phục vụ cho landing page và SEO
-4. **Course Preview**: Module mới hoàn toàn, cần tạo service từ đầu
-5. **Type Definitions**: Cần thêm types mới trong `course.types.ts`:
-   - `CoursePreviewResponse`
-   - `PreviewVideoUrlResponse`
-   - `CoursePublishedStatusResponse`
-   - `PublicTeacherProfileResponse`
-   - `CourseCardResponse`
-   - `TagStatsResponse`
-   - `CategoryStatsResponse`
-   - `CourseStatsResponse`
+1. **Backend Security**: Tất cả admin APIs đều có @AdminOnly annotation, backend prefix là `/api/v1`, frontend chỉ cần path sau đó
+2. **Base URL Configuration**: Frontend đã config base URL là `localhost/api/v1`, nên endpoints chỉ cần `/categories`, `/courses`, etc.
+3. **Filter & Pagination**: Backend hỗ trợ SpringFilter và Pageable cho hầu hết list APIs
+4. **Public APIs**: Không cần authentication, phục vụ cho landing page và SEO
+5. **Course Preview Module**: Đã được tạo hoàn chỉnh với 8 APIs public
+
+### Types Đã Thêm vào `course.types.ts`
+
+- ✅ `CoursePreviewResponse`
+- ✅ `PreviewVideoUrlResponse`
+- ✅ `CoursePublishedStatusResponse`
+- ✅ `CourseCardResponse`
+- ✅ `ChapterPreview`
+- ✅ `LessonPreview`
+- ✅ `TagStatsResponse`
+- ✅ `CategoryStatsResponse`
+- ✅ `CourseStatsResponse`
+- ✅ `BulkTagRequest`
 
 ---
 
 **Ngày tạo**: 2026-01-23  
-**Version**: 1.0  
-**Module**: Courses (Category, Course, Review, Version, Tag, Preview)
+**Last Updated**: 2026-01-23  
+**Version**: 2.0 - COMPLETED  
+**Status**: ✅ **100% MAPPED**  
+**Module**: Courses (Category, Course, Course Preview, Review, Version, Tag)

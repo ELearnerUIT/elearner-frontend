@@ -4,6 +4,10 @@
 
 Tài liệu này mapping chi tiết các API giữa Frontend và Backend cho module Assignment (Assignment/Submission Management).
 
+**Status**: ✅ **100% COMPLETE** - Tất cả 44 APIs đã được mapping đầy đủ
+
+**Version**: 1.0 - Updated: January 23, 2026
+
 ---
 
 ## 📋 MODULE 1: ASSIGNMENT MANAGEMENT (Teacher - Core CRUD & Linking)
@@ -93,91 +97,82 @@ Tài liệu này mapping chi tiết các API giữa Frontend và Backend cho mod
 
 - **Frontend Method**: `getAssignmentSubmissions(id: number): Promise<SubmissionResponse[]>`
 - **Backend Endpoint**: `GET /api/v1/assignments/{id}/submissions`
-- **Controller**: `SubmissionController.getSubmissions()`
+- **Controller**: `AssignmentController.getAssignmentSubmissions()`
 - **Role**: `@TeacherOnly`
 - **Description**: Lấy tất cả submissions của một assignment
 - **Use Case**: Teacher xem danh sách bài nộp của học sinh
-- **Note**: ⚠️ Frontend có API này nhưng backend endpoint đúng là `/assignments/{assignmentId}/submissions` (không phải `/assignments/{id}/submissions`)
 
 ### 11. Check Assignment Eligibility
 
 - **Frontend Method**: `checkEligibility(id: number): Promise<AssignmentEligibilityResponse>`
 - **Backend Endpoint**: `GET /api/v1/assignments/{id}/eligibility`
-- **Controller**: ⚠️ **MISSING IN BACKEND**
-- **Role**: N/A
+- **Controller**: `AssignmentController.checkEligibility()`
+- **Role**: `@StudentOnly`
 - **Description**: Kiểm tra student có thể submit assignment không
 - **Use Case**: Validate trước khi cho phép student submit
-- **Status**: ⚠️ **API chưa có trong backend controllers**
 
 ### 12. Get Assignment Statistics
 
 - **Frontend Method**: `getAssignmentStatistics(id: number): Promise<AssignmentStatisticsResponse>`
 - **Backend Endpoint**: `GET /api/v1/assignments/{id}/statistics`
-- **Controller**: ⚠️ **MISSING IN BACKEND**
-- **Role**: N/A
+- **Controller**: `AssignmentController.getAssignmentStatistics()`
+- **Role**: `@TeacherOnly`
 - **Description**: Lấy thống kê assignment
 - **Use Case**: Teacher xem thống kê submissions
-- **Status**: ⚠️ **API chưa có trong backend controllers**
 
 ### 13. Get Student Progress
 
 - **Frontend Method**: `getStudentProgress(assignmentId: number, studentId: number): Promise<StudentAssignmentProgressResponse>`
 - **Backend Endpoint**: `GET /api/v1/assignments/{assignmentId}/students/{studentId}/progress`
-- **Controller**: ⚠️ **MISSING IN BACKEND**
-- **Role**: N/A
+- **Controller**: `AssignmentController.getStudentProgress()`
+- **Role**: `@StudentOrTeacher`
 - **Description**: Lấy tiến độ của student trên assignment
 - **Use Case**: Xem trạng thái hoàn thành
-- **Status**: ⚠️ **API chưa có trong backend controllers**
 
 ### 14. Clone Assignment
 
 - **Frontend Method**: `cloneAssignment(id: number, targetLessonId: number): Promise<AssignmentResponse>`
-- **Backend Endpoint**: `POST /api/v1/assignments/{id}/clone`
-- **Controller**: ⚠️ **MISSING IN BACKEND**
-- **Role**: N/A
+- **Backend Endpoint**: `POST /api/v1/assignments/{id}/clone?targetLessonId={lessonId}`
+- **Controller**: `AssignmentController.cloneAssignment()`
+- **Role**: `@TeacherOnly`
 - **Description**: Sao chép assignment sang lesson khác
 - **Use Case**: Teacher tạo bản copy assignment cho lesson mới
-- **Status**: ⚠️ **API chưa có trong backend controllers**
 
 ### 15. Get Late Submissions
 
 - **Frontend Method**: `getLateSubmissions(id: number): Promise<SubmissionResponse[]>`
 - **Backend Endpoint**: `GET /api/v1/assignments/{id}/late-submissions`
-- **Controller**: ⚠️ **MISSING IN BACKEND**
-- **Role**: N/A
+- **Controller**: `AssignmentController.getLateSubmissions()`
+- **Role**: `@TeacherOnly`
 - **Description**: Lấy danh sách submissions nộp trễ
 - **Use Case**: Teacher xem các bài nộp trễ
-- **Status**: ⚠️ **API chưa có trong backend controllers**
 
 ### 16. Get Pending Submissions
 
 - **Frontend Method**: `getPendingSubmissions(id: number): Promise<SubmissionResponse[]>`
 - **Backend Endpoint**: `GET /api/v1/assignments/{id}/pending-submissions`
-- **Controller**: ⚠️ **MISSING IN BACKEND**
-- **Role**: N/A
+- **Controller**: `AssignmentController.getPendingSubmissions()`
+- **Role**: `@TeacherOnly`
 - **Description**: Lấy danh sách submissions chưa chấm
 - **Use Case**: Teacher xem các bài cần chấm
-- **Status**: ⚠️ **API chưa có trong backend controllers**
 
 ### 17. Get Assignments by Type
 
 - **Frontend Method**: `getAssignmentsByType(lessonId: number, type: AssignmentType): Promise<AssignmentResponse[]>`
-- **Backend Endpoint**: `GET /api/v1/lessons/{lessonId}/assignments/by-type`
-- **Controller**: ⚠️ **MISSING IN BACKEND**
-- **Role**: N/A
+- **Backend Endpoint**: `GET /api/v1/lessons/{lessonId}/assignments/by-type?type={type}`
+- **Controller**: `AssignmentController.getAssignmentsByType()`
+- **Role**: `@StudentOrTeacher`
 - **Description**: Lọc assignment theo loại (PRACTICE, HOMEWORK, PROJECT, FINAL_REPORT)
 - **Use Case**: Hiển thị assignment theo category
-- **Status**: ⚠️ **API chưa có trong backend controllers**
 
 ### 18. Extend Due Date
 
 - **Frontend Method**: `extendDueDate(id: number, newDueDate: string): Promise<AssignmentResponse>`
-- **Backend Endpoint**: `PUT /api/v1/assignments/{id}/extend-due-date`
-- **Controller**: ⚠️ **MISSING IN BACKEND**
-- **Role**: N/A
+- **Backend Endpoint**: `PUT /api/v1/assignments/{id}/extend-due-date?newDueDate={dueDate}`
+- **Controller**: `AssignmentController.extendDueDate()`
+- **Role**: `@TeacherOnly`
 - **Description**: Gia hạn deadline assignment
 - **Use Case**: Teacher kéo dài thời gian nộp bài
-- **Status**: ⚠️ **API chưa có trong backend controllers**
 
 ---
 
@@ -428,49 +423,56 @@ Tài liệu này mapping chi tiết các API giữa Frontend và Backend cho mod
 ### ✅ APIs đã được mapping đầy đủ
 
 - **Total Frontend APIs**: 44 APIs
-- **Total Backend APIs**: 35 APIs
-- **Matched APIs**: 35 APIs
-- **Missing in Backend**: 9 APIs
+- **Total Backend APIs**: 44 APIs
+- **Matched APIs**: 44 APIs ✅
+- **Missing in Backend**: 0 APIs
+- **Completion Rate**: 100% 🎉
 
-### ⚠️ APIs Missing in Backend
+### 🎯 Module Breakdown
 
-Các APIs này có trong frontend service nhưng **chưa có trong backend controllers**:
-
-1. **GET /assignments/{id}/eligibility** - Check assignment eligibility (#11)
-2. **GET /assignments/{id}/statistics** - Get assignment statistics (#12)
-3. **GET /assignments/{assignmentId}/students/{studentId}/progress** - Get student progress (#13)
-4. **POST /assignments/{id}/clone** - Clone assignment (#14)
-5. **GET /assignments/{id}/late-submissions** - Get late submissions (#15)
-6. **GET /assignments/{id}/pending-submissions** - Get pending submissions (#16)
-7. **GET /lessons/{lessonId}/assignments/by-type** - Get assignments by type (#17)
-8. **PUT /assignments/{id}/extend-due-date** - Extend due date (#18)
-
-**⚠️ Note**: Có thể các APIs này được implement trong service layer nhưng chưa có controller endpoint, hoặc đang được phát triển.
+| Module                                                | APIs        | Status      |
+| ----------------------------------------------------- | ----------- | ----------- |
+| Assignment Management (Teacher - Core CRUD & Linking) | 18 APIs     | ✅ 100%     |
+| Submission Management (Student & Teacher Operations)  | 20 APIs     | ✅ 100%     |
+| Submission File Management                            | 6 APIs      | ✅ 100%     |
+| **TOTAL**                                             | **44 APIs** | **✅ 100%** |
 
 ### 🎯 Phân loại theo Role
 
-#### Teacher Only (18 APIs)
+#### Teacher Only (20 APIs)
 
-- Assignment CRUD: Create, Update, Delete
+- Assignment CRUD: Create independent, Update, Delete
+- Get all independent assignments
 - Link/Unlink operations
-- View all submissions
+- View all submissions by assignment
 - Grade, Feedback, Reject, Regrade
-- Bulk operations
-- Statistics and analytics
-- Export data
+- Bulk grade submissions
+- Clone assignment
+- Extend due date
+- Get assignment statistics
+- Get late submissions, pending submissions
+- Get submissions by status
+- Get late submissions by student
+- Get passing rate
+- Export submissions
 
-#### Student Only (10 APIs)
+#### Student Only (9 APIs)
 
 - Submit assignment
 - Get my submissions
 - Update submission content
 - Delete submission (before grading)
-- Resubmit
-- Upload files
+- Resubmit assignment
+- Check assignment eligibility
+- Get my latest submission
+- Upload files (single & multiple)
 - Delete files
 
-#### Student or Teacher (7 APIs)
+#### Student or Teacher (9 APIs)
 
+- Get assignment by ID
+- Get assignments by lesson
+- Get assignments by type
 - Get submission by ID
 - Get student submissions
 - Get submission files
@@ -478,12 +480,16 @@ Các APIs này có trong frontend service nhưng **chưa có trong backend contr
 - Get file count
 - Get best submission
 - Get student average score
+- Get student progress
 
-#### Public (9 APIs - may require auth)
+#### Public (6 APIs)
 
-- Get assignment by ID
-- Get assignments by lesson
-- Get assignment submissions (actually Teacher only)
+- Get assignment by ID (@StudentOrTeacher)
+- Get assignments by lesson (@StudentOrTeacher)
+- Get assignments by type (@StudentOrTeacher)
+- Get submission files (@StudentOrTeacher)
+- Get file download URL (@StudentOrTeacher)
+- Get file count (@StudentOrTeacher)
 
 ### 🔄 Các Pattern chính
 
@@ -533,29 +539,24 @@ type SubmissionStatus =
 
 ## 🚧 Recommendations
 
-### Backend Development Needed
+### ✅ Backend Status: COMPLETE
 
-Các APIs missing cần được implement trong backend:
+Tất cả 44 APIs đã được implement đầy đủ trong backend với 3 controllers:
 
-1. **Priority High**:
-   - `checkEligibility` - Critical cho student validation
-   - `getAssignmentStatistics` - Important cho teacher analytics
-   - `getLateSubmissions` / `getPendingSubmissions` - Teacher workflow
-
-2. **Priority Medium**:
-   - `cloneAssignment` - Useful feature
-   - `getStudentProgress` - Good for tracking
-   - `extendDueDate` - Flexible deadline management
-
-3. **Priority Low**:
-   - `getAssignmentsByType` - Nice to have filtering
+- `AssignmentController`: 18 endpoints
+- `SubmissionController`: 20 endpoints
+- `SubmissionFileController`: 6 endpoints
 
 ### Frontend Considerations
 
-- Implement graceful error handling cho missing APIs
-- Consider feature flags cho APIs chưa có backend
-- Add loading states và error messages phù hợp
-- Cache submission data để reduce API calls
+- Implement proper error handling for all API calls
+- Add loading states and skeleton screens
+- Cache submission data to reduce API calls
+- Implement optimistic UI updates for better UX
+- Add file upload progress indicators
+- Handle file size limits and validation
+- Implement retry logic for failed uploads
+- Add confirmation dialogs for destructive actions (delete, reject)
 
 ### Integration Points
 
