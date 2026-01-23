@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -15,7 +15,7 @@ import Popup, { PopupType } from "@/core/components/public/Popup";
 import { RoleSelectionModal } from "@/core/components/public/RoleSelectionModal";
 import { UserRole } from "@/services/auth/auth.types";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect");
 
@@ -388,5 +388,17 @@ export default function LoginPage() {
         }}
       />
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[72vh] flex items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-[var(--brand-600)]" />
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }

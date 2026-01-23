@@ -1,21 +1,40 @@
-"use client";
+import type { BannerSlide } from "@/core/components/public/landingpage/BannerCarousel";
+import HomePageClient from "./HomePageClient";
+import { Metadata } from "next";
 
-import CourseGrid from "@/core/components/course/CourseGrid"
-import BannerCarousel, {
-  type BannerSlide,
-} from "@/core/components/public/landingpage/BannerCarousel";
-import FeaturedSkills from "@/core/components/public/landingpage/FeaturedSkills";
-import IntroWithStats from "@/core/components/public/landingpage/IntroWithStats";
-import TopicsSection from "@/core/components/course/TopicsSection";
-import ReviewsSection from "@/core/components/public/landingpage/ReviewsSection";
-import CertificatesSection from "@/core/components/public/landingpage/CertificatesSection";
-import SkillsTabCarouselSection from "@/core/components/public/landingpage/SkillsTabCarouselSection";
-import PlansSection from "@/core/components/public/landingpage/PlansSection";
-import { useCategories } from "@/hooks/learner/useCategory";
+export const metadata: Metadata = {
+  title: "Online Courses & Learning Platform",
+  description:
+    "Master tomorrow's skills with ELearner. Access thousands of online courses from expert instructors. Learn programming, design, business, and more. Earn certificates and advance your career.",
+  openGraph: {
+    title: "ELearner - Online Courses & Learning Platform",
+    description:
+      "Master tomorrow's skills with thousands of online courses. Learn from expert instructors, earn certificates, and advance your career.",
+    url: "/",
+    images: [
+      {
+        url: "/images/banners/slide1.png",
+        width: 1200,
+        height: 630,
+        alt: "ELearner - Master Tomorrow's Skills",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ELearner - Online Courses & Learning Platform",
+    description:
+      "Master tomorrow's skills with thousands of online courses. Learn from expert instructors and earn certificates.",
+    images: ["/images/banners/slide1.png"],
+  },
+  alternates: {
+    canonical: "/",
+  },
+};
 
 const slides: BannerSlide[] = [
   {
-    title: "Master Tomorrow’s Skills",
+    title: "Master Tomorrow's Skills",
     subtitle:
       "Advance your career with up-to-date courses and experienced instructors.",
     ctaPrimary: { label: "Get Started", href: "/explore" },
@@ -33,53 +52,11 @@ const slides: BannerSlide[] = [
     title: "Grow Every Day",
     subtitle: "Short lessons, hands-on exercises, and completion certificates.",
     ctaPrimary: { label: "Find Courses", href: "/explore" },
-    ctaSecondary: { label: "Today’s Deals", href: "/deals" },
+    ctaSecondary: { label: "Today's Deals", href: "/deals" },
     image: "/images/banners/slide3.png",
   },
 ];
 
 export default function Home() {
-  const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useCategories();
-
-  return (
-    <div className="space-y-16">
-      <BannerCarousel slides={slides} autoPlayMs={7000} />
-      <IntroWithStats />
-      <TopicsSection categories={categories} loading={categoriesLoading} error={categoriesError} />
-      <FeaturedSkills />
-      <SkillsTabCarouselSection />
-      <ReviewsSection />
-      <CertificatesSection />
-      <section className="w-full mt-6 px-4 sm:px-6 md:px-10 xl:px-16">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight max-w-[1100px]">
-            Featured Courses
-          </h2>
-          <a
-            href="/courses"
-            className="
-              inline-flex items-center gap-1.5 rounded-full border border-white/10 
-              bg-white/5 px-4 py-1.5 text-sm font-medium text-muted-foreground 
-              hover:text-lime-300 hover:border-lime-300/30 hover:bg-lime-400/5 
-              transition-all duration-200
-            "
-          >
-            View all
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
-        <CourseGrid />
-      </section>
-      <PlansSection />
-    </div>
-  );
+  return <HomePageClient slides={slides} />;
 }

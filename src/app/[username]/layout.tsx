@@ -9,6 +9,9 @@ import LearnerNavbar from "@/core/components/learner/navbar/LearnerNavbar";
 import { TeacherNavbar } from "@/core/components/teacher/layout/TeacherNavbar";
 import AdminNavbar from "@/core/components/admin/navbar/AdminNavbar";
 
+// Note: Metadata cannot be exported from client components.
+// Noindex is enforced via robots.ts for /*/dashboard routes
+
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();

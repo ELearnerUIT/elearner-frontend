@@ -1,6 +1,7 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import {
   useGetAllAccounts,
   useSuspendAccount,
@@ -18,7 +19,7 @@ import { UserHeader ,UserStatsCards,
   UserTabs,
   UserTable,
   UserActionModal, } from "@/core/components/admin/users";
-export default function AdminUsersScreen() {
+function AdminUsersScreenContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -215,5 +216,17 @@ const stats = useMemo(() => ({
         onDeactivate={(user) => openActionModal(user, "deactivate")}
       />
     </div>
+  );
+}
+
+export default function AdminUsersScreen() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="size-8 animate-spin text-[var(--brand-600)]" />
+      </div>
+    }>
+      <AdminUsersScreenContent />
+    </Suspense>
   );
 }
