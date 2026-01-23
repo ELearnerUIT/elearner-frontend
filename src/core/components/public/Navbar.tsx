@@ -149,7 +149,7 @@ export default function Navbar() {
                         LMS Business
                     </Link>
                     <Link href="#" className="hidden lg:block nav-link">
-                        Teach on LMS
+                        Teach on ELearner
                     </Link>
 
                     {/* Cart */}
