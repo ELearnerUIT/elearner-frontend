@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CustomPasswordField from "@/components/shared/CustomPasswordField";
 import { CustomButton, ButtonColor } from "../shared/CustomButton";
-import { API_ENDPOINTS, apiRequest } from "@/lib/api";
+import { useResetPassword } from "@/lib/hooks";
 
 export default function ResetPasswordForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
+    const { mutate: resetPassword, isPending } = useResetPassword();
 
     const [passwordInput, setPasswordInput] = useState("");
     const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
@@ -17,7 +18,6 @@ export default function ResetPasswordForm() {
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
     const validatePassword = (password: string) => {
         if (!password || password.length === 0) {
@@ -62,40 +62,30 @@ export default function ResetPasswordForm() {
             return;
         }
 
-        setIsLoading(true);
         setErrorMessage("");
         setSuccessMessage("");
 
-        try {
-            const response = await apiRequest(
-                `${API_ENDPOINTS.AUTH.RESET_PASSWORD}?token=${token}`,
-                {
-                    method: "POST",
-                    body: JSON.stringify({
-                        newPassword: passwordInput,
-                    }),
-                }
-            );
-
-            if (response.success) {
-                setSuccessMessage(
-                    "Password reset successful! Redirecting to login..."
-                );
-                setTimeout(() => {
-                    router.push("/login");
-                }, 2000);
-            } else {
-                setErrorMessage(
-                    response.message || "Failed to reset password. Please try again."
-                );
+        resetPassword(
+            {
+                token,
+                data: { newPassword: passwordInput },
+            },
+            {
+                onSuccess: () => {
+                    setSuccessMessage(
+                        "Password reset successful! Redirecting to login..."
+                    );
+                    setTimeout(() => {
+                        router.push("/login");
+                    }, 2000);
+                },
+                onError: (error) => {
+                    setErrorMessage(
+                        error.message || "Failed to reset password. Please try again."
+                    );
+                },
             }
-        } catch (error) {
-            setErrorMessage(
-                "Unable to connect to server. Please check your connection and try again."
-            );
-        } finally {
-            setIsLoading(false);
-        }
+        );
     };
 
     if (!token) {
@@ -185,15 +175,15 @@ export default function ResetPasswordForm() {
 
                     <div className="mt-6">
                         <CustomButton
-                            text={isLoading ? "" : "Reset Password →"}
-                            enabled={!isLoading && !successMessage}
+                            text={isPending ? "" : "Reset Password →"}
+                            enabled={!isPending && !successMessage}
                             color={ButtonColor.PURPLE}
                             onClick={(event) => handleSubmit(event)}
                         >
-                            {isLoading && (
+                            {isPending && (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             )}
-                            {isLoading && "Resetting..."}
+                            {isPending && "Resetting..."}
                         </CustomButton>
                     </div>
                 </form>

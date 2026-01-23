@@ -26,8 +26,9 @@ const publicClient = createPublicClient();
  * POST /auth/register
  */
 export async function register(data: RegisterRequest): Promise<RegisterResponse> {
-  const response = await publicClient.post<RegisterResponse>('/auth/register', data);
-  return response.data;
+  const response = await publicClient.post<{ data: RegisterResponse }>('/auth/register', data);
+  // Backend wraps response in { data: {...} } format
+  return response.data.data;
 }
 
 /**
@@ -51,8 +52,9 @@ export async function resendVerificationEmail(): Promise<void> {
  * POST /auth/login
  */
 export async function login(data: LoginRequest): Promise<LoginResponse> {
-  const response = await publicClient.post<LoginResponse>('/auth/login', data);
-  return response.data;
+  const response = await publicClient.post<{ data: LoginResponse }>('/auth/login', data);
+  // Backend wraps response in { data: {...} } format
+  return response.data.data;
 }
 
 /**
@@ -68,8 +70,9 @@ export async function logout(data: LogoutRequest): Promise<void> {
  * POST /auth/refresh
  */
 export async function refreshToken(data: RefreshTokenRequest): Promise<RefreshTokenResponse> {
-  const response = await publicClient.post<RefreshTokenResponse>('/auth/refresh', data);
-  return response.data;
+  const response = await publicClient.post<{ data: RefreshTokenResponse }>('/auth/refresh', data);
+  // Backend wraps response in { data: {...} } format
+  return response.data.data;
 }
 
 /**
@@ -101,6 +104,7 @@ export async function changePassword(data: ChangePasswordRequest): Promise<void>
  * GET /auth/me
  */
 export async function getCurrentUser(): Promise<User> {
+  // apiClient has interceptors that unwrap the response
   const response = await apiClient.get<User>('/auth/me');
   return response.data;
 }
@@ -110,6 +114,7 @@ export async function getCurrentUser(): Promise<User> {
  * POST /auth/social/login
  */
 export async function socialLogin(data: SocialLoginRequest): Promise<LoginResponse> {
-  const response = await publicClient.post<LoginResponse>('/auth/social/login', data);
-  return response.data;
+  const response = await publicClient.post<{ data: LoginResponse }>('/auth/social/login', data);
+  // Backend wraps response in { data: {...} } format
+  return response.data.data;
 }

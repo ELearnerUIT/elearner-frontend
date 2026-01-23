@@ -6,16 +6,17 @@ import CustomPasswordField from "@/components/shared/CustomPasswordField";
 import CustomInputField, { InputFieldIcon } from "../shared/CustomInputField";
 import { CustomButton, ButtonColor } from "../shared/CustomButton";
 import { setAuthData, AuthData } from "@/lib/auth";
+import { useLogin } from "@/lib/hooks";
 
 export default function LoginForm() {
     const router = useRouter();
+    const { mutate: login, isPending } = useLogin();
 
     const [loginInput, setLoginInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
     const [loginError, setLoginError] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
     const validateLogin = (login: string) => {
         if (!login) {
@@ -47,52 +48,35 @@ export default function LoginForm() {
             return;
         }
 
-        setIsLoading(true);
         setErrorMessage("");
 
-        try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/v1/auth/login`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        login: loginInput,
-                        password: passwordInput,
-                    }),
+        login(
+            {
+                login: loginInput,
+                password: passwordInput,
+            },
+            {
+                onSuccess: (data) => {
+                    const authData: AuthData = data;
+
+                    if (authData.user.role !== "STUDENT") {
+                        setErrorMessage(
+                            "This login is for students only. Please use the appropriate login page for your role.",
+                        );
+                        return;
+                    }
+
+                    setAuthData(authData);
+                    router.push("/my-courses");
                 },
-            );
-
-            const data = await response.json();
-
-            if (data.success) {
-                const authData: AuthData = data.data;
-
-                if (authData.user.role !== "STUDENT") {
+                onError: (error) => {
                     setErrorMessage(
-                        "This login is for students only. Please use the appropriate login page for your role.",
+                        error.message ||
+                            "Wrong email or password. Please try again.",
                     );
-                    return;
-                }
-
-                setAuthData(authData);
-
-                router.push("/my-courses");
-            } else {
-                setErrorMessage(
-                    data.message ||
-                        "Wrong email or password. Please try again.",
-                );
-            }
-        } catch (error) {
-            setErrorMessage(
-                "Unable to connect to server. Please check your connection and try again.",
-            );
-        } finally {
-            setIsLoading(false);
-        }
+                },
+            },
+        );
     };
 
     return (
@@ -161,15 +145,15 @@ export default function LoginForm() {
 
                     <div className="mt-6">
                         <CustomButton
-                            text={isLoading ? "" : "Login →"}
-                            enabled={!isLoading}
+                            text={isPending ? "" : "Login →"}
+                            enabled={!isPending}
                             color={ButtonColor.PURPLE}
                             onClick={(event) => handleLogin(event)}
                         >
-                            {isLoading && (
+                            {isPending && (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             )}
-                            {isLoading && "Logging in..."}
+                            {isPending && "Logging in..."}
                         </CustomButton>
                     </div>
                 </form>

@@ -11,17 +11,19 @@ import {
     CustomLinkButton,
     ButtonColor,
 } from "../shared/CustomButton";
+import { useRegister, useResendVerification } from "@/lib/hooks";
 
 export default function RegisterForm() {
+    const { mutate: register, isPending: isRegistering } = useRegister();
+    const { mutate: resendVerification, isPending: isResending } = useResendVerification();
+
     const [usernameInput, setUsernameInput] = useState("");
     const [emailInput, setEmailInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
     const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
     const [agreeToTerms, setAgreeToTerms] = useState(false);
 
-    const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
-    const [isResending, setIsResending] = useState(false);
     const [resendMessage, setResendMessage] = useState("");
 
     const [errorMessage, setErrorMessage] = useState("");
@@ -112,77 +114,45 @@ export default function RegisterForm() {
             return;
         }
 
-        setIsLoading(true);
         setErrorMessage("");
 
-        try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/v1/auth/register`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        username: usernameInput,
-                        email: emailInput,
-                        password: passwordInput,
-                        role: "student",
-                        langKey: "en",
-                    }),
+        register(
+            {
+                username: usernameInput,
+                email: emailInput,
+                password: passwordInput,
+                role: "student",
+                langKey: "en",
+            },
+            {
+                onSuccess: () => {
+                    setIsSuccess(true);
                 },
-            );
-
-            const data = await response.json();
-
-            if (data.success) {
-                setIsSuccess(true);
-            } else {
-                setErrorMessage(
-                    data.message || "Registration failed. Please try again.",
-                );
-            }
-        } catch (error) {
-            setErrorMessage(
-                "Unable to connect to server. Please check your connection and try again.",
-            );
-        } finally {
-            setIsLoading(false);
-        }
+                onError: (error) => {
+                    setErrorMessage(
+                        error.message || "Registration failed. Please try again.",
+                    );
+                },
+            },
+        );
     };
 
     const handleResendVerification = async () => {
-        setIsResending(true);
         setResendMessage("");
 
-        try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/v1/auth/resend-verification`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        email: emailInput,
-                    }),
+        resendVerification(
+            { email: emailInput },
+            {
+                onSuccess: () => {
+                    setResendMessage("Verification email sent successfully!");
                 },
-            );
-
-            const data = await response.json();
-
-            if (data.success) {
-                setResendMessage("Verification email sent successfully!");
-            } else {
-                setResendMessage(
-                    data.message || "Failed to resend. Please try again.",
-                );
-            }
-        } catch (error) {
-            setResendMessage("Unable to resend. Please check your connection.");
-        } finally {
-            setIsResending(false);
-        }
+                onError: (error) => {
+                    setResendMessage(
+                        error.message || "Failed to resend. Please try again.",
+                    );
+                },
+            },
+        );
     };
 
     if (isSuccess) {
@@ -386,15 +356,15 @@ export default function RegisterForm() {
 
                     <div className="mt-6">
                         <CustomButton
-                            text={isLoading ? "" : "Create Account →"}
-                            enabled={!isLoading}
+                            text={isRegistering ? "" : "Create Account →"}
+                            enabled={!isRegistering}
                             color={ButtonColor.PURPLE}
                             onClick={(event) => handleRegister(event)}
                         >
-                            {isLoading && (
+                            {isRegistering && (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             )}
-                            {isLoading && "Creating Account..."}
+                            {isRegistering && "Creating Account..."}
                         </CustomButton>
                     </div>
                 </form>

@@ -13,6 +13,8 @@ import {
     User,
     AlignLeft,
 } from "lucide-react";
+import { useRegister } from "@/lib/hooks";
+import { useRouter } from "next/navigation";
 import CustomInputField, {
     InputFieldIcon,
 } from "@/components/shared/CustomInputField";
@@ -21,13 +23,15 @@ import { ButtonColor, CustomButton } from "@/components/shared/CustomButton";
 import { validateNewPassword } from "@/utils/validatePasswordUtils";
 
 const SignUp: NextPage = () => {
+    const router = useRouter();
+    const { mutate: register, isPending } = useRegister();
+    
     const [username, setUsername] = useState("");
     const [emailInput, setEmailInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
     const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
     const [agreeToTerms, setAgreeToTerms] = useState(false);
 
-    const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
     const [errors, setErrors] = useState({
@@ -79,37 +83,25 @@ const SignUp: NextPage = () => {
         event.preventDefault();
         if (!validateForm()) return;
 
-        setIsLoading(true);
         setErrorMessage("");
 
-        try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/v1/auth/register`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        username,
-                        email: emailInput,
-                        password: passwordInput,
-                        role: "TEACHER",
-                        langKey: "en",
-                    }),
+        register(
+            {
+                username,
+                email: emailInput,
+                password: passwordInput,
+                role: "TEACHER",
+                langKey: "en",
+            },
+            {
+                onSuccess: () => {
+                    router.push("/teacher/verify-email");
                 },
-            );
-
-            const data = await response.json();
-
-            if (data.success) {
-                window.location.href = "/teacher/verify-email";
-            } else {
-                setErrorMessage(data.message || "Registration failed.");
-            }
-        } catch (error) {
-            setErrorMessage("Unable to connect to server.");
-        } finally {
-            setIsLoading(false);
-        }
+                onError: (error) => {
+                    setErrorMessage(error.message || "Registration failed.");
+                },
+            },
+        );
     };
 
     return (
@@ -258,12 +250,12 @@ const SignUp: NextPage = () => {
 
                         <div className="pt-2">
                             <CustomButton
-                                text={isLoading ? "" : "Create Account"}
-                                enabled={!isLoading}
+                                text={isPending ? "" : "Create Account"}
+                                enabled={!isPending}
                                 color={ButtonColor.PURPLE}
                                 onClick={handleRegister}
                             >
-                                {isLoading && (
+                                {isPending && (
                                     <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                                 )}
                             </CustomButton>

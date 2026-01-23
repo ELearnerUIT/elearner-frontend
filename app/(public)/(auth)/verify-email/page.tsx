@@ -7,59 +7,41 @@ import {
     CustomLinkButton,
     ButtonColor,
 } from "@/components/shared/CustomButton";
+import { useVerifyEmail } from "@/lib/hooks";
 
 type VerificationStatus = "loading" | "success" | "error";
 
 export default function VerifyEmail() {
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
+    const { mutate: verifyEmail } = useVerifyEmail();
 
     const [status, setStatus] = useState<VerificationStatus>("loading");
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        const verifyEmail = async () => {
-            if (!token) {
-                setStatus("error");
-                setMessage("Invalid verification link. Token is missing.");
-                return;
-            }
+        if (!token) {
+            setStatus("error");
+            setMessage("Invalid verification link. Token is missing.");
+            return;
+        }
 
-            try {
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/v1/auth/verify-email?token=${token}`,
-                    {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    },
+        verifyEmail(token, {
+            onSuccess: () => {
+                setStatus("success");
+                setMessage(
+                    "Your email has been verified successfully! You can now login to your account.",
                 );
-
-                const data = await response.json();
-
-                if (data.success) {
-                    setStatus("success");
-                    setMessage(
-                        "Your email has been verified successfully! You can now login to your account.",
-                    );
-                } else {
-                    setStatus("error");
-                    setMessage(
-                        data.message ||
-                            "Email verification failed. Please try again or request a new verification link.",
-                    );
-                }
-            } catch (error) {
+            },
+            onError: (error) => {
                 setStatus("error");
                 setMessage(
-                    "Unable to verify email. Please check your connection and try again.",
+                    error.message ||
+                        "Email verification failed. Please try again or request a new verification link.",
                 );
-            }
-        };
-
-        verifyEmail();
-    }, [token]);
+            },
+        });
+    }, [token, verifyEmail]);
 
     return (
         <div className="min-h-screen bg-linear-to-br from-[rgba(99,102,241,0.05)] via-[rgba(139,92,246,0.05)] to-[rgba(16,185,129,0.05)] flex items-center justify-center p-5">

@@ -10,16 +10,17 @@ import CustomInputField, {
 } from "@/components/shared/CustomInputField";
 import { CustomButton, ButtonColor } from "@/components/shared/CustomButton";
 import { setAuthData, AuthData } from "@/lib/auth";
+import { useLogin } from "@/lib/hooks";
 
 const TeacherLogin: NextPage = () => {
     const router = useRouter();
+    const { mutate: login, isPending } = useLogin();
 
     const [loginInput, setLoginInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
     const [loginError, setLoginError] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
     const validateLogin = (login: string) => {
         if (!login) {
@@ -51,58 +52,32 @@ const TeacherLogin: NextPage = () => {
             return;
         }
 
-        setIsLoading(true);
         setErrorMessage("");
 
-        try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/v1/auth/login`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        login: loginInput,
-                        password: passwordInput,
-                    }),
+        login(
+            {
+                login: loginInput,
+                password: passwordInput,
+            },
+            {
+                onSuccess: (authData) => {
+                    if (authData.user.role === "TEACHER") {
+                        setAuthData(authData);
+                        router.push("/dashboard");
+                    } else {
+                        setErrorMessage(
+                            "Invalid account type. Please use the student login.",
+                        );
+                    }
                 },
-            );
-
-            const data = await response.json();
-
-            if (data.success && data.data) {
-                const authData: AuthData = {
-                    accessToken: data.data.accessToken,
-                    refreshToken: data.data.refreshToken,
-                    accessTokenExpiresAt: data.data.accessTokenExpiresAt,
-                    refreshTokenExpiresAt: data.data.refreshTokenExpiresAt,
-                    user: data.data.user,
-                };
-
-                setAuthData(authData);
-
-                if (data.data.user.role === "TEACHER") {
-                    router.push("/dashboard");
-                } else {
+                onError: (error) => {
                     setErrorMessage(
-                        "Invalid account type. Please use the student login.",
+                        error.message ||
+                            "Login failed. Please check your credentials.",
                     );
-                }
-            } else {
-                setErrorMessage(
-                    data.message ||
-                        "Login failed. Please check your credentials.",
-                );
-            }
-        } catch (error) {
-            console.error("Login error:", error);
-            setErrorMessage(
-                "Unable to connect to the server. Please try again later.",
-            );
-        } finally {
-            setIsLoading(false);
-        }
+                },
+            },
+        );
     };
 
     return (
@@ -163,12 +138,12 @@ const TeacherLogin: NextPage = () => {
                         </div>
 
                         <CustomButton
-                            text={isLoading ? "" : "Sign In"}
-                            enabled={!isLoading}
+                            text={isPending ? "" : "Sign In"}
+                            enabled={!isPending}
                             color={ButtonColor.PURPLE}
                             onClick={handleLogin}
                         >
-                            {isLoading && (
+                            {isPending && (
                                 <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                             )}
                         </CustomButton>

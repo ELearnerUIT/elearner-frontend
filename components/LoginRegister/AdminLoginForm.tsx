@@ -5,17 +5,17 @@ import { useRouter } from "next/navigation";
 import CustomPasswordField from "../shared/CustomPasswordField";
 import CustomInputField, { InputFieldIcon } from "../shared/CustomInputField";
 import { ButtonColor, CustomButton } from "../shared/CustomButton";
-import { API_ENDPOINTS, apiRequest, ApiResponse } from "@/lib/api";
-import { setAuthData, AuthData } from "@/lib/auth";
+import { useLogin } from "@/lib/hooks";
 
 export default function AdminLoginForm() {
     const router = useRouter();
+    const { mutate: login, isPending } = useLogin();
+    
     const [loginInput, setLoginInput] = useState("");
     const [passwordInput, setPasswordInput] = useState("");
     const [loginError, setLoginError] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
     const validateLogin = (login: string) => {
         if (!login) {
@@ -47,42 +47,28 @@ export default function AdminLoginForm() {
             return;
         }
 
-        setIsLoading(true);
         setErrorMessage("");
 
-        try {
-            const response: ApiResponse<AuthData> = await apiRequest(
-                API_ENDPOINTS.AUTH.LOGIN,
-                {
-                    method: "POST",
-                    body: JSON.stringify({
-                        username: loginInput,
-                        password: passwordInput,
-                    }),
+        login(
+            {
+                login: loginInput,
+                password: passwordInput,
+            },
+            {
+                onSuccess: (data) => {
+                    if (data.user.role !== "ADMIN") {
+                        setErrorMessage(
+                            "Access denied. Admin credentials required.",
+                        );
+                        return;
+                    }
+                    router.push("/admin");
                 },
-            );
-
-            if (response.success && response.data) {
-                if (response.data.user.role !== "ADMIN") {
-                    setErrorMessage(
-                        "Access denied. Admin credentials required.",
-                    );
-                    setIsLoading(false);
-                    return;
-                }
-
-                setAuthData(response.data);
-
-                router.push("/dashboard");
-            } else {
-                setErrorMessage(response.message || "Invalid credentials");
-            }
-        } catch (error) {
-            console.error("Login error:", error);
-            setErrorMessage("An error occurred. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
+                onError: (error) => {
+                    setErrorMessage(error.message || "Invalid credentials");
+                },
+            },
+        );
     };
     return (
         <div className="w-full max-w-md space-y-8">
@@ -158,15 +144,15 @@ export default function AdminLoginForm() {
                 {/* Sign In Button */}
                 <div className="mt-6">
                     <CustomButton
-                        text={isLoading ? "" : "Login →"}
-                        enabled={!isLoading}
+                        text={isPending ? "" : "Login →"}
+                        enabled={!isPending}
                         color={ButtonColor.PURPLE}
                         onClick={(event) => handleLogin(event)}
                     >
-                        {isLoading && (
+                        {isPending && (
                             <Loader2 className="w-5 h-5 animate-spin" />
                         )}
-                        {isLoading && "Logging in..."}
+                        {isPending && "Logging in..."}
                     </CustomButton>
                 </div>
             </div>

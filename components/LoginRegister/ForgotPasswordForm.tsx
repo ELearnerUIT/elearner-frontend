@@ -3,14 +3,15 @@ import { TriangleAlertIcon, Loader2, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import CustomInputField, { InputFieldIcon } from "../shared/CustomInputField";
 import { CustomButton, ButtonColor } from "../shared/CustomButton";
-import { API_ENDPOINTS, apiRequest } from "@/lib/api";
+import { useForgotPassword } from "@/lib/hooks";
 
 export default function ForgotPasswordForm() {
+    const { mutate: forgotPassword, isPending } = useForgotPassword();
+    
     const [emailInput, setEmailInput] = useState("");
     const [emailError, setEmailError] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
     const validateEmail = (email: string) => {
         if (!email) {
@@ -33,35 +34,25 @@ export default function ForgotPasswordForm() {
             return;
         }
 
-        setIsLoading(true);
         setErrorMessage("");
         setSuccessMessage("");
 
-        try {
-            const response = await apiRequest(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
-                method: "POST",
-                body: JSON.stringify({
-                    email: emailInput,
-                }),
-            });
-
-            if (response.success) {
-                setSuccessMessage(
-                    "Password reset link has been sent to your email. Please check your inbox."
-                );
-                setEmailInput("");
-            } else {
-                setErrorMessage(
-                    response.message || "Failed to send reset email. Please try again."
-                );
+        forgotPassword(
+            { email: emailInput },
+            {
+                onSuccess: () => {
+                    setSuccessMessage(
+                        "Password reset link has been sent to your email. Please check your inbox."
+                    );
+                    setEmailInput("");
+                },
+                onError: (error) => {
+                    setErrorMessage(
+                        error.message || "Failed to send reset email. Please try again."
+                    );
+                },
             }
-        } catch (error) {
-            setErrorMessage(
-                "Unable to connect to server. Please check your connection and try again."
-            );
-        } finally {
-            setIsLoading(false);
-        }
+        );
     };
 
     return (
@@ -116,15 +107,15 @@ export default function ForgotPasswordForm() {
 
                     <div className="mt-6">
                         <CustomButton
-                            text={isLoading ? "" : "Send Reset Link →"}
-                            enabled={!isLoading}
+                            text={isPending ? "" : "Send Reset Link →"}
+                            enabled={!isPending}
                             color={ButtonColor.PURPLE}
                             onClick={(event) => handleSubmit(event)}
                         >
-                            {isLoading && (
+                            {isPending && (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             )}
-                            {isLoading && "Sending..."}
+                            {isPending && "Sending..."}
                         </CustomButton>
                     </div>
                 </form>
