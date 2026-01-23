@@ -28,7 +28,6 @@ import {
 
 export default function AdminTagsScreen() {
   const router = useRouter();
-  const { darkMode } = useAdmin();
 
   // State management
   const [page, setPage] = useState(0);
@@ -142,37 +141,42 @@ export default function AdminTagsScreen() {
 
   if (error) {
     return (
-      <div className="p-8">
-        <div className={`${darkMode ? "bg-red-900/20 border-red-800" : "bg-red-50 border-red-200"} border rounded-lg p-4`}>
-          <p className={darkMode ? "text-red-400" : "text-red-800"}>Error loading tags: {(error as any)?.message}</p>
+      <div className="space-y-6 max-w-7xl mx-auto px-4 py-8">
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-6">
+          <p className="text-rose-400 font-medium">Error loading tags: {(error as any)?.message}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className={`text-3xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>Tag Management</h1>
-          <p className={`mt-1 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 rounded-xl">
+              <TagIcon className="w-6 h-6 text-indigo-400" />
+            </div>
+            <h2 className="text-3xl font-bold text-white">Tag Management</h2>
+          </div>
+          <p className="text-gray-400 text-sm">
             Manage course tags and categories
           </p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => setShowBulkModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="px-4 py-2.5 bg-gradient-to-br from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 border border-white/10 text-white rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg hover:shadow-indigo-500/10"
           >
-            <Upload className="w-4 h-4" />
+            <Upload className="w-5 h-5" />
             Bulk Import
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+            className="px-4 py-2.5 bg-gradient-to-br from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400 text-white rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5" />
             Create Tag
           </button>
         </div>
@@ -185,21 +189,18 @@ export default function AdminTagsScreen() {
           value={tagStats.total}
           icon={<TagIcon className="w-6 h-6 text-blue-600" />}
           bgColor="bg-blue-50"
-          darkMode={darkMode}
         />
         <StatCard
           title="Active Tags"
           value={tagStats.active}
           icon={<TrendingUp className="w-6 h-6 text-green-600" />}
           bgColor="bg-green-50"
-          darkMode={darkMode}
         />
         <StatCard
           title="Deleted Tags"
           value={tagStats.deleted}
           icon={<Trash2 className="w-6 h-6 text-red-600" />}
           bgColor="bg-red-50"
-          darkMode={darkMode}
         />
         <StatCard
           title="Most Popular"
@@ -207,34 +208,25 @@ export default function AdminTagsScreen() {
           subtitle={overview?.mostPopularTag?.name || "N/A"}
           icon={<TrendingUp className="w-6 h-6 text-purple-600" />}
           bgColor="bg-purple-50"
-          darkMode={darkMode}
         />
       </div>
 
       {/* Search and Filter */}
       <div className="flex gap-4 items-center">
         <div className="flex-1 relative">
-          <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
           <input
             type="text"
             placeholder="Search tags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-              darkMode
-                ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500"
-                : "bg-white border-gray-300 text-gray-900"
-            }`}
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
           />
         </div>
         <select
           value={filterDeleted}
           onChange={(e) => setFilterDeleted(e.target.value as any)}
-          className={`px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            darkMode
-              ? "bg-gray-800 border-gray-700 text-white"
-              : "bg-white border-gray-300 text-gray-900"
-          }`}
+          className="px-4 py-2.5 bg-slate-800/50 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
         >
           <option value="all">All Tags</option>
           <option value="active">Active Only</option>
@@ -243,123 +235,96 @@ export default function AdminTagsScreen() {
       </div>
 
       {/* Tags Table */}
-      <div className={`rounded-lg shadow-sm border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
+      <div className="bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-white/10 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead>
-              <tr className={`border-b ${darkMode ? "border-gray-700 bg-gray-900/50" : "border-gray-200 bg-gray-50"}`}>
-                <th className={`text-left py-4 px-6 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+            <thead className="bg-white/[0.02] border-b border-white/5">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">
                   ID
                 </th>
-                <th className={`text-left py-4 px-6 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">
                   Name
                 </th>
-                <th className={`text-left py-4 px-6 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">
                   Slug
                 </th>
-                <th className={`text-left py-4 px-6 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">
                   Course Count
                 </th>
-                <th className={`text-left py-4 px-6 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">
                   Status
                 </th>
-                <th className={`text-left py-4 px-6 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">
                   Created At
                 </th>
-                <th className={`text-right py-4 px-6 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-400">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className={`text-center py-8 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                    Loading tags...
+                  <td colSpan={7} className="text-center py-12">
+                    <div className="w-12 h-12 border-4 border-slate-700 border-t-indigo-400 rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-gray-400">Loading tags...</p>
                   </td>
                 </tr>
               ) : filteredTags.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className={`text-center py-8 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                    No tags found
+                  <td colSpan={7} className="text-center py-12">
+                    <TagIcon className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <p className="text-gray-400">No tags found</p>
                   </td>
                 </tr>
               ) : (
                 filteredTags.map((tag) => (
-                  <tr
-                    key={tag.id}
-                    className={`border-b transition ${
-                      darkMode
-                        ? "border-gray-700 hover:bg-gray-700/50"
-                        : "border-gray-100 hover:bg-gray-50"
-                    }`}
-                  >
-                    <td className={`py-4 px-6 text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-                      {tag.id}
+                  <tr key={tag.id} className="hover:bg-white/5 transition">
+                    <td className="px-6 py-4 text-sm text-gray-400">
+                      #{tag.id}
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          darkMode
-                            ? "bg-indigo-900/40 text-indigo-300"
-                            : "bg-indigo-100 text-indigo-700"
-                        }`}>
-                          #{tag.name}
-                        </span>
-                      </div>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 rounded-lg text-sm font-medium">
+                        #{tag.name}
+                      </span>
                     </td>
-                    <td className={`py-4 px-6 text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                    <td className="px-6 py-4 text-sm text-gray-400">
                       {tag.slug || "-"}
                     </td>
-                    <td className={`py-4 px-6 text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                    <td className="px-6 py-4 text-sm text-gray-400">
                       {stats?.find((s) => s.id === tag.id)?.courseCount || 0}
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="px-6 py-4">
                       {tag.deletedAt ? (
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          darkMode
-                            ? "bg-red-900/40 text-red-300"
-                            : "bg-red-100 text-red-700"
-                        }`}>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-lg text-xs font-medium">
                           Deleted
                         </span>
                       ) : (
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          darkMode
-                            ? "bg-green-900/40 text-green-300"
-                            : "bg-green-100 text-green-700"
-                        }`}>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-lg text-xs font-medium">
                           Active
                         </span>
                       )}
                     </td>
-                    <td className={`py-4 px-6 text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                    <td className="px-6 py-4 text-sm text-gray-400">
                       {tag.createdAt
                         ? new Date(tag.createdAt).toLocaleDateString()
                         : "-"}
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
                         {!tag.deletedAt ? (
                           <>
                             <button
                               onClick={() => openEditModal(tag)}
-                              className={`p-2 rounded-lg transition ${
-                                darkMode
-                                  ? "text-blue-400 hover:bg-blue-900/20"
-                                  : "text-blue-600 hover:bg-blue-50"
-                              }`}
+                              className="p-2 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 text-blue-400 rounded-lg transition"
                               title="Edit tag"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(tag.id)}
-                              className={`p-2 rounded-lg transition ${
-                                darkMode
-                                  ? "text-red-400 hover:bg-red-900/20"
-                                  : "text-red-600 hover:bg-red-50"
-                              }`}
+                              className="p-2 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 text-rose-400 rounded-lg transition"
                               title="Delete tag"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -368,11 +333,7 @@ export default function AdminTagsScreen() {
                         ) : (
                           <button
                             onClick={() => handleRestore(tag.id)}
-                            className={`p-2 rounded-lg transition ${
-                              darkMode
-                                ? "text-green-400 hover:bg-green-900/20"
-                                : "text-green-600 hover:bg-green-50"
-                            }`}
+                            className="p-2 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/30 text-emerald-400 rounded-lg transition"
                             title="Restore tag"
                           >
                             <RefreshCw className="w-4 h-4" />
@@ -389,30 +350,22 @@ export default function AdminTagsScreen() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className={`flex items-center justify-between px-6 py-4 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-            <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+          <div className="flex items-center justify-between px-6 py-4 border-t border-white/5">
+            <div className="text-sm text-gray-400">
               Page {page + 1} of {totalPages}
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
-                className={`px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition ${
-                  darkMode
-                    ? "border-gray-700 hover:bg-gray-700 text-gray-300"
-                    : "border-gray-300 hover:bg-gray-50 text-gray-900"
-                }`}
+                className="px-4 py-2 bg-slate-800 border border-white/10 text-white rounded-lg hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 Previous
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
-                className={`px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition ${
-                  darkMode
-                    ? "border-gray-700 hover:bg-gray-700 text-gray-300"
-                    : "border-gray-300 hover:bg-gray-50 text-gray-900"
-                }`}
+                className="px-4 py-2 bg-slate-800 border border-white/10 text-white rounded-lg hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 Next
               </button>
@@ -428,7 +381,6 @@ export default function AdminTagsScreen() {
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreate}
           isLoading={createMutation.isPending}
-          darkMode={darkMode}
         />
       )}
 
@@ -442,7 +394,6 @@ export default function AdminTagsScreen() {
           }}
           onSubmit={handleUpdate}
           isLoading={updateMutation.isPending}
-          darkMode={darkMode}
         />
       )}
 
@@ -451,7 +402,6 @@ export default function AdminTagsScreen() {
           onClose={() => setShowBulkModal(false)}
           onSubmit={handleBulkCreate}
           isLoading={bulkCreateMutation.isPending}
-          darkMode={darkMode}
         />
       )}
     </div>
@@ -465,28 +415,24 @@ function StatCard({
   subtitle,
   icon,
   bgColor,
-  darkMode,
 }: {
   title: string;
   value: number;
   subtitle?: string;
   icon: React.ReactNode;
   bgColor: string;
-  darkMode: boolean;
 }) {
   return (
-    <div className={`rounded-lg shadow-sm border p-6 ${
-      darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-    }`}>
+    <div className="bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-white/10 rounded-2xl shadow-xl p-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className={`text-sm mb-1 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>{title}</p>
-          <p className={`text-3xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>{value}</p>
+          <p className="text-sm mb-1 text-gray-400">{title}</p>
+          <p className="text-3xl font-bold text-white">{value}</p>
           {subtitle && (
-            <p className={`text-xs mt-1 truncate ${darkMode ? "text-gray-500" : "text-gray-500"}`}>{subtitle}</p>
+            <p className="text-xs mt-1 truncate text-gray-500">{subtitle}</p>
           )}
         </div>
-        <div className={`${darkMode ? bgColor.replace('50', '900/40') : bgColor} p-3 rounded-lg`}>{icon}</div>
+        <div className={`${bgColor.replace('50', '500/10')} border border-${bgColor.replace('bg-', '').replace('-50', '')}-500/30 p-3 rounded-xl`}>{icon}</div>
       </div>
     </div>
   );
@@ -499,14 +445,12 @@ function TagModal({
   onClose,
   onSubmit,
   isLoading,
-  darkMode,
 }: {
   title: string;
   defaultValue?: string;
   onClose: () => void;
   onSubmit: (name: string) => void;
   isLoading: boolean;
-  darkMode: boolean;
 }) {
   const [tagName, setTagName] = useState(defaultValue);
 
@@ -518,29 +462,21 @@ function TagModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className={`rounded-lg shadow-xl max-w-md w-full mx-4 ${
-        darkMode ? "bg-gray-800" : "bg-white"
-      }`}>
-        <div className={`flex items-center justify-between p-6 border-b ${
-          darkMode ? "border-gray-700" : "border-gray-200"
-        }`}>
-          <h2 className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>{title}</h2>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 rounded-2xl shadow-2xl max-w-md w-full">
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <h2 className="text-xl font-bold text-white">{title}</h2>
           <button
             onClick={onClose}
-            className={`p-2 rounded-lg transition ${
-              darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-            }`}
+            className="p-2 hover:bg-white/10 rounded-lg transition"
           >
-            <X className={`w-5 h-5 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
+            <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-6">
-            <label className={`block text-sm font-medium mb-2 ${
-              darkMode ? "text-gray-300" : "text-gray-700"
-            }`}>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Tag Name
             </label>
             <input
@@ -548,11 +484,7 @@ function TagModal({
               value={tagName}
               onChange={(e) => setTagName(e.target.value)}
               placeholder="Enter tag name..."
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                darkMode
-                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-500"
-                  : "bg-white border-gray-300 text-gray-900"
-              }`}
+              className="w-full px-4 py-2.5 bg-slate-800/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
               required
               autoFocus
             />
@@ -562,18 +494,14 @@ function TagModal({
             <button
               type="button"
               onClick={onClose}
-              className={`px-4 py-2 border rounded-lg transition ${
-                darkMode
-                  ? "border-gray-700 hover:bg-gray-700 text-gray-300"
-                  : "border-gray-300 hover:bg-gray-50 text-gray-900"
-              }`}
+              className="px-4 py-2.5 bg-slate-800 border border-white/10 text-white rounded-lg hover:bg-slate-700 transition"
               disabled={isLoading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2.5 bg-gradient-to-br from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400 text-white rounded-lg font-bold transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
               disabled={isLoading || !tagName.trim()}
             >
               {isLoading ? "Saving..." : "Save"}
@@ -616,28 +544,22 @@ function BulkImportModal({
     .filter((tag) => tag.trim().length > 0).length;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className={`rounded-lg shadow-xl max-w-2xl w-full mx-4 ${
-        darkMode ? "bg-gray-800" : "bg-white"
-      }`}>
-        <div className={`flex items-center justify-between p-6 border-b ${
-          darkMode ? "border-gray-700" : "border-gray-200"
-        }`}>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full">
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div>
-            <h2 className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}>
+            <h2 className="text-xl font-bold text-white">
               Bulk Import Tags
             </h2>
-            <p className={`text-sm mt-1 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+            <p className="text-sm mt-1 text-gray-400">
               Enter one tag name per line
             </p>
           </div>
           <button
             onClick={onClose}
-            className={`p-2 rounded-lg transition ${
-              darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-            }`}
+            className="p-2 hover:bg-white/10 rounded-lg transition"
           >
-            <X className={`w-5 h-5 ${darkMode ? "text-gray-400" : "text-gray-600"}`} />
+            <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
@@ -647,23 +569,15 @@ function BulkImportModal({
               value={tagText}
               onChange={(e) => setTagText(e.target.value)}
               placeholder="JavaScript&#10;React&#10;Node.js&#10;Python&#10;..."
-              className={`w-full h-64 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm ${
-                darkMode
-                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-500"
-                  : "bg-white border-gray-300 text-gray-900"
-              }`}
+              className="w-full h-64 px-4 py-2.5 bg-slate-800/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition font-mono text-sm"
               required
               autoFocus
             />
           </div>
 
           {tagCount > 0 && (
-            <div className={`mb-4 p-3 border rounded-lg ${
-              darkMode
-                ? "bg-blue-900/20 border-blue-800"
-                : "bg-blue-50 border-blue-200"
-            }`}>
-              <p className={`text-sm ${darkMode ? "text-blue-300" : "text-blue-800"}`}>
+            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <p className="text-sm text-blue-300">
                 <strong>{tagCount}</strong> tag{tagCount !== 1 ? "s" : ""} will
                 be created
               </p>
@@ -674,18 +588,14 @@ function BulkImportModal({
             <button
               type="button"
               onClick={onClose}
-              className={`px-4 py-2 border rounded-lg transition ${
-                darkMode
-                  ? "border-gray-700 hover:bg-gray-700 text-gray-300"
-                  : "border-gray-300 hover:bg-gray-50 text-gray-900"
-              }`}
+              className="px-4 py-2.5 bg-slate-800 border border-white/10 text-white rounded-lg hover:bg-slate-700 transition"
               disabled={isLoading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2.5 bg-gradient-to-br from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400 text-white rounded-lg font-bold transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
               disabled={isLoading || tagCount === 0}
             >
               {isLoading ? "Creating..." : `Create ${tagCount} Tag${tagCount !== 1 ? "s" : ""}`}
