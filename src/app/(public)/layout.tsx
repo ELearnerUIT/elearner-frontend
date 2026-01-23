@@ -1,5 +1,6 @@
 import Footer from "@/core/components/public/Footer";
-import Navbar from "@/core/components/public/Navbar"
+import Navbar from "@/core/components/public/Navbar";
+import { CartProvider } from "@/core/providers/cart-provider";
 
 export default function PublicLayout({
   children,
@@ -7,10 +8,10 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <CartProvider>
       <Navbar />
       <main className="min-h-[72vh]">{children}</main>
       <Footer />
-    </>
+    </CartProvider>
   );
 }
