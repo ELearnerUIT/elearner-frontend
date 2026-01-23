@@ -975,3 +975,5 @@ export function AdminUserStatsScreen({ onBack }: AdminUserStatsScreenProps) {
     </div>
   );
 }
+
+export default AdminUserStatsScreen;
