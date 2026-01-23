@@ -1,7 +1,14 @@
-"use client";
-
 import { ServerCrash, Home, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "500 - Server Error",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function ServerErrorPage() {
     return (

@@ -1,3 +1,21 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "Learn how ELearner collects, uses, and protects your personal information. Our privacy policy explains data handling, security measures, and your privacy rights.",
+  openGraph: {
+    title: "Privacy Policy - ELearner",
+    description:
+      "Learn how ELearner collects, uses, and protects your personal information.",
+    url: "/privacy",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
 export default function PrivacyPage() {
   return (
     <main className="min-h-[72vh] px-4 sm:px-6 md:px-8 xl:px-12 py-10 md:py-14">

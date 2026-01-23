@@ -1,5 +1,12 @@
 "use client";
 
+// SEO Note: This page requires client-side functionality for enrollment and user interactions.
+// Static metadata is provided via the parent layout at /courses/layout.tsx.
+// For dynamic, course-specific metadata (title, description), consider:
+// 1. Server-side rendering the initial HTML with metadata, OR
+// 2. Using generateMetadata in a server component wrapper (requires refactoring)
+// Current approach prioritizes functionality and UX while maintaining basic SEO via layout.
+
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { coursePreviewService } from "@/services/courses/course-preview.service";

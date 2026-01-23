@@ -1,3 +1,21 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description:
+    "Read ELearner's terms of service governing platform use, user accounts, course enrollment, instructor guidelines, and legal obligations for learners and educators.",
+  openGraph: {
+    title: "Terms of Service - ELearner",
+    description:
+      "Read ELearner's terms of service governing platform use, user accounts, and legal obligations.",
+    url: "/terms",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
 export default function TermsPage() {
   return (
     <main className="min-h-[72vh] px-4 sm:px-6 md:px-8 xl:px-12 py-10 md:py-14">
