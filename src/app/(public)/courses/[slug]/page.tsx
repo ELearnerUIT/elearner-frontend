@@ -27,12 +27,12 @@ export default function CourseDetailPage() {
 
   // Check if user is already enrolled
   const { data: enrollments } = useQuery({
-    queryKey: ["student-enrollments", user?.profile?.studentId, course?.id],
+    queryKey: ["student-enrollments", user?.profile?.studentId],
     queryFn: async () => {
-      if (!user?.profile?.studentId || !course?.id) return null;
+      if (!user?.profile?.studentId) return null;
       return enrollmentService.getStudentEnrollments(user.profile.studentId);
     },
-    enabled: !!user?.profile?.studentId && !!course?.id,
+    enabled: !!user?.profile?.studentId,
   });
 
   console.log("Course Detail Page - enrollments:", enrollments);
@@ -40,7 +40,7 @@ export default function CourseDetailPage() {
   useEffect(() => {
     if (enrollments && course?.id) {
       const enrolled = enrollments.items?.some(
-        (enrollment: { courseId: number; status: string }) => enrollment.courseId === course.id && enrollment.status === "ACTIVE"
+        (enrollment: { courseId: number; status: string }) => enrollment.courseId === course.id
       );
       setIsEnrolled(!!enrolled);
     }

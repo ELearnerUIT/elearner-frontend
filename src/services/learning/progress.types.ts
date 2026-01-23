@@ -2,7 +2,7 @@
 // Progress Types - Mapped from Backend APIs
 // ===========================
 
-export type ProgressStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+export type ProgressStatus = "NOT_VIEWED" | "IN_PROGRESS" | "COMPLETED";
 
 // Request DTOs
 
@@ -33,55 +33,42 @@ export interface StudentProgressOverviewResponse {
 /** Backend: CourseProgressResponse */
 export interface CourseProgressResponse {
   courseId: number;
-  courseName: string;
-  courseImageUrl?: string;
-  studentId: number;
-  enrollmentId: number;
-  enrollmentStatus: string;
-  completionPercentage: number; // 0-100
-  totalChapters: number;
-  completedChapters: number;
+  courseTitle: string;
   totalLessons: number;
   completedLessons: number;
-  totalVideos: number;
-  completedVideos: number;
-  totalQuizzes: number;
-  completedQuizzes: number;
-  totalAssignments: number;
-  completedAssignments: number;
-  averageQuizScore?: number;
-  averageAssignmentScore?: number;
-  totalStudyTimeMinutes?: number;
-  lastAccessedAt?: string; // ISO datetime string
-  chapters?: ChapterProgressResponse[];
+  viewedLessons: number;
+  completionPercentage: number; // 0-100
+  totalDurationSeconds: number;
+  watchedDurationSeconds: number;
+  averageScore: number | null;
+  chapterProgress: ChapterProgressResponse[];
 }
 
 /** Backend: ChapterProgressResponse */
 export interface ChapterProgressResponse {
   chapterId: number;
   chapterTitle: string;
-  chapterOrder: number;
-  completionPercentage: number; // 0-100
   totalLessons: number;
   completedLessons: number;
-  lessons?: LessonProgressResponse[];
+  completionPercentage: number; // 0-100
+  lessonProgress: LessonProgressResponse[];
 }
 
 /** Backend: LessonProgressResponse */
 export interface LessonProgressResponse {
+  id: number | null;
   lessonId: number;
   lessonTitle: string;
   lessonType: string; // VIDEO, DOCUMENT, QUIZ, ASSIGNMENT
-  lessonOrder: number;
-  status: ProgressStatus;
-  isViewed: boolean;
-  isCompleted: boolean;
-  viewedAt?: string; // ISO datetime string
-  completedAt?: string; // ISO datetime string
-  lastAccessedAt?: string; // ISO datetime string
-  studyTimeMinutes?: number;
-  score?: number;
-  attempts?: number;
+  lessonDurationSeconds: number;
+  status: ProgressStatus; // NOT_VIEWED, IN_PROGRESS, COMPLETED
+  viewedAt: string | null; // ISO datetime string
+  timesViewed: number;
+  watchedDurationSeconds: number;
+  watchedPercentage: number | null;
+  completedAt: string | null; // ISO datetime string
+  isBookmarked: boolean;
+  notes: string | null;
 }
 
 /** Backend: CourseProgressStatsResponse */

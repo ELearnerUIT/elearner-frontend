@@ -3,69 +3,47 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { PlayCircle, Download, FileText, CheckCircle, ChevronRight } from "lucide-react";
-
-interface LessonResource {
-    id: string;
-    title: string;
-    fileUrl: string;
-    fileType: string;
-    fileSize: string;
-}
-
-interface LessonDetail {
-    id: string;
-    title: string;
-    type: "VIDEO" | "DOCUMENT";
-    content?: string; // HTML for document
-    videoUrl?: string;
-    duration: number;
-    description?: string;
-    resources: LessonResource[];
-    isCompleted: boolean;
-}
+import studentCourseService from "@/services/learning/student-course.service";
+import { progressService } from "@/services/learning/progress.service";
+import { AppError } from "@/lib/api/api.error";
+import type { LessonDTO, LessonResourceResponse } from "@/services/learning/student-course.types";
+import type { LessonProgressResponse } from "@/services/learning/progress.types";
 
 export default function LessonPage() {
     const params = useParams();
     const lessonId = params?.lessonId as string;
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    const [lesson, setLesson] = useState<LessonDetail | null>(null);
+    const [lesson, setLesson] = useState<LessonDTO | null>(null);
+    const [resources, setResources] = useState<LessonResourceResponse[]>([]);
+    const [progress, setProgress] = useState<LessonProgressResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [videoProgress, setVideoProgress] = useState(0);
 
     useEffect(() => {
-        // TODO: Replace with actual API call
         const fetchLesson = async () => {
             setLoading(true);
+            setError(null);
+            
             try {
-                const mockLesson: LessonDetail = {
-                    id: lessonId,
-                    title: "Welcome to the Course",
-                    type: "VIDEO",
-                    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                    duration: 420,
-                    description: "In this lesson, we'll introduce you to the course structure and what you'll learn.",
-                    resources: [
-                        {
-                            id: "res-1",
-                            title: "Course Syllabus.pdf",
-                            fileUrl: "#",
-                            fileType: "PDF",
-                            fileSize: "2.3 MB",
-                        },
-                        {
-                            id: "res-2",
-                            title: "Setup Guide.docx",
-                            fileUrl: "#",
-                            fileType: "DOCX",
-                            fileSize: "156 KB",
-                        },
-                    ],
-                    isCompleted: false,
-                };
-                setLesson(mockLesson);
-            } catch (error) {
-                console.error("Failed to fetch lesson:", error);
+                const lessonData = await studentCourseService.getLessonDetails(Number(lessonId));
+                setLesson(lessonData);
+
+                // Fetch resources in parallel
+                const resourcesData = await studentCourseService.getLessonResources(Number(lessonId));
+                setResources(resourcesData);
+
+                // Mark lesson as viewed on first load
+                const progressData = await progressService.markLessonAsViewed(Number(lessonId));
+                setProgress(progressData);
+            } catch (err) {
+                console.error("Failed to fetch lesson:", err);
+                if (err instanceof AppError) {
+                    setError(err.message);
+                } else {
+                    setError("Failed to load lesson. Please try again.");
+                }
             } finally {
                 setLoading(false);
             }
@@ -76,23 +54,40 @@ export default function LessonPage() {
         }
     }, [lessonId]);
 
-    const handleVideoProgress = () => {
+    const handleVideoProgress = async () => {
         if (videoRef.current) {
-            const progress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
-            setVideoProgress(progress);
+            const currentTime = videoRef.current.currentTime;
+            const duration = videoRef.current.duration;
+            const progressPercent = (currentTime / duration) * 100;
+            setVideoProgress(progressPercent);
+
+            // Update watched duration every 10 seconds
+            if (Math.floor(currentTime) % 10 === 0) {
+                try {
+                    await progressService.updateWatchedDuration(Number(lessonId), {
+                        watchedDurationSeconds: Math.floor(currentTime)
+                    });
+                } catch (err) {
+                    console.error("Failed to update watched duration:", err);
+                }
+            }
 
             // Auto-mark as complete when watched > 90%
-            if (progress > 90 && lesson && !lesson.isCompleted) {
+            if (progressPercent > 90 && progress && progress.status !== "COMPLETED") {
                 markAsCompleted();
             }
         }
     };
 
     const markAsCompleted = async () => {
-        // TODO: Call API to mark lesson as completed
-        console.log("Marking lesson as completed");
-        if (lesson) {
-            setLesson({ ...lesson, isCompleted: true });
+        try {
+            const updatedProgress = await progressService.markLessonAsCompleted(Number(lessonId));
+            setProgress(updatedProgress);
+        } catch (err) {
+            console.error("Failed to mark lesson as completed:", err);
+            if (err instanceof AppError) {
+                setError(err.message);
+            }
         }
     };
 
@@ -102,6 +97,22 @@ export default function LessonPage() {
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-slate-600 dark:text-slate-400">Loading lesson...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-950">
+                <div className="text-center">
+                    <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                        Retry
+                    </button>
                 </div>
             </div>
         );
@@ -133,7 +144,7 @@ export default function LessonPage() {
                                 </p>
                             )}
                         </div>
-                        {lesson.isCompleted && (
+                        {progress?.status === "COMPLETED" && (
                             <div className="flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
                                 <CheckCircle className="w-5 h-5" />
                                 <span className="font-medium">Completed</span>
@@ -143,50 +154,42 @@ export default function LessonPage() {
                 </div>
 
                 {/* Video Player or Document Viewer */}
-                {lesson.type === "VIDEO" && lesson.videoUrl && (
+                {lesson.lessonType === "VIDEO" && lesson.videoUrl && (
                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                        <div className="aspect-video bg-black">
-                            <video
-                                ref={videoRef}
-                                className="w-full h-full"
-                                controls
-                                onTimeUpdate={handleVideoProgress}
-                                src={lesson.videoUrl}
-                            >
-                                Your browser does not support the video tag.
-                            </video>
+                        <div className="aspect-video bg-black flex items-center justify-center">
+                            {/* TODO: Implement video streaming with HLS */}
+                            <div className="text-center text-white">
+                                <PlayCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                <p className="text-lg">Video Player</p>
+                                <p className="text-sm opacity-70 mt-2">Video streaming will be implemented</p>
+                            </div>
                         </div>
                         <div className="p-4">
                             <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
                                 <span>Video Progress: {Math.round(videoProgress)}%</span>
-                                <span>Duration: {Math.floor(lesson.duration / 60)} minutes</span>
+                                {lesson.videoDuration && (
+                                    <span>Duration: {Math.floor(lesson.videoDuration / 60)} minutes</span>
+                                )}
                             </div>
                         </div>
                     </div>
                 )}
 
-                {lesson.type === "DOCUMENT" && lesson.content && (
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8">
-                        <div
-                            className="prose dark:prose-invert max-w-none"
-                            dangerouslySetInnerHTML={{ __html: lesson.content }}
-                        />
-                    </div>
-                )}
-
                 {/* Resources */}
-                {lesson.resources.length > 0 && (
+                {resources.length > 0 && (
                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                         <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
                             <FileText className="w-5 h-5" />
                             Downloadable Resources
                         </h2>
                         <div className="space-y-3">
-                            {lesson.resources.map((resource) => (
+                            {resources.map((resource) => (
                                 <a
                                     key={resource.id}
-                                    href={resource.fileUrl}
-                                    download
+                                    href={resource.downloadUrl || resource.externalUrl || "#"}
+                                    download={resource.isDownloadable}
+                                    target={resource.resourceType === "LINK" ? "_blank" : undefined}
+                                    rel={resource.resourceType === "LINK" ? "noopener noreferrer" : undefined}
                                     className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
                                 >
                                     <div className="flex items-center gap-3">
@@ -198,7 +201,7 @@ export default function LessonPage() {
                                                 {resource.title}
                                             </p>
                                             <p className="text-sm text-slate-500 dark:text-slate-500">
-                                                {resource.fileType} • {resource.fileSize}
+                                                {resource.resourceType} {resource.formattedFileSize && `• ${resource.formattedFileSize}`}
                                             </p>
                                         </div>
                                     </div>
@@ -210,7 +213,7 @@ export default function LessonPage() {
                 )}
 
                 {/* Complete Lesson Button */}
-                {!lesson.isCompleted && (
+                {progress?.status !== "COMPLETED" && (
                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                         <button
                             onClick={markAsCompleted}
