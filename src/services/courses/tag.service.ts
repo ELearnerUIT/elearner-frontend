@@ -1,11 +1,14 @@
-import {  TagRequest,
-  TagResponse, } from "./course.types";
+import {
+  TagRequest,
+  TagResponse,
+  TagStatsResponse,
+  BulkTagRequest,
+} from "./course.types";
 import { axiosClient } from "@/lib/api/axios";
 import { unwrapResponse } from "@/lib/api/unwrap";
 import { ApiResponse, PageResponse } from "@/lib/api/api.types";
 
 const TAG_PREFIX = "/tags";
-const ADMIN_TAG_PREFIX = "/admin/tags";
 
 export const tagService = {
   /**
@@ -13,8 +16,8 @@ export const tagService = {
    */
   createTag: async (payload: TagRequest): Promise<TagResponse> => {
     const response = await axiosClient.post<ApiResponse<TagResponse>>(
-      ADMIN_TAG_PREFIX,
-      payload
+      TAG_PREFIX,
+      payload,
     );
 
     return unwrapResponse(response);
@@ -25,7 +28,7 @@ export const tagService = {
    */
   getTags: async (
     page?: number,
-    size?: number
+    size?: number,
   ): Promise<PageResponse<TagResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<TagResponse>>
@@ -41,11 +44,11 @@ export const tagService = {
    */
   getAllTags: async (
     page?: number,
-    size?: number
+    size?: number,
   ): Promise<PageResponse<TagResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<TagResponse>>
-    >(ADMIN_TAG_PREFIX, {
+    >(`${TAG_PREFIX}/admin`, {
       params: { page, size },
     });
 
@@ -57,8 +60,8 @@ export const tagService = {
    */
   updateTag: async (id: number, payload: TagRequest): Promise<TagResponse> => {
     const response = await axiosClient.put<ApiResponse<TagResponse>>(
-      `${ADMIN_TAG_PREFIX}/${id}`,
-      payload
+      `${TAG_PREFIX}/${id}`,
+      payload,
     );
 
     return unwrapResponse(response);
@@ -68,7 +71,7 @@ export const tagService = {
    * Delete a tag (Admin only)
    */
   deleteTag: async (id: number): Promise<void> => {
-    await axiosClient.delete<void>(`${ADMIN_TAG_PREFIX}/${id}`);
+    await axiosClient.delete<void>(`${TAG_PREFIX}/${id}`);
   },
 
   /**
@@ -76,7 +79,58 @@ export const tagService = {
    */
   restoreTag: async (id: number): Promise<TagResponse> => {
     const response = await axiosClient.patch<ApiResponse<TagResponse>>(
-      `${ADMIN_TAG_PREFIX}/${id}/restore`
+      `${TAG_PREFIX}/${id}/restore`,
+    );
+
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Get popular tags (Public)
+   */
+  getPopularTags: async (limit?: number): Promise<TagStatsResponse[]> => {
+    const response = await axiosClient.get<ApiResponse<TagStatsResponse[]>>(
+      `${TAG_PREFIX}/popular`,
+      {
+        params: { limit },
+      },
+    );
+
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Search tags by name (Public)
+   */
+  searchTags: async (query: string): Promise<TagResponse[]> => {
+    const response = await axiosClient.get<ApiResponse<TagResponse[]>>(
+      `${TAG_PREFIX}/search`,
+      {
+        params: { query },
+      },
+    );
+
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Bulk create tags (Admin only)
+   */
+  bulkCreateTags: async (payload: BulkTagRequest): Promise<TagResponse[]> => {
+    const response = await axiosClient.post<ApiResponse<TagResponse[]>>(
+      `${TAG_PREFIX}/bulk`,
+      payload,
+    );
+
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Get tag statistics (Admin only)
+   */
+  getTagStatistics: async (): Promise<TagStatsResponse[]> => {
+    const response = await axiosClient.get<ApiResponse<TagStatsResponse[]>>(
+      `${TAG_PREFIX}/admin/stats`,
     );
 
     return unwrapResponse(response);

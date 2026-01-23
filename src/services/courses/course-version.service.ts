@@ -10,11 +10,11 @@ export const courseVersionService = {
    */
   createCourseVersion: async (
     courseId: number,
-    payload: CourseVersionRequest
+    payload: CourseVersionRequest,
   ): Promise<CourseVersionResponse> => {
     const response = await axiosClient.post<ApiResponse<CourseVersionResponse>>(
       `/courses/${courseId}/versions`,
-      payload
+      payload,
     );
 
     return unwrapResponse(response);
@@ -24,7 +24,7 @@ export const courseVersionService = {
    * Get all course versions (Teacher only)
    */
   getCourseVersions: async (
-    courseId: number
+    courseId: number,
   ): Promise<CourseVersionResponse[]> => {
     const response = await axiosClient.get<
       ApiResponse<CourseVersionResponse[]>
@@ -37,7 +37,7 @@ export const courseVersionService = {
    * Get deleted course versions (Teacher only)
    */
   getDeletedCourseVersions: async (
-    courseId: number
+    courseId: number,
   ): Promise<CourseVersionResponse[]> => {
     const response = await axiosClient.get<
       ApiResponse<CourseVersionResponse[]>
@@ -51,10 +51,10 @@ export const courseVersionService = {
    */
   getCourseVersionById: async (
     courseId: number,
-    versionId: number
+    versionId: number,
   ): Promise<CourseVersionResponse> => {
     const response = await axiosClient.get<ApiResponse<CourseVersionResponse>>(
-      `/courses/${courseId}/versions/${versionId}`
+      `/courses/${courseId}/versions/${versionId}`,
     );
 
     return unwrapResponse(response);
@@ -66,13 +66,13 @@ export const courseVersionService = {
   updateCourseVersion: async (
     courseId: number,
     versionId: number,
-    payload: CourseVersionRequest
+    payload: CourseVersionRequest,
   ): Promise<CourseVersionResponse> => {
     console.log("Updating course version:", { courseId, versionId, payload });
 
     const response = await axiosClient.put<ApiResponse<CourseVersionResponse>>(
       `/courses/${courseId}/versions/${versionId}`,
-      payload
+      payload,
     );
 
     return unwrapResponse(response);
@@ -83,10 +83,10 @@ export const courseVersionService = {
    */
   deleteCourseVersion: async (
     courseId: number,
-    versionId: number
+    versionId: number,
   ): Promise<void> => {
     const response = await axiosClient.delete(
-      `/courses/${courseId}/versions/${versionId}`
+      `/courses/${courseId}/versions/${versionId}`,
     );
   },
 
@@ -95,7 +95,7 @@ export const courseVersionService = {
    */
   getCourseVersionsByStatus: async (
     courseId: number,
-    status: string
+    status: string,
   ): Promise<CourseVersionResponse[]> => {
     const response = await axiosClient.get<
       ApiResponse<CourseVersionResponse[]>
@@ -109,10 +109,10 @@ export const courseVersionService = {
    */
   submitApproval: async (
     courseId: number,
-    versionId: number
+    versionId: number,
   ): Promise<CourseVersionResponse> => {
     const response = await axiosClient.post<ApiResponse<CourseVersionResponse>>(
-      `/courses/${courseId}/versions/${versionId}/submit-approval`
+      `/courses/${courseId}/versions/${versionId}/submit-approval`,
     );
 
     return unwrapResponse(response);
@@ -123,10 +123,10 @@ export const courseVersionService = {
    */
   approveCourseVersion: async (
     courseId: number,
-    versionId: number
+    versionId: number,
   ): Promise<CourseVersionResponse> => {
     const response = await axiosClient.post<ApiResponse<CourseVersionResponse>>(
-      `/courses/${courseId}/versions/${versionId}/approve`
+      `/courses/${courseId}/versions/${versionId}/approve`,
     );
 
     return unwrapResponse(response);
@@ -138,11 +138,11 @@ export const courseVersionService = {
   rejectCourseVersion: async (
     courseId: number,
     versionId: number,
-    payload: RejectRequest
+    payload: RejectRequest,
   ): Promise<CourseVersionResponse> => {
     const response = await axiosClient.post<ApiResponse<CourseVersionResponse>>(
       `/courses/${courseId}/versions/${versionId}/reject`,
-      payload
+      payload,
     );
 
     return unwrapResponse(response);
@@ -153,10 +153,10 @@ export const courseVersionService = {
    */
   publishCourseVersion: async (
     courseId: number,
-    versionId: number
+    versionId: number,
   ): Promise<CourseVersionResponse> => {
     const response = await axiosClient.post<ApiResponse<CourseVersionResponse>>(
-      `/courses/${courseId}/versions/${versionId}/publish`
+      `/courses/${courseId}/versions/${versionId}/publish`,
     );
 
     return unwrapResponse(response);
@@ -168,13 +168,40 @@ export const courseVersionService = {
   getAllPendingCourseVersions: async (
     page?: number,
     size?: number,
-    filter?: string
+    filter?: string,
   ): Promise<PageResponse<CourseVersionResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<CourseVersionResponse>>
     >("/courses/admin/versions/pending", {
       params: { page, size, filter },
     });
+
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Get published version of a course by slug (Public)
+   */
+  getPublishedVersionBySlug: async (
+    courseSlug: string,
+  ): Promise<CourseVersionResponse> => {
+    const response = await axiosClient.get<ApiResponse<CourseVersionResponse>>(
+      `/public/courses/${courseSlug}/version/published`,
+    );
+
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Get published version details (Public)
+   */
+  getPublicCourseVersionById: async (
+    courseId: number,
+    versionId: number,
+  ): Promise<CourseVersionResponse> => {
+    const response = await axiosClient.get<ApiResponse<CourseVersionResponse>>(
+      `/public/courses/${courseId}/versions/${versionId}`,
+    );
 
     return unwrapResponse(response);
   },

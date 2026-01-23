@@ -1,21 +1,24 @@
-import {  CategoryRequest,
-  CategoryResponse, } from "./course.types";
+import {
+  CategoryRequest,
+  CategoryResponse,
+  CategoryStatsResponse,
+} from "./course.types";
 import { axiosClient } from "@/lib/api/axios";
 import { unwrapResponse } from "@/lib/api/unwrap";
 import { ApiResponse } from "@/lib/api/api.types";
+
 const CATEGORY_PREFIX = "/categories";
-const ADMIN_CATEGORY_PREFIX = "/admin/categories";
 
 export const categoryService = {
   /**
    * Create a new category (Admin only)
    */
   createCategory: async (
-    payload: CategoryRequest
+    payload: CategoryRequest,
   ): Promise<CategoryResponse> => {
     const response = await axiosClient.post<ApiResponse<CategoryResponse>>(
-      ADMIN_CATEGORY_PREFIX,
-      payload
+      CATEGORY_PREFIX,
+      payload,
     );
 
     return unwrapResponse(response);
@@ -26,7 +29,7 @@ export const categoryService = {
    */
   getCategoryById: async (id: number): Promise<CategoryResponse> => {
     const response = await axiosClient.get<ApiResponse<CategoryResponse>>(
-      `${CATEGORY_PREFIX}/${id}`
+      `${CATEGORY_PREFIX}/${id}`,
     );
 
     return unwrapResponse(response);
@@ -37,7 +40,7 @@ export const categoryService = {
    */
   getCategoryByIdForAdmin: async (id: number): Promise<CategoryResponse> => {
     const response = await axiosClient.get<ApiResponse<CategoryResponse>>(
-      `${ADMIN_CATEGORY_PREFIX}/${id}`
+      `${CATEGORY_PREFIX}/admin/${id}`,
     );
 
     return unwrapResponse(response);
@@ -48,7 +51,7 @@ export const categoryService = {
    */
   getCategoryTree: async (): Promise<CategoryResponse[]> => {
     const response = await axiosClient.get<ApiResponse<CategoryResponse[]>>(
-      `${CATEGORY_PREFIX}/tree`
+      `${CATEGORY_PREFIX}/tree`,
     );
 
     return unwrapResponse(response);
@@ -59,7 +62,7 @@ export const categoryService = {
    */
   getAllDeleted: async (): Promise<CategoryResponse[]> => {
     const response = await axiosClient.get<ApiResponse<CategoryResponse[]>>(
-      `${ADMIN_CATEGORY_PREFIX}/deleted`
+      `${CATEGORY_PREFIX}/admin/deleted`,
     );
 
     return unwrapResponse(response);
@@ -69,7 +72,7 @@ export const categoryService = {
    * Delete a category (Admin only)
    */
   deleteCategory: async (id: number): Promise<void> => {
-    await axiosClient.delete<void>(`${ADMIN_CATEGORY_PREFIX}/${id}`);
+    await axiosClient.delete<void>(`${CATEGORY_PREFIX}/${id}`);
   },
 
   /**
@@ -77,7 +80,7 @@ export const categoryService = {
    */
   restoreCategory: async (id: number): Promise<CategoryResponse> => {
     const response = await axiosClient.patch<ApiResponse<CategoryResponse>>(
-      `${ADMIN_CATEGORY_PREFIX}/${id}/restore`
+      `${CATEGORY_PREFIX}/${id}/restore`,
     );
 
     return unwrapResponse(response);
@@ -88,11 +91,11 @@ export const categoryService = {
    */
   updateCategory: async (
     id: number,
-    payload: CategoryRequest
+    payload: CategoryRequest,
   ): Promise<CategoryResponse> => {
     const response = await axiosClient.put<ApiResponse<CategoryResponse>>(
-      `${ADMIN_CATEGORY_PREFIX}/${id}`,
-      payload
+      `${CATEGORY_PREFIX}/${id}`,
+      payload,
     );
 
     return unwrapResponse(response);
@@ -103,8 +106,29 @@ export const categoryService = {
    */
   getCategoryBySlug: async (slug: string): Promise<CategoryResponse> => {
     const response = await axiosClient.get<ApiResponse<CategoryResponse>>(
-      `${CATEGORY_PREFIX}/slug/${slug}`
+      `${CATEGORY_PREFIX}/slug/${slug}`,
     );
+
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Get all active categories (Public)
+   */
+  getActiveCategories: async (): Promise<CategoryResponse[]> => {
+    const response =
+      await axiosClient.get<ApiResponse<CategoryResponse[]>>(CATEGORY_PREFIX);
+
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Get category statistics (Admin only)
+   */
+  getCategoryStatistics: async (): Promise<CategoryStatsResponse[]> => {
+    const response = await axiosClient.get<
+      ApiResponse<CategoryStatsResponse[]>
+    >(`${CATEGORY_PREFIX}/admin/stats`);
 
     return unwrapResponse(response);
   },

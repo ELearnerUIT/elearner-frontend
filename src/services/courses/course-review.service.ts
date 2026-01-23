@@ -1,20 +1,23 @@
-import{  CourseReviewRequest,
+import {
+  CourseReviewRequest,
   CourseReviewResponse,
-  RatingSummaryResponse, } from "./course.types";
+  RatingSummaryResponse,
+} from "./course.types";
 import { axiosClient } from "@/lib/api/axios";
 import { unwrapResponse } from "@/lib/api/unwrap";
 import { ApiResponse, PageResponse } from "@/lib/api/api.types";
+
 export const courseReviewService = {
   /**
    * Create a new review (Student only)
    */
   createReview: async (
     courseId: number,
-    payload: CourseReviewRequest
+    payload: CourseReviewRequest,
   ): Promise<CourseReviewResponse> => {
     const response = await axiosClient.post<ApiResponse<CourseReviewResponse>>(
       `/courses/${courseId}/reviews`,
-      payload
+      payload,
     );
 
     return unwrapResponse(response);
@@ -26,7 +29,7 @@ export const courseReviewService = {
   getCourseReviews: async (
     courseId: number,
     page?: number,
-    size?: number
+    size?: number,
   ): Promise<PageResponse<CourseReviewResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<CourseReviewResponse>>
@@ -43,11 +46,11 @@ export const courseReviewService = {
   updateReview: async (
     courseId: number,
     reviewId: number,
-    payload: CourseReviewRequest
+    payload: CourseReviewRequest,
   ): Promise<CourseReviewResponse> => {
     const response = await axiosClient.put<ApiResponse<CourseReviewResponse>>(
       `/courses/${courseId}/reviews/${reviewId}`,
-      payload
+      payload,
     );
 
     return unwrapResponse(response);
@@ -64,10 +67,10 @@ export const courseReviewService = {
    * Get course rating summary
    */
   getRatingSummary: async (
-    courseId: number
+    courseId: number,
   ): Promise<RatingSummaryResponse> => {
     const response = await axiosClient.get<ApiResponse<RatingSummaryResponse>>(
-      `/courses/${courseId}/rating-summary`
+      `/courses/${courseId}/rating-summary`,
     );
 
     return unwrapResponse(response);

@@ -33,7 +33,7 @@ export interface CategoryRequest {
 
 // Course
 /** Backend: CourseRequest */
-export interface  CourseRequest {
+export interface CourseRequest {
   title: string;
   shortDescription: string;
   categoryId: number;
@@ -209,7 +209,7 @@ export interface CourseVersionResponse {
 //   teacherId: number;
 //   teacherName: string;
 
-//   pendingVersionCount: number; // 
+//   pendingVersionCount: number; //
 // }
 
 // Course Review
@@ -232,4 +232,103 @@ export interface RatingSummaryResponse {
   averageRating: number;
   totalReviews: number;
   ratingDistribution: Record<number, number>; // rating (1-5) -> count
+}
+
+/** Backend: CategoryStatsResponse */
+export interface CategoryStatsResponse {
+  categoryId: number;
+  categoryName: string;
+  courseCount: number;
+  studentCount: number;
+}
+
+/** Backend: TagStatsResponse */
+export interface TagStatsResponse {
+  tagId: number;
+  tagName: string;
+  courseCount: number;
+}
+
+/** Backend: CourseStatsResponse */
+export interface CourseStatsResponse {
+  totalStudents: number;
+  averageRating: number;
+  totalReviews: number;
+  completionRate: number;
+  totalRevenue: number;
+}
+
+/** Backend: BulkTagRequest */
+export interface BulkTagRequest {
+  tagNames: string[];
+}
+
+/** Backend: CoursePreviewResponse */
+export interface CoursePreviewResponse {
+  courseId: number;
+  courseTitle: string;
+  courseSlug: string;
+  shortDescription?: string;
+  thumbnailUrl?: string;
+  difficulty?: Difficulty;
+  category?: CourseCategoryInfo;
+  teacher?: {
+    id: number;
+    name: string;
+    avatarUrl?: string;
+  };
+  versionId: number;
+  versionNumber: number;
+  price?: number;
+  durationDays?: number;
+  chapters?: ChapterPreview[];
+  averageRating: number;
+  totalReviews: number;
+  totalStudents: number;
+}
+
+export interface ChapterPreview {
+  chapterId: number;
+  title: string;
+  orderIndex: number;
+  lessons: LessonPreview[];
+}
+
+export interface LessonPreview {
+  lessonId: number;
+  title: string;
+  orderIndex: number;
+  isPreview: boolean;
+  videoDuration?: number;
+}
+
+/** Backend: PreviewVideoUrlResponse */
+export interface PreviewVideoUrlResponse {
+  lessonId: number;
+  lessonTitle: string;
+  streamUrl: string;
+  expiresAt: string;
+}
+
+/** Backend: CoursePublishedStatusResponse */
+export interface CoursePublishedStatusResponse {
+  courseId: number;
+  slug: string;
+  isPublished: boolean;
+  publishedVersionId?: number;
+}
+
+/** Backend: CourseCardResponse */
+export interface CourseCardResponse {
+  id: number;
+  title: string;
+  shortDescription?: string;
+  thumbnailUrl?: string;
+  slug: string;
+  difficulty?: Difficulty;
+  categoryName?: string;
+  teacherName?: string;
+  averageRating: number;
+  totalStudents: number;
+  price?: number;
 }
