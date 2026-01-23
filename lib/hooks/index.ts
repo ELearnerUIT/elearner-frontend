@@ -9,6 +9,9 @@ export { QueryProvider } from './query-provider';
 // Query Keys
 export { queryKeys } from './query-keys';
 
+// Toast Mutation Utilities
+export { useToastMutation, createToastMutation } from './use-toast-mutation';
+
 // Authentication
 export {
   useCurrentUser,
