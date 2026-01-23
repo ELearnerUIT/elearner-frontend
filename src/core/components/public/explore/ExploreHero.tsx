@@ -1,8 +1,20 @@
 "use client";
 
 import { Search } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ExploreHero() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/explore?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   return (
     <section className="relative px-4 sm:px-6 md:px-10 xl:px-16 py-16">
 
@@ -11,7 +23,7 @@ export default function ExploreHero() {
 
       <div className="relative max-w-3xl">
         <h1 className="text-[40px] md:text-[54px] font-extrabold leading-tight">
-          Unlock Your Potential  
+          Unlock Your Potential
           <span className="block text-lime-300">Learn Anything. Anytime.</span>
         </h1>
 
@@ -20,7 +32,7 @@ export default function ExploreHero() {
         </p>
 
         {/* Search Input */}
-        <div className="mt-8 group">
+        <form onSubmit={handleSearch} className="mt-8 group">
           <div className="
             flex items-center gap-3 rounded-2xl w-full max-w-2xl
             bg-white/5 border border-white/15 px-6 py-5 backdrop-blur
@@ -32,9 +44,11 @@ export default function ExploreHero() {
             <input
               placeholder="Search for courses, topics, or instructors..."
               className="flex-1 bg-transparent outline-none text-lg"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-        </div>
+        </form>
       </div>
     </section>
   );

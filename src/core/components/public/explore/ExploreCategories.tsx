@@ -33,8 +33,11 @@ export default function ExploreCategories() {
     );
   }
 
-  // Get only top-level categories (no parent)
-  const topCategories = categories.filter(cat => !cat.parentId).slice(0, 6);
+  // Get only top-level categories (no parent) that are visible
+  const topCategories = categories
+    .filter(cat => !cat.parentId && cat.visible)
+    .slice(0, 6);
+
 
   return (
     <section className="px-4 sm:px-6 md:px-10 xl:px-16 mt-10">
@@ -45,8 +48,8 @@ export default function ExploreCategories() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
         {topCategories.map((c) => (
           <Link
-            key={c.title}
-            href={`/explore?category=${c.title.toLowerCase()}`}
+            key={c.id}
+            href={`/explore?category=${c.slug || c.name.toLowerCase().replace(/\s+/g, '-')}`}
             className="
               group relative overflow-hidden
               rounded-2xl border border-white/10 bg-white/[0.03]
@@ -57,8 +60,8 @@ export default function ExploreCategories() {
           >
             <div className="relative w-full aspect-[4/5]">
               <Image
-                src={c.img}
-                alt={c.title}
+                src={c.thumbnailUrl || 'https://cdn-icons-png.flaticon.com/512/4447/4447303.png'}
+                alt={c.name}
                 fill
                 className="object-cover group-hover:scale-105 transition duration-300 opacity-90"
               />
@@ -67,7 +70,7 @@ export default function ExploreCategories() {
 
               <div className="absolute bottom-4 left-4">
                 <h3 className="text-lg font-semibold text-white drop-shadow">
-                  {c.title}
+                  {c.name}
                 </h3>
               </div>
             </div>

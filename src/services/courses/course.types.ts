@@ -273,9 +273,9 @@ export interface BulkTagRequest {
 
 /** Backend: CoursePreviewResponse */
 export interface CoursePreviewResponse {
-  courseId: number;
-  courseTitle: string;
-  courseSlug: string;
+  id: number;
+  title: string;
+  slug: string;
   shortDescription?: string;
   thumbnailUrl?: string;
   difficulty?: Difficulty;
@@ -283,31 +283,51 @@ export interface CoursePreviewResponse {
   teacher?: {
     id: number;
     name: string;
+    email?: string;
+    bio?: string;
     avatarUrl?: string;
   };
-  versionId: number;
+  tags?: string[];
+  publishedVersion?: PublishedVersionPreview;
+}
+
+export interface PublishedVersionPreview {
+  id: number;
   versionNumber: number;
+  title: string;
+  description?: string;
   price?: number;
   durationDays?: number;
+  publishedAt?: string;
+  totalChapters?: number;
+  totalLessons?: number;
+  totalDurationSeconds?: number;
+  previewLessonsCount?: number;
   chapters?: ChapterPreview[];
-  averageRating: number;
-  totalReviews: number;
-  totalStudents: number;
 }
 
 export interface ChapterPreview {
-  chapterId: number;
+  id: number;
   title: string;
+  description?: string;
   orderIndex: number;
+  totalLessons?: number;
+  totalDurationSeconds?: number;
+  formattedTotalDuration?: string;
   lessons: LessonPreview[];
 }
 
 export interface LessonPreview {
-  lessonId: number;
+  id: number;
+  type?: string;
   title: string;
+  shortDescription?: string;
+  videoStatus?: string;
+  durationSeconds?: number;
   orderIndex: number;
   isPreview: boolean;
-  videoDuration?: number;
+  isVideoReady?: boolean;
+  formattedDuration?: string;
 }
 
 /** Backend: PreviewVideoUrlResponse */
@@ -336,7 +356,10 @@ export interface CourseCardResponse {
   difficulty?: Difficulty;
   categoryName?: string;
   teacherName?: string;
+  teacherAvatarUrl?: string;
   averageRating: number;
+  totalReviews?: number;
   totalStudents: number;
+  isClosed?: boolean;
   price?: number;
 }

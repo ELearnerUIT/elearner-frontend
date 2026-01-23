@@ -39,6 +39,9 @@ export default function CourseCarousel({ courses = [], loading, error }: CourseC
   const perView = usePerView();
   const [page, setPage] = useState(0);
 
+  // Reset page when perView changes - must be before any early returns
+  useEffect(() => setPage(0), [perView]);
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -56,8 +59,6 @@ export default function CourseCarousel({ courses = [], loading, error }: CourseC
   if (!courses.length) {
     return <p className="text-muted-foreground">No popular courses available</p>;
   }
-
-  useEffect(() => setPage(0), [perView]);
 
   const pages = Math.ceil(courses.length / perView);
   const maxPage = pages - 1;

@@ -83,7 +83,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <NavItem href="/explore-courses" label="Explore" className="hidden md:inline-flex" />
+          <NavItem href="/explore" label="Explore" className="hidden md:inline-flex" />
         </div>
 
         {/* CENTER: Search (đã fix icon/placeholder) */}

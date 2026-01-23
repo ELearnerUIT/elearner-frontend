@@ -15,9 +15,10 @@ export type PaymentMethod =
 
 /** Backend: EnrollCourseRequest */
 export interface EnrollCourseRequest {
-  paymentMethod?: PaymentMethod;
-  paymentTransactionId?: string;
-  voucherCode?: string;
+  // paymentMethod?: PaymentMethod;
+  paymentTransactionId?: number;
+  notes: string;
+  // voucherCode?: string;
 }
 
 /** Backend: CancelEnrollmentRequest */

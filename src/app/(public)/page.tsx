@@ -1,3 +1,5 @@
+"use client";
+
 import CourseGrid from "@/core/components/course/CourseGrid"
 import BannerCarousel, {
   type BannerSlide,
@@ -9,6 +11,7 @@ import ReviewsSection from "@/core/components/public/landingpage/ReviewsSection"
 import CertificatesSection from "@/core/components/public/landingpage/CertificatesSection";
 import SkillsTabCarouselSection from "@/core/components/public/landingpage/SkillsTabCarouselSection";
 import PlansSection from "@/core/components/public/landingpage/PlansSection";
+import { useCategories } from "@/hooks/learner/useCategory";
 
 const slides: BannerSlide[] = [
   {
@@ -36,11 +39,13 @@ const slides: BannerSlide[] = [
 ];
 
 export default function Home() {
+  const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useCategories();
+
   return (
     <div className="space-y-16">
       <BannerCarousel slides={slides} autoPlayMs={7000} />
       <IntroWithStats />
-      <TopicsSection />
+      <TopicsSection categories={categories} loading={categoriesLoading} error={categoriesError} />
       <FeaturedSkills />
       <SkillsTabCarouselSection />
       <ReviewsSection />

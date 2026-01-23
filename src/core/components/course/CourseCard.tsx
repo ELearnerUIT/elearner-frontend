@@ -17,6 +17,7 @@ export type Course = {
   bestSeller?: boolean;
   href?: string;
   className?: string;
+  description?: string;   // course description
 };
 
 function Wrapper({
@@ -57,6 +58,7 @@ export default function CourseCard(props: Course) {
     bestSeller,
     href,
     className,
+    description,
   } = props;
 
   return (
@@ -78,6 +80,11 @@ export default function CourseCard(props: Course) {
         <h3 className="line-clamp-2 text-[16px] font-semibold leading-snug">
           {title}
         </h3>
+        {description && (
+          <p className="mt-2 line-clamp-2 text-[13px] text-gray-600 dark:text-gray-400">
+            {description}
+          </p>
+        )}
         <div className="mt-1 text-[13px] text-muted-foreground">{teacher}</div>
 
         {/* Rating */}
