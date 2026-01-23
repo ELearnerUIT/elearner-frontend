@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
     ProfileTab,
@@ -12,7 +13,7 @@ import {
 
 type TabType = "profile" | "security" | "notifications" | "preferences";
 
-export default function TeacherProfilePage() {
+function TeacherProfilePageContent() {
     const searchParams = useSearchParams();
     const initialTab = (searchParams.get("tab") as TabType) || "profile";
     const [activeTab, setActiveTab] = useState<TabType>(initialTab);
@@ -92,4 +93,16 @@ export default function TeacherProfilePage() {
             </div>
         </div>
     );
+}
+
+export default function TeacherProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="size-8 animate-spin text-indigo-600" />
+      </div>
+    }>
+      <TeacherProfilePageContent />
+    </Suspense>
+  );
 }
