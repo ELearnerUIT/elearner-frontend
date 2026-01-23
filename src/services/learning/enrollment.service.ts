@@ -4,9 +4,11 @@ import { ApiResponse, PageResponse } from "@/lib/api/api.types";
 import {
   EnrollCourseRequest,
   CancelEnrollmentRequest,
+  UpdateScoreRequest,
   EnrollmentResponse,
   EnrollmentDetailResponse,
   EnrollmentStatsResponse,
+  FinalExamEligibilityResponse,
 } from "./enrollment.types";
 
 export const enrollmentService = {
@@ -19,7 +21,7 @@ export const enrollmentService = {
    */
   enrollCourse: async (
     courseId: number,
-    payload: EnrollCourseRequest
+    payload: EnrollCourseRequest,
   ): Promise<EnrollmentDetailResponse> => {
     const response = await axiosClient.post<
       ApiResponse<EnrollmentDetailResponse>
@@ -33,7 +35,7 @@ export const enrollmentService = {
   getStudentEnrollments: async (
     studentId: number,
     page?: number,
-    size?: number
+    size?: number,
   ): Promise<PageResponse<EnrollmentResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<EnrollmentResponse>>
@@ -47,7 +49,7 @@ export const enrollmentService = {
    * GET /enrollments/{id} - Get enrollment details
    */
   getEnrollmentDetail: async (
-    id: number
+    id: number,
   ): Promise<EnrollmentDetailResponse> => {
     const response = await axiosClient.get<
       ApiResponse<EnrollmentDetailResponse>
@@ -60,11 +62,49 @@ export const enrollmentService = {
    */
   cancelEnrollment: async (
     id: number,
-    payload: CancelEnrollmentRequest
+    payload: CancelEnrollmentRequest,
   ): Promise<EnrollmentDetailResponse> => {
     const response = await axiosClient.post<
       ApiResponse<EnrollmentDetailResponse>
     >(`/enrollments/${id}/cancel`, payload);
+    return unwrapResponse(response);
+  },
+
+  /**
+   * POST /enrollments/{id}/kick - Kick student from course (Teacher)
+   */
+  kickStudent: async (
+    id: number,
+    payload: CancelEnrollmentRequest,
+  ): Promise<EnrollmentDetailResponse> => {
+    const response = await axiosClient.post<
+      ApiResponse<EnrollmentDetailResponse>
+    >(`/enrollments/${id}/kick`, payload);
+    return unwrapResponse(response);
+  },
+
+  /**
+   * POST /enrollments/{enrollmentId}/update-score - Update enrollment score (Teacher)
+   */
+  updateEnrollmentScore: async (
+    enrollmentId: number,
+    payload: UpdateScoreRequest,
+  ): Promise<EnrollmentDetailResponse> => {
+    const response = await axiosClient.post<
+      ApiResponse<EnrollmentDetailResponse>
+    >(`/enrollments/${enrollmentId}/update-score`, payload);
+    return unwrapResponse(response);
+  },
+
+  /**
+   * GET /enrollments/{enrollmentId}/final-exam-eligibility - Check final exam eligibility
+   */
+  checkFinalExamEligibility: async (
+    enrollmentId: number,
+  ): Promise<FinalExamEligibilityResponse> => {
+    const response = await axiosClient.get<
+      ApiResponse<FinalExamEligibilityResponse>
+    >(`/enrollments/${enrollmentId}/final-exam-eligibility`);
     return unwrapResponse(response);
   },
 
@@ -78,7 +118,7 @@ export const enrollmentService = {
   getCourseEnrollments: async (
     courseId: number,
     page?: number,
-    size?: number
+    size?: number,
   ): Promise<PageResponse<EnrollmentResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<EnrollmentResponse>>
@@ -102,7 +142,7 @@ export const enrollmentService = {
    * GET /courses/{courseId}/enrollment-stats - Get enrollment statistics (Teacher)
    */
   getEnrollmentStats: async (
-    courseId: number
+    courseId: number,
   ): Promise<EnrollmentStatsResponse> => {
     const response = await axiosClient.get<
       ApiResponse<EnrollmentStatsResponse>

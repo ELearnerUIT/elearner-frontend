@@ -6,6 +6,9 @@ import {
   UpdateStudentRequest,
   StudentCourseResponse,
   StudentCertificateResponse,
+  StudentProgressResponse,
+  CourseResponse,
+  StudentResponse,
   TeacherDetailResponse,
   UpdateTeacherRequest,
   ApproveTeacherRequest,
@@ -33,7 +36,7 @@ export const userService = {
    */
   getStudentById: async (id: number): Promise<StudentDetailResponse> => {
     const response = await axiosClient.get<ApiResponse<StudentDetailResponse>>(
-      `${STUDENT_PREFIX}/${id}`
+      `${STUDENT_PREFIX}/${id}`,
     );
     return unwrapResponse(response);
   },
@@ -43,7 +46,7 @@ export const userService = {
    */
   getStudentByCode: async (code: string): Promise<StudentDetailResponse> => {
     const response = await axiosClient.get<ApiResponse<StudentDetailResponse>>(
-      `${STUDENT_PREFIX}/code/${code}`
+      `${STUDENT_PREFIX}/code/${code}`,
     );
     return unwrapResponse(response);
   },
@@ -53,11 +56,11 @@ export const userService = {
    */
   updateStudent: async (
     id: number,
-    payload: UpdateStudentRequest
+    payload: UpdateStudentRequest,
   ): Promise<StudentDetailResponse> => {
     const response = await axiosClient.put<ApiResponse<StudentDetailResponse>>(
       `${STUDENT_PREFIX}/${id}`,
-      payload
+      payload,
     );
     return unwrapResponse(response);
   },
@@ -67,7 +70,7 @@ export const userService = {
    */
   uploadStudentAvatar: async (
     id: number,
-    file: File
+    file: File,
   ): Promise<UploadAvatarResponse> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -79,7 +82,7 @@ export const userService = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
     return unwrapResponse(response);
   },
@@ -90,7 +93,7 @@ export const userService = {
   getStudentCourses: async (
     id: number,
     page?: number,
-    size?: number
+    size?: number,
   ): Promise<PageResponse<StudentCourseResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<StudentCourseResponse>>
@@ -101,12 +104,22 @@ export const userService = {
   },
 
   /**
+   * Get student's learning progress
+   */
+  getStudentProgress: async (id: number): Promise<StudentProgressResponse> => {
+    const response = await axiosClient.get<
+      ApiResponse<StudentProgressResponse>
+    >(`${STUDENT_PREFIX}/${id}/progress`);
+    return unwrapResponse(response);
+  },
+
+  /**
    * Get student's certificates
    */
   getStudentCertificates: async (
     id: number,
     page?: number,
-    size?: number
+    size?: number,
   ): Promise<PageResponse<StudentCertificateResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<StudentCertificateResponse>>
@@ -121,7 +134,7 @@ export const userService = {
    */
   deleteStudent: async (id: number): Promise<void> => {
     const response = await axiosClient.delete<ApiResponse<void>>(
-      `${STUDENT_PREFIX}/${id}`
+      `${STUDENT_PREFIX}/${id}`,
     );
     return unwrapResponse(response);
   },
@@ -135,7 +148,7 @@ export const userService = {
    */
   getTeacherById: async (id: number): Promise<TeacherDetailResponse> => {
     const response = await axiosClient.get<ApiResponse<TeacherDetailResponse>>(
-      `${TEACHER_PREFIX}/${id}`
+      `${TEACHER_PREFIX}/${id}`,
     );
     return unwrapResponse(response);
   },
@@ -145,7 +158,7 @@ export const userService = {
    */
   getTeacherByCode: async (code: string): Promise<TeacherDetailResponse> => {
     const response = await axiosClient.get<ApiResponse<TeacherDetailResponse>>(
-      `${TEACHER_PREFIX}/code/${code}`
+      `${TEACHER_PREFIX}/code/${code}`,
     );
     return unwrapResponse(response);
   },
@@ -155,11 +168,11 @@ export const userService = {
    */
   updateTeacher: async (
     id: number,
-    payload: UpdateTeacherRequest
+    payload: UpdateTeacherRequest,
   ): Promise<TeacherDetailResponse> => {
     const response = await axiosClient.put<ApiResponse<TeacherDetailResponse>>(
       `${TEACHER_PREFIX}/${id}`,
-      payload
+      payload,
     );
     return unwrapResponse(response);
   },
@@ -169,7 +182,7 @@ export const userService = {
    */
   uploadTeacherAvatar: async (
     id: number,
-    file: File
+    file: File,
   ): Promise<UploadAvatarResponse> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -181,7 +194,7 @@ export const userService = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
     return unwrapResponse(response);
   },
@@ -190,10 +203,10 @@ export const userService = {
    * Request teacher approval
    */
   requestTeacherApproval: async (
-    id: number
+    id: number,
   ): Promise<TeacherDetailResponse> => {
     const response = await axiosClient.post<ApiResponse<TeacherDetailResponse>>(
-      `${TEACHER_PREFIX}/${id}/request-approval`
+      `${TEACHER_PREFIX}/${id}/request-approval`,
     );
     return unwrapResponse(response);
   },
@@ -203,11 +216,11 @@ export const userService = {
    */
   approveTeacher: async (
     id: number,
-    payload?: ApproveTeacherRequest
+    payload?: ApproveTeacherRequest,
   ): Promise<TeacherDetailResponse> => {
     const response = await axiosClient.post<ApiResponse<TeacherDetailResponse>>(
       `${TEACHER_PREFIX}/${id}/approve`,
-      payload
+      payload,
     );
     return unwrapResponse(response);
   },
@@ -217,11 +230,11 @@ export const userService = {
    */
   rejectTeacher: async (
     id: number,
-    payload: RejectTeacherRequest
+    payload: RejectTeacherRequest,
   ): Promise<TeacherDetailResponse> => {
     const response = await axiosClient.post<ApiResponse<TeacherDetailResponse>>(
       `${TEACHER_PREFIX}/${id}/reject`,
-      payload
+      payload,
     );
     return unwrapResponse(response);
   },
@@ -231,24 +244,50 @@ export const userService = {
    */
   getTeacherStats: async (id: number): Promise<TeacherStatsResponse> => {
     const response = await axiosClient.get<ApiResponse<TeacherStatsResponse>>(
-      `${TEACHER_PREFIX}/${id}/stats`
+      `${TEACHER_PREFIX}/${id}/stats`,
     );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Get teacher's courses
+   */
+  getTeacherCourses: async (
+    id: number,
+    page?: number,
+    size?: number,
+  ): Promise<PageResponse<CourseResponse>> => {
+    const response = await axiosClient.get<
+      ApiResponse<PageResponse<CourseResponse>>
+    >(`${TEACHER_PREFIX}/${id}/courses`, {
+      params: { page, size },
+    });
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Get teacher's students
+   */
+  getTeacherStudents: async (
+    id: number,
+    page?: number,
+    size?: number,
+  ): Promise<PageResponse<StudentResponse>> => {
+    const response = await axiosClient.get<
+      ApiResponse<PageResponse<StudentResponse>>
+    >(`${TEACHER_PREFIX}/${id}/students`, {
+      params: { page, size },
+    });
     return unwrapResponse(response);
   },
 
   /**
    * Get teacher revenue
    */
-  getTeacherRevenue: async (
-    id: number,
-    startDate?: string,
-    endDate?: string
-  ): Promise<TeacherRevenueResponse[]> => {
-    const response = await axiosClient.get<
-      ApiResponse<TeacherRevenueResponse[]>
-    >(`${TEACHER_PREFIX}/${id}/revenue`, {
-      params: { startDate, endDate },
-    });
+  getTeacherRevenue: async (id: number): Promise<TeacherRevenueResponse> => {
+    const response = await axiosClient.get<ApiResponse<TeacherRevenueResponse>>(
+      `${TEACHER_PREFIX}/${id}/revenue`,
+    );
     return unwrapResponse(response);
   },
 
@@ -257,7 +296,7 @@ export const userService = {
    */
   deleteTeacher: async (id: number): Promise<void> => {
     const response = await axiosClient.delete<ApiResponse<void>>(
-      `${TEACHER_PREFIX}/${id}`
+      `${TEACHER_PREFIX}/${id}`,
     );
     return unwrapResponse(response);
   },
@@ -272,7 +311,7 @@ export const userService = {
   getAllUsers: async (
     filter?: UserFilterRequest,
     page?: number,
-    size?: number
+    size?: number,
   ): Promise<PageResponse<AdminUserListResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<AdminUserListResponse>>
@@ -296,7 +335,7 @@ export const userService = {
    */
   getUserStats: async (): Promise<UserStatsResponse> => {
     const response = await axiosClient.get<ApiResponse<UserStatsResponse>>(
-      `${USER_MANAGEMENT_PREFIX}/stats`
+      `${USER_MANAGEMENT_PREFIX}/stats`,
     );
     return unwrapResponse(response);
   },
@@ -310,7 +349,7 @@ export const userService = {
       payload,
       {
         responseType: "blob",
-      }
+      },
     );
     return response.data;
   },

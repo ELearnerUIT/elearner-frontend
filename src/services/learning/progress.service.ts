@@ -6,6 +6,7 @@ import {
   CourseProgressResponse,
   LessonProgressResponse,
   CourseProgressStatsResponse,
+  UpdateWatchedDurationRequest,
 } from "./progress.types";
 
 export const progressService = {
@@ -17,7 +18,7 @@ export const progressService = {
    * GET /students/{studentId}/progress - Get student overall progress
    */
   getStudentProgress: async (
-    studentId: number
+    studentId: number,
   ): Promise<StudentProgressOverviewResponse> => {
     const response = await axiosClient.get<
       ApiResponse<StudentProgressOverviewResponse>
@@ -30,10 +31,10 @@ export const progressService = {
    */
   getStudentCourseProgress: async (
     studentId: number,
-    courseId: number
+    courseId: number,
   ): Promise<CourseProgressResponse> => {
     const response = await axiosClient.get<ApiResponse<CourseProgressResponse>>(
-      `/students/${studentId}/courses/${courseId}/progress`
+      `/students/${studentId}/courses/${courseId}/progress`,
     );
     return unwrapResponse(response);
   },
@@ -43,10 +44,10 @@ export const progressService = {
    */
   getStudentLessonProgress: async (
     studentId: number,
-    lessonId: number
+    lessonId: number,
   ): Promise<LessonProgressResponse> => {
     const response = await axiosClient.get<ApiResponse<LessonProgressResponse>>(
-      `/students/${studentId}/lessons/${lessonId}/progress`
+      `/students/${studentId}/lessons/${lessonId}/progress`,
     );
     return unwrapResponse(response);
   },
@@ -55,7 +56,7 @@ export const progressService = {
    * POST /lessons/{lessonId}/mark-viewed - Mark lesson as viewed
    */
   markLessonAsViewed: async (
-    lessonId: number
+    lessonId: number,
   ): Promise<LessonProgressResponse> => {
     const response = await axiosClient.post<
       ApiResponse<LessonProgressResponse>
@@ -67,11 +68,24 @@ export const progressService = {
    * POST /lessons/{lessonId}/mark-completed - Mark lesson as completed
    */
   markLessonAsCompleted: async (
-    lessonId: number
+    lessonId: number,
   ): Promise<LessonProgressResponse> => {
     const response = await axiosClient.post<
       ApiResponse<LessonProgressResponse>
     >(`/lessons/${lessonId}/mark-completed`);
+    return unwrapResponse(response);
+  },
+
+  /**
+   * POST /lessons/{lessonId}/update-duration - Update watched duration for video lessons
+   */
+  updateWatchedDuration: async (
+    lessonId: number,
+    payload: UpdateWatchedDurationRequest,
+  ): Promise<LessonProgressResponse> => {
+    const response = await axiosClient.post<
+      ApiResponse<LessonProgressResponse>
+    >(`/lessons/${lessonId}/update-duration`, payload);
     return unwrapResponse(response);
   },
 
@@ -83,7 +97,7 @@ export const progressService = {
    * GET /courses/{courseId}/progress-stats - Get course progress statistics (Teacher)
    */
   getCourseProgressStats: async (
-    courseId: number
+    courseId: number,
   ): Promise<CourseProgressStatsResponse> => {
     const response = await axiosClient.get<
       ApiResponse<CourseProgressStatsResponse>

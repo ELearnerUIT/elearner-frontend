@@ -11,6 +11,8 @@ import {
   UploadAvatarResponse,
   AccountActionLogResponse,
   AccountActionType,
+  ExportType,
+  ImportResultResponse,
 } from "./account.types";
 
 const ACCOUNT_PREFIX = "/accounts";
@@ -22,7 +24,7 @@ export const accountService = {
    */
   getProfile: async (): Promise<AccountProfileResponse> => {
     const response = await axiosClient.get<ApiResponse<AccountProfileResponse>>(
-      `${ACCOUNT_PREFIX}/me`
+      `${ACCOUNT_PREFIX}/me`,
     );
 
     return unwrapResponse(response);
@@ -42,7 +44,7 @@ export const accountService = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
 
     return unwrapResponse(response);
@@ -52,11 +54,11 @@ export const accountService = {
    * Update user profile
    */
   updateProfile: async (
-    payload: UpdateProfileRequest
+    payload: UpdateProfileRequest,
   ): Promise<AccountProfileResponse> => {
     const response = await axiosClient.put<ApiResponse<AccountProfileResponse>>(
       `${ACCOUNT_PREFIX}/me`,
-      payload
+      payload,
     );
 
     return unwrapResponse(response);
@@ -68,7 +70,7 @@ export const accountService = {
   getAllAccounts: async (
     page?: number,
     size?: number,
-    filter?: string
+    filter?: string,
   ): Promise<PageResponse<AccountResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<AccountResponse>>
@@ -88,35 +90,8 @@ export const accountService = {
    */
   getAccountById: async (id: number): Promise<AccountProfileResponse> => {
     const response = await axiosClient.get<ApiResponse<AccountProfileResponse>>(
-      `${ADMIN_ACCOUNT_PREFIX}/${id}`
+      `${ADMIN_ACCOUNT_PREFIX}/${id}`,
     );
-
-    return unwrapResponse(response);
-  },
-
-  /**
-   * Approve teacher account (Admin only)
-   */
-  approveTeacherAccount: async (
-    id: number
-  ): Promise<AccountProfileResponse> => {
-    const response = await axiosClient.patch<
-      ApiResponse<AccountProfileResponse>
-    >(`${ADMIN_ACCOUNT_PREFIX}/${id}/approve`);
-
-    return unwrapResponse(response);
-  },
-
-  /**
-   * Reject teacher account (Admin only)
-   */
-  rejectTeacherAccount: async (
-    id: number,
-    payload: RejectRequest
-  ): Promise<AccountProfileResponse> => {
-    const response = await axiosClient.patch<
-      ApiResponse<AccountProfileResponse>
-    >(`${ADMIN_ACCOUNT_PREFIX}/${id}/reject`, payload);
 
     return unwrapResponse(response);
   },
@@ -126,7 +101,7 @@ export const accountService = {
    */
   changeAccountStatus: async (
     id: number,
-    payload: UpdateStatusRequest
+    payload: UpdateStatusRequest,
   ): Promise<AccountProfileResponse> => {
     const response = await axiosClient.patch<
       ApiResponse<AccountProfileResponse>
@@ -140,7 +115,7 @@ export const accountService = {
    */
   suspendAccount: async (
     id: number,
-    payload?: AccountActionRequest
+    payload?: AccountActionRequest,
   ): Promise<AccountProfileResponse> => {
     const response = await axiosClient.post<
       ApiResponse<AccountProfileResponse>
@@ -154,7 +129,7 @@ export const accountService = {
    */
   unlockAccount: async (
     id: number,
-    payload?: AccountActionRequest
+    payload?: AccountActionRequest,
   ): Promise<AccountProfileResponse> => {
     const response = await axiosClient.post<
       ApiResponse<AccountProfileResponse>
@@ -168,7 +143,7 @@ export const accountService = {
    */
   deactivateAccount: async (
     id: number,
-    payload?: AccountActionRequest
+    payload?: AccountActionRequest,
   ): Promise<AccountProfileResponse> => {
     const response = await axiosClient.post<
       ApiResponse<AccountProfileResponse>
@@ -184,7 +159,7 @@ export const accountService = {
     id: number,
     actionType?: AccountActionType,
     page?: number,
-    size?: number
+    size?: number,
   ): Promise<PageResponse<AccountActionLogResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<AccountActionLogResponse>>
@@ -204,5 +179,55 @@ export const accountService = {
    */
   deleteAccountById: async (id: number): Promise<void> => {
     await axiosClient.delete<void>(`${ADMIN_ACCOUNT_PREFIX}/${id}`);
+  },
+
+  /**
+   * Download student import template (Admin only)
+   */
+  downloadImportTemplate: async (): Promise<Blob> => {
+    const response = await axiosClient.get(
+      `${ADMIN_ACCOUNT_PREFIX}/import-template`,
+      {
+        responseType: "blob",
+      },
+    );
+    return response.data;
+  },
+
+  /**
+   * Bulk import students from Excel file (Admin only)
+   */
+  importStudents: async (file: File): Promise<ImportResultResponse> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axiosClient.post<ApiResponse<ImportResultResponse>>(
+      `${ADMIN_ACCOUNT_PREFIX}/import`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Export accounts to Excel or CSV (Admin only)
+   */
+  exportAccounts: async (
+    filter?: string,
+    type: ExportType = "EXCEL",
+  ): Promise<Blob> => {
+    const response = await axiosClient.get(`${ADMIN_ACCOUNT_PREFIX}/export`, {
+      params: {
+        filter,
+        type,
+      },
+      responseType: "blob",
+    });
+    return response.data;
   },
 };

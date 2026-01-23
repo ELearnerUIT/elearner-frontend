@@ -54,6 +54,45 @@ export interface StudentCertificateResponse {
   certificateUrl?: string;
 }
 
+export interface StudentProgressResponse {
+  studentId: number;
+  totalCourses: number;
+  completedCourses: number;
+  inProgressCourses: number;
+  totalQuizzesTaken: number;
+  averageQuizScore?: number;
+  totalCertificatesEarned: number;
+  overallProgress?: number;
+}
+
+export interface CourseResponse {
+  courseId: number;
+  title: string;
+  description?: string;
+  thumbnailUrl?: string;
+  price?: number;
+  status?: string;
+  teacherId?: number;
+  teacherName?: string;
+  categoryId?: number;
+  categoryName?: string;
+  averageRating?: number;
+  totalReviews?: number;
+  totalEnrollments?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface StudentResponse {
+  studentId: number;
+  studentCode: string;
+  fullName?: string;
+  email?: string;
+  avatarUrl?: string;
+  enrolledAt?: string;
+  progress?: number;
+}
+
 // ===========================
 // Teacher Types
 // ===========================
@@ -113,6 +152,14 @@ export interface TeacherStatsResponse {
 }
 
 export interface TeacherRevenueResponse {
+  teacherId: number;
+  totalRevenue: number;
+  totalCoursesSold: number;
+  totalStudents: number;
+  monthlyRevenue?: MonthlyRevenue[];
+}
+
+export interface MonthlyRevenue {
   month: string;
   revenue: number;
   coursesSold: number;

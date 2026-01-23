@@ -1,4 +1,8 @@
-import { UserRole as _UserRole, AccountStatus as _AccountStatus, Gender as _Gender } from "../auth/auth.types";
+import {
+  UserRole as _UserRole,
+  AccountStatus as _AccountStatus,
+  Gender as _Gender,
+} from "../auth/auth.types";
 
 export type UserRole = _UserRole;
 export type AccountStatus = _AccountStatus;
@@ -12,6 +16,8 @@ export type AccountActionType =
   | "UNLOCK"
   | "DEACTIVATE"
   | "UNKNOWN";
+
+export type ExportType = "EXCEL" | "CSV";
 
 // Request DTOs
 /** Backend: UpdateProfileRequest */
@@ -104,4 +110,19 @@ export interface AccountActionLogResponse {
   updatedAt: string; // ISO datetime string
   performedByUsername?: string;
   ipAddress?: string;
+}
+
+/** Backend: ImportResultResponse */
+export interface ImportResultResponse {
+  successCount: number;
+  failureCount: number;
+  totalProcessed: number;
+  errors?: ImportErrorDetail[];
+}
+
+export interface ImportErrorDetail {
+  row: number;
+  field?: string;
+  message: string;
+  value?: string;
 }

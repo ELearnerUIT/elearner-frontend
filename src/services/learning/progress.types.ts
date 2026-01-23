@@ -4,6 +4,13 @@
 
 export type ProgressStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
 
+// Request DTOs
+
+/** Backend: UpdateWatchedDurationRequest */
+export interface UpdateWatchedDurationRequest {
+  watchedDurationSeconds: number;
+}
+
 // Response DTOs
 
 /** Backend: StudentProgressOverviewResponse */

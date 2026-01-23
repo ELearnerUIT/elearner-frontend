@@ -25,6 +25,20 @@ export interface CancelEnrollmentRequest {
   reason: string;
 }
 
+/** Backend: UpdateScoreRequest */
+export interface UpdateScoreRequest {
+  averageScore: number;
+}
+
+/** Backend: FinalExamEligibilityResponse */
+export interface FinalExamEligibilityResponse {
+  enrollmentId: number;
+  isEligible: boolean;
+  requiredCompletionPercentage: number;
+  currentCompletionPercentage: number;
+  missingRequirements?: string[];
+}
+
 // Response DTOs
 
 /** Backend: EnrollmentResponse */

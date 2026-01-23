@@ -3,3 +3,7 @@ export * from "./enrollment.service";
 export * from "./enrollment.types";
 export * from "./progress.service";
 export * from "./progress.types";
+export * from "./certificate.service";
+export * from "./certificate.types";
+export * from "./student-course.service";
+export * from "./student-course.types";
