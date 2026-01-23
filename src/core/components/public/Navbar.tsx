@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { Search, ShoppingCart, Bot, Menu, X, Sun, Moon } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Search, ShoppingCart, Bot, Menu, X, Sun, Moon, User, LogOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { useAssistantStore } from "@/core/components/public/store";
 import { useTheme } from "next-themes";
+import { useCart } from "@/core/providers/cart-provider";
+import { tokenStorage } from "@/lib/api/tokenStorage";
 
 function NavItem({ href, label, className }: { href: string; label: string; className?: string }) {
   const pathname = usePathname();
@@ -16,15 +18,23 @@ function NavItem({ href, label, className }: { href: string; label: string; clas
 }
 
 export default function Navbar() {
+  const router = useRouter();
   const openPopup = useAssistantStore((s) => s.openPopup);
   const [open, setOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { itemCount } = useCart();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    // Check if user is logged in
+    const token = tokenStorage.getAccessToken();
+    setIsLoggedIn(!!token);
   }, []);
 
   useEffect(() => {
@@ -35,6 +45,24 @@ export default function Navbar() {
     window.addEventListener("click", onClick);
     return () => window.removeEventListener("click", onClick);
   }, [open]);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    function onClick(e: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    window.addEventListener("click", onClick);
+    return () => window.removeEventListener("click", onClick);
+  }, [profileOpen]);
+
+  const handleLogout = () => {
+    tokenStorage.clear();
+    setIsLoggedIn(false);
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <header className="navbar">
@@ -57,7 +85,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <NavItem href="/explore" label="Explore" className="hidden md:inline-flex" />
+          <NavItem href="/explore-courses" label="Explore" className="hidden md:inline-flex" />
         </div>
 
         {/* CENTER: Search (đã fix icon/placeholder) */}
@@ -78,19 +106,67 @@ export default function Navbar() {
           <Link href="#" className="hidden lg:block nav-link">Teach on LMS</Link>
 
           {/* Cart */}
-          <button className="btn-icon hidden sm:inline-flex" aria-label="Cart">
+          <Link href="/cart" className="btn-icon hidden sm:inline-flex relative" aria-label="Cart">
             <ShoppingCart size={18} />
-          </button>
-
-          {/* Log in – outline strong (nổi bật) */}
-          <Link href="/login">
-            <button className="btn btn-outline strong">Log in</button>
+            {itemCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[var(--brand-primary)] text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {itemCount}
+              </span>
+            )}
           </Link>
 
-          {/* Sign up – neon cùng màu LMS */}
-          <Link href="/signup">
-            <button className="btn btn-primary neon">Sign up</button>
-          </Link>
+          {/* Conditional Auth Buttons */}
+          {!isLoggedIn ? (
+            <>
+              {/* Log in – outline strong (nổi bật) */}
+              <Link href="/login">
+                <button className="btn btn-outline strong">Log in</button>
+              </Link>
+
+              {/* Sign up – neon cùng màu LMS */}
+              <Link href="/signup">
+                <button className="btn btn-primary neon">Sign up</button>
+              </Link>
+            </>
+          ) : (
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="btn-icon"
+                aria-label="Profile"
+              >
+                <User size={18} />
+              </button>
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-slate-900/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-xl py-2 z-50">
+                  <Link
+                    href="/learner/dashboard"
+                    className="flex items-center gap-3 px-4 py-2 hover:bg-[color:color-mix(in_srgb,var(--brand-primary)_12%,transparent)] text-slate-200"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <User size={16} />
+                    <span>My Learning</span>
+                  </Link>
+                  <Link
+                    href="/learner/profile"
+                    className="flex items-center gap-3 px-4 py-2 hover:bg-[color:color-mix(in_srgb,var(--brand-primary)_12%,transparent)] text-slate-200"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <User size={16} />
+                    <span>Profile</span>
+                  </Link>
+                  <hr className="my-2 border-white/10" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-4 py-2 hover:bg-red-500/10 text-red-400 w-full text-left"
+                  >
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Theme toggle button */}
           <button

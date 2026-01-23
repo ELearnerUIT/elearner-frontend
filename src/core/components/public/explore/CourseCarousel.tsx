@@ -3,19 +3,13 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import CourseCard from "@/core/components/course/CourseCard";
+import type { CourseCardResponse } from "@/services/courses/course.types";
 
-const mockCourses = Array.from({ length: 12 }).map((_, i) => ({
-  id: `${i + 1}`,
-  title: `Popular Course #${i + 1}`,
-  teacher: "John Doe",
-  image: "/images/lesson_thum.png",
-  rating: 4.4,
-  ratingCount: 2400 + i * 12,
-  price: "₫199,000",
-  originalPrice: i % 3 === 0 ? "₫399,000" : undefined,
-  bestSeller: i % 4 === 0,
-  href: `/courses/${i + 1}`,
-}));
+interface CourseCarouselProps {
+  courses: CourseCardResponse[];
+  loading?: boolean;
+  error?: Error | null;
+}
 
 function usePerView() {
   const [pv, setPv] = useState(1);
@@ -41,10 +35,27 @@ function usePerView() {
   return pv;
 }
 
-export default function CourseCarousel() {
-  const courses = mockCourses;
+export default function CourseCarousel({ courses = [], loading, error }: CourseCarouselProps) {
   const perView = usePerView();
   const [page, setPage] = useState(0);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="rounded-lg border border-white/10 bg-white/[0.03] h-80 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="text-red-400">Failed to load courses</p>;
+  }
+
+  if (!courses.length) {
+    return <p className="text-muted-foreground">No popular courses available</p>;
+  }
 
   useEffect(() => setPage(0), [perView]);
 
@@ -73,7 +84,17 @@ export default function CourseCarousel() {
       >
         {courses.map((c) => (
           <div key={c.id} style={{ flex: `0 0 ${itemBasisPct}%` }}>
-            <CourseCard {...c} />
+            <CourseCard
+              id={c.id.toString()}
+              title={c.title}
+              teacher={c.teacherName || "Instructor"}
+              image={c.thumbnailUrl || "/images/lesson_thum.png"}
+              rating={c.averageRating || 0}
+              ratingCount={c.totalReviews || 0}
+              price={c.salePrice ? `₫${c.salePrice.toLocaleString()}` : c.price ? `₫${c.price.toLocaleString()}` : "Free"}
+              originalPrice={c.salePrice && c.price ? `₫${c.price.toLocaleString()}` : undefined}
+              href={`/courses/${c.slug}`}
+            />
           </div>
         ))}
       </div>

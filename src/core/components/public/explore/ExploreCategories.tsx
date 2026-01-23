@@ -1,16 +1,41 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-
-const categories = [
-  { title: "Development", img: "/images/categories/dev.png" },
-  { title: "Design", img: "/images/categories/design.png" },
-  { title: "Business", img: "/images/categories/business.png" },
-  { title: "AI & Data", img: "/images/categories/ai.png" },
-  { title: "Marketing", img: "/images/categories/marketing.png" },
-  { title: "Photography", img: "/images/categories/photo.png" },
-];
+import { useCategoryTree } from "@/hooks/public/useCategories";
 
 export default function ExploreCategories() {
+  const { categories, loading, error } = useCategoryTree();
+
+  if (loading) {
+    return (
+      <section className="px-4 sm:px-6 md:px-10 xl:px-16 mt-10">
+        <h2 className="text-[28px] md:text-[36px] font-extrabold mb-6">
+          Browse Categories
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border border-white/10 bg-white/[0.03] aspect-[4/5] animate-pulse" />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="px-4 sm:px-6 md:px-10 xl:px-16 mt-10">
+        <h2 className="text-[28px] md:text-[36px] font-extrabold mb-6">
+          Browse Categories
+        </h2>
+        <p className="text-red-400">Failed to load categories</p>
+      </section>
+    );
+  }
+
+  // Get only top-level categories (no parent)
+  const topCategories = categories.filter(cat => !cat.parentId).slice(0, 6);
+
   return (
     <section className="px-4 sm:px-6 md:px-10 xl:px-16 mt-10">
       <h2 className="text-[28px] md:text-[36px] font-extrabold mb-6">
@@ -18,7 +43,7 @@ export default function ExploreCategories() {
       </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
-        {categories.map((c) => (
+        {topCategories.map((c) => (
           <Link
             key={c.title}
             href={`/explore?category=${c.title.toLowerCase()}`}

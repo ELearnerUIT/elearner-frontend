@@ -1,243 +1,352 @@
 "use client";
 
-import {
-  useAccountProfile,
-  useUpdateAccountProfile,
-  useUploadAvatar,
-} from "@/hooks/account/useAccountProfile";
+import { useEffect, useState } from "react";
+import { User, Mail, Phone, Calendar, Camera, Save, X } from "lucide-react";
+import Image from "next/image";
 
-import { useRef, useState, ChangeEvent, FormEvent, useEffect } from "react";
-import type { Gender } from "@/services/account/accountProfile.types";
-import { toast } from "sonner";
+interface UserProfile {
+    id: string;
+    username: string;
+    fullName: string;
+    email: string;
+    avatarUrl: string;
+    bio?: string;
+    phone?: string;
+    birthDate?: string;
+    studentCode?: string;
+    createdAt: string;
+}
 
 export default function ProfilePage() {
-  const {
-    data,
-    isLoading,
-    refetch: refetchProfile,
-  } = useAccountProfile();
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [editing, setEditing] = useState(false);
+    const [formData, setFormData] = useState<Partial<UserProfile>>({});
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  const updateProfile = useUpdateAccountProfile();
-  const uploadAvatar = useUploadAvatar();
+    useEffect(() => {
+        // TODO: Replace with actual API call
+        const fetchProfile = async () => {
+            setLoading(true);
+            try {
+                const mockProfile: UserProfile = {
+                    id: "user-123",
+                    username: "student123",
+                    fullName: "John Doe",
+                    email: "john.doe@example.com",
+                    avatarUrl: "/images/avatars/default.jpg",
+                    bio: "Passionate learner interested in web development and cloud technologies.",
+                    phone: "+84 123 456 789",
+                    birthDate: "1998-05-15",
+                    studentCode: "STU2024001",
+                    createdAt: "2024-01-15T10:00:00Z",
+                };
+                setProfile(mockProfile);
+                setFormData(mockProfile);
+            } catch (error) {
+                console.error("Failed to fetch profile:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  const [form, setForm] = useState({
-    fullName: "",
-    phone: "",
-    birthDate: "",
-    bio: "",
-    gender: "",
-  });
+        fetchProfile();
+    }, []);
 
-  const [avatarPreview, setAvatarPreview] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+            // TODO: Upload to server
+        }
+    };
 
-  useEffect(() => {
-    if (data?.profile) {
-      setForm({
-        fullName: data.profile.fullName || "",
-        phone: data.profile.phone || "",
-        birthDate: data.profile.birthDate || "",
-        bio: data.profile.bio || "",
-        gender: data.profile.gender || "",
-      });
-      setAvatarPreview(data.avatarUrl || "");
-    }
-  }, [data]);
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            // TODO: Replace with actual API call
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            setProfile({ ...profile!, ...formData });
+            setEditing(false);
+            // Show success toast
+        } catch (error) {
+            console.error("Failed to update profile:", error);
+            // Show error toast
+        } finally {
+            setSaving(false);
+        }
+    };
 
-  if (isLoading) {
-    return <div className="p-8 text-white/70">Loading profile...</div>;
-  }
+    const handleCancel = () => {
+        setFormData(profile!);
+        setAvatarPreview(null);
+        setEditing(false);
+    };
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAvatarChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setAvatarPreview(URL.createObjectURL(file));
-    try {
-      const res = await uploadAvatar.mutateAsync(file);
-      setAvatarPreview(res.avatarUrl);
-      toast.success("Avatar updated successfully!");
-      refetchProfile();
-    } catch {
-      toast.error("Failed to upload avatar");
-    }
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
-      await updateProfile.mutateAsync({
-        ...form,
-        gender: form.gender ? (form.gender as Gender) : undefined,
-      });
-      toast.success("Profile updated successfully!");
-      refetchProfile();
-    } catch {
-      toast.error("Failed to update profile");
-    }
-  };
-
-  return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0F1623] to-[#0B1220] shadow-[0_30px_80px_rgba(0,0,0,0.6)]">
-        {/* Accent */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.12),transparent_60%)]" />
-
-        {/* ===== Header ===== */}
-        <div className="relative flex flex-col md:flex-row items-center gap-8 border-b border-white/10 px-6 py-8">
-          {/* Avatar */}
-          <div className="relative group">
-            <img
-              src={avatarPreview || "/images/default-avatar.png"}
-              alt="Avatar"
-              className="h-32 w-32 rounded-full object-cover border-4 border-sky-400/40 shadow-lg transition group-hover:brightness-90"
-            />
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={handleAvatarChange}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute bottom-2 right-2 rounded-full bg-sky-500 px-3 py-1 text-xs font-semibold text-black shadow hover:bg-sky-400"
-            >
-              Change avatar
-            </button>
-          </div>
-
-          {/* User info */}
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-2xl font-semibold text-white">
-              {data?.profile?.fullName || data?.username}
-            </h1>
-            <p className="mt-1 text-sm text-white/60">{data?.email}</p>
-
-            <div className="mt-3 flex flex-wrap justify-center md:justify-start gap-2">
-              <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-300">
-                {data?.role === "STUDENT"
-                  ? "Student"
-                  : data?.role === "TEACHER"
-                  ? "Instructor"
-                  : "Administrator"}
-              </span>
-
-              {data?.profile?.studentCode && (
-                <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-white/70">
-                  Student ID: {data.profile.studentCode}
-                </span>
-              )}
-
-              {data?.profile?.teacherCode && (
-                <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-white/70">
-                  Instructor ID: {data.profile.teacherCode}
-                </span>
-              )}
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 animate-pulse">
+                <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="h-10 bg-slate-200 dark:bg-slate-800 rounded-lg w-64"></div>
+                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8">
+                        <div className="flex items-center gap-6">
+                            <div className="w-32 h-32 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+                            <div className="flex-1 space-y-3">
+                                <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-48"></div>
+                                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-64"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
+        );
+    }
+
+    if (!profile) return null;
+
+    return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+            <div className="mx-auto w-full max-w-4xl p-6 space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                            My Profile
+                        </h1>
+                        <p className="text-slate-600 dark:text-slate-400 mt-2">
+                            Manage your account information
+                        </p>
+                    </div>
+                    {!editing ? (
+                        <button
+                            onClick={() => setEditing(true)}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                        >
+                            Edit Profile
+                        </button>
+                    ) : (
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleCancel}
+                                disabled={saving}
+                                className="px-4 py-2 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium transition-colors disabled:opacity-50"
+                            >
+                                <X className="w-4 h-4 inline mr-1" />
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                            >
+                                <Save className="w-4 h-4 inline mr-1" />
+                                {saving ? "Saving..." : "Save Changes"}
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Profile Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    {/* Cover */}
+                    <div className="h-32 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+
+                    {/* Avatar & Basic Info */}
+                    <div className="px-8 pb-8">
+                        <div className="flex flex-col sm:flex-row gap-6 -mt-16">
+                            {/* Avatar */}
+                            <div className="relative">
+                                <div className="w-32 h-32 rounded-full border-4 border-white dark:border-slate-900 overflow-hidden bg-slate-200 dark:bg-slate-800">
+                                    {(avatarPreview || profile.avatarUrl) && (
+                                        <Image
+                                            src={avatarPreview || profile.avatarUrl}
+                                            alt={profile.fullName}
+                                            width={128}
+                                            height={128}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    )}
+                                </div>
+                                {editing && (
+                                    <label className="absolute bottom-0 right-0 w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-colors">
+                                        <Camera className="w-5 h-5 text-white" />
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleAvatarChange}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                )}
+                            </div>
+
+                            {/* Name & Email */}
+                            <div className="flex-1 pt-4">
+                                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                    {profile.fullName}
+                                </h2>
+                                <p className="text-slate-600 dark:text-slate-400 mt-1">
+                                    @{profile.username}
+                                </p>
+                                <p className="text-sm text-slate-500 dark:text-slate-500 mt-2">
+                                    Student Code: {profile.studentCode}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Details Form */}
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8">
+                    <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-6">
+                        Personal Information
+                    </h3>
+
+                    <div className="space-y-6">
+                        {/* Full Name */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                <User className="w-4 h-4 inline mr-2" />
+                                Full Name
+                            </label>
+                            {editing ? (
+                                <input
+                                    type="text"
+                                    value={formData.fullName || ""}
+                                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Enter your full name"
+                                />
+                            ) : (
+                                <p className="px-4 py-2 text-slate-900 dark:text-slate-100">
+                                    {profile.fullName}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Email */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                <Mail className="w-4 h-4 inline mr-2" />
+                                Email Address
+                            </label>
+                            <p className="px-4 py-2 text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                {profile.email}
+                                <span className="text-xs ml-2">(Cannot be changed)</span>
+                            </p>
+                        </div>
+
+                        {/* Phone */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                <Phone className="w-4 h-4 inline mr-2" />
+                                Phone Number
+                            </label>
+                            {editing ? (
+                                <input
+                                    type="tel"
+                                    value={formData.phone || ""}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="+84 123 456 789"
+                                />
+                            ) : (
+                                <p className="px-4 py-2 text-slate-900 dark:text-slate-100">
+                                    {profile.phone || "Not provided"}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Birth Date */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                <Calendar className="w-4 h-4 inline mr-2" />
+                                Birth Date
+                            </label>
+                            {editing ? (
+                                <input
+                                    type="date"
+                                    value={formData.birthDate || ""}
+                                    onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            ) : (
+                                <p className="px-4 py-2 text-slate-900 dark:text-slate-100">
+                                    {profile.birthDate
+                                        ? new Date(profile.birthDate).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                        })
+                                        : "Not provided"}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Bio */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                About Me
+                            </label>
+                            {editing ? (
+                                <textarea
+                                    value={formData.bio || ""}
+                                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                                    rows={4}
+                                    className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                    placeholder="Tell us about yourself..."
+                                    maxLength={500}
+                                />
+                            ) : (
+                                <p className="px-4 py-2 text-slate-900 dark:text-slate-100">
+                                    {profile.bio || "No bio provided"}
+                                </p>
+                            )}
+                            {editing && (
+                                <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                                    {(formData.bio || "").length}/500 characters
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Account Info */}
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8">
+                    <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">
+                        Account Information
+                    </h3>
+                    <div className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">Username:</span>
+                            <span className="font-medium text-slate-900 dark:text-slate-100">
+                                {profile.username}
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">Student Code:</span>
+                            <span className="font-medium text-slate-900 dark:text-slate-100">
+                                {profile.studentCode}
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">Member Since:</span>
+                            <span className="font-medium text-slate-900 dark:text-slate-100">
+                                {new Date(profile.createdAt).toLocaleDateString("en-US", {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                })}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        {/* ===== Form ===== */}
-        <form
-          onSubmit={handleSubmit}
-          className="relative grid grid-cols-1 md:grid-cols-2 gap-6 px-6 py-8"
-        >
-          {/* Full name */}
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-white/80">
-              Full name
-            </label>
-            <input
-              type="text"
-              name="fullName"
-              value={form.fullName}
-              onChange={handleChange}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500/60"
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-white/80">
-              Phone number
-            </label>
-            <input
-              type="text"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500/60"
-            />
-          </div>
-
-          {/* Birth date */}
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-white/80">
-              Date of birth
-            </label>
-            <input
-              type="date"
-              name="birthDate"
-              value={form.birthDate}
-              onChange={handleChange}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500/60"
-            />
-          </div>
-
-          {/* Gender */}
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-white/80">
-              Gender
-            </label>
-            <select
-              name="gender"
-              value={form.gender}
-              onChange={handleChange}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500/60"
-            >
-              <option value="">Select</option>
-              <option value="MALE">Male</option>
-              <option value="FEMALE">Female</option>
-              <option value="OTHER">Other</option>
-              <option value="UNKNOWN">Prefer not to say</option>
-            </select>
-          </div>
-
-          {/* Bio */}
-          <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-semibold text-white/80">
-              About you
-            </label>
-            <textarea
-              name="bio"
-              value={form.bio}
-              onChange={handleChange}
-              rows={4}
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500/60"
-            />
-          </div>
-
-          {/* Submit */}
-          <div className="md:col-span-2 flex justify-end">
-            <button
-              type="submit"
-              disabled={updateProfile.isPending}
-              className="rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 px-8 py-3 text-sm font-semibold text-black shadow hover:from-sky-300 hover:to-blue-400 focus:outline-none focus:ring-2 focus:ring-sky-500/60"
-            >
-              {updateProfile.isPending ? "Saving..." : "Save changes"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+    );
 }
