@@ -7,33 +7,34 @@ import { ToasterProvider } from "@/lib/providers/ToasterProvider";
 import { GoogleOAuthProvider } from "@/lib/providers/GoogleOAuthProvider";
 
 export const metadata: Metadata = {
-  title: "LMS – Online Courses Learning",
-  description: "Learn anything with LMS. Online courses and learning paths.",
+    title: "ELearner – Online Courses Learning",
+    description:
+        "Learn anything with ELearner. Online courses and learning paths.",
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
-  return (
-    <html lang="vi" suppressHydrationWarning>
-      <body suppressHydrationWarning>
-        <GoogleOAuthProvider>
-          <ReactQueryProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <ToasterProvider />
-              {children}
-              <AssistantWidget />
-            </ThemeProvider>
-          </ReactQueryProvider>
-        </GoogleOAuthProvider>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="vi" suppressHydrationWarning>
+            <body suppressHydrationWarning>
+                <GoogleOAuthProvider>
+                    <ReactQueryProvider>
+                        <ThemeProvider
+                            attribute="class"
+                            defaultTheme="system"
+                            enableSystem
+                            disableTransitionOnChange
+                        >
+                            <ToasterProvider />
+                            {children}
+                            <AssistantWidget />
+                        </ThemeProvider>
+                    </ReactQueryProvider>
+                </GoogleOAuthProvider>
+            </body>
+        </html>
+    );
 }
