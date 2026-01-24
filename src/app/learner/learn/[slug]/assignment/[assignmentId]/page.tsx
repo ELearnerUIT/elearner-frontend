@@ -2,97 +2,92 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Upload, FileText, CheckCircle, AlertCircle, Calendar, Clock, X } from "lucide-react";
-
-interface AssignmentDetail {
-    id: string;
-    title: string;
-    description: string;
-    dueDate: string;
-    maxScore: number;
-    allowedFileTypes: string[];
-    maxFileSize: number; // MB
-}
-
-interface MySubmission {
-    id: string;
-    submittedAt: string;
-    fileUrl: string;
-    fileName: string;
-    note?: string;
-    status: "SUBMITTED" | "GRADED" | "LATE";
-    grade?: number;
-    feedback?: string;
-}
+import {
+    Upload,
+    FileText,
+    CheckCircle,
+    AlertCircle,
+    Calendar,
+    Clock,
+    X,
+    Loader2,
+    Download,
+    RefreshCw,
+} from "lucide-react";
+import { assignmentService } from "@/services/assignment/assignment.service";
+import { progressService } from "@/services/learning/progress.service";
+import studentCourseService from "@/services/learning/student-course.service";
+import { useCourseProgress } from "../../course-progress-context";
+import { toast } from "sonner";
+import type {
+    AssignmentResponse,
+    SubmissionResponse,
+    AssignmentEligibilityResponse,
+    SubmissionFileResponse,
+} from "@/services/assignment/assignment.types";
 
 export default function AssignmentPage() {
     const params = useParams();
     const router = useRouter();
     const assignmentId = params?.assignmentId as string;
     const slug = params?.slug as string;
+    const { refreshProgress } = useCourseProgress();
 
-    const [assignment, setAssignment] = useState<AssignmentDetail | null>(null);
-    const [submission, setSubmission] = useState<MySubmission | null>(null);
+    // Assignment data state
+    const [assignment, setAssignment] = useState<AssignmentResponse | null>(null);
+    const [eligibility, setEligibility] = useState<AssignmentEligibilityResponse | null>(null);
+    const [submission, setSubmission] = useState<SubmissionResponse | null>(null);
+    const [submissionFiles, setSubmissionFiles] = useState<SubmissionFileResponse[]>([]);
+    const [lessonId, setLessonId] = useState<number | null>(null);
+
+    // UI state
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [note, setNote] = useState("");
     const [error, setError] = useState<string | null>(null);
 
+    // Fetch assignment data
     useEffect(() => {
-        // TODO: Replace with actual API calls
-        const fetchAssignment = async () => {
+        const fetchAssignmentData = async () => {
             setLoading(true);
             try {
-                const mockAssignment: AssignmentDetail = {
-                    id: assignmentId,
-                    title: "Build a Custom Hook",
-                    description: `Create a custom React hook that manages form state with validation.
+                // Fetch assignment details
+                const assignmentData = await assignmentService.getAssignmentById(Number(assignmentId));
+                setAssignment(assignmentData);
+                setLessonId(assignmentData.lessonId || null);
 
-Requirements:
-1. The hook should handle form inputs (text, email, password)
-2. Implement basic validation (required fields, email format, password strength)
-3. Provide methods to get form values, errors, and submit handler
-4. Include examples of usage in a demo component
+                // Check eligibility
+                const eligibilityData = await assignmentService.checkEligibility(Number(assignmentId));
+                setEligibility(eligibilityData);
 
-Submission Format:
-- Upload a ZIP file containing your code
-- Include a README with instructions on how to run your project
-- Add comments to explain your implementation
+                // Get latest submission
+                try {
+                    const latestSubmission = await assignmentService.getMyLatestSubmission(
+                        Number(assignmentId)
+                    );
+                    setSubmission(latestSubmission);
 
-Evaluation Criteria:
-- Code quality and organization (40%)
-- Functionality and correctness (30%)
-- Documentation and examples (20%)
-- Edge case handling (10%)`,
-                    dueDate: "2026-01-28T23:59:00Z",
-                    maxScore: 100,
-                    allowedFileTypes: [".zip", ".rar", ".7z"],
-                    maxFileSize: 10,
-                };
-                setAssignment(mockAssignment);
-
-                // Check if already submitted
-                // const mockSubmission: MySubmission = {
-                //   id: "sub-1",
-                //   submittedAt: "2026-01-23T10:30:00Z",
-                //   fileUrl: "#",
-                //   fileName: "custom-hook-assignment.zip",
-                //   note: "Implemented useForm hook with validation",
-                //   status: "GRADED",
-                //   grade: 85,
-                //   feedback: "Good implementation! Consider adding more validation options.",
-                // };
-                // setSubmission(mockSubmission);
-            } catch (error) {
+                    // Get submission files if exists
+                    if (latestSubmission?.id) {
+                        const files = await assignmentService.getSubmissionFiles(latestSubmission.id);
+                        setSubmissionFiles(files);
+                    }
+                } catch (err) {
+                    // No submission yet, that's okay
+                    console.log("No previous submission found");
+                }
+            } catch (error: any) {
                 console.error("Failed to fetch assignment:", error);
+                toast.error(error?.message || "Failed to load assignment");
             } finally {
                 setLoading(false);
             }
         };
 
         if (assignmentId) {
-            fetchAssignment();
+            fetchAssignmentData();
         }
     }, [assignmentId]);
 
@@ -102,16 +97,10 @@ Evaluation Criteria:
 
         setError(null);
 
-        // Validate file size
-        if (file.size > (assignment?.maxFileSize || 10) * 1024 * 1024) {
-            setError(`File size must be less than ${assignment?.maxFileSize}MB`);
-            return;
-        }
-
-        // Validate file type
-        const fileExtension = "." + file.name.split(".").pop();
-        if (assignment && !assignment.allowedFileTypes.includes(fileExtension)) {
-            setError(`File type must be one of: ${assignment.allowedFileTypes.join(", ")}`);
+        // Validate file size (10MB default)
+        const maxSizeMB = 10;
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            setError(`File size must be less than ${maxSizeMB}MB`);
             return;
         }
 
@@ -128,35 +117,87 @@ Evaluation Criteria:
         setError(null);
 
         try {
-            // TODO: Replace with actual API call using FormData
-            const formData = new FormData();
-            formData.append("file", selectedFile);
-            formData.append("note", note);
+            // Step 1: Create or reuse submission
+            let submissionData: SubmissionResponse;
 
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            if (submission && submission.status === "PENDING") {
+                // Reuse existing draft submission
+                submissionData = submission;
+            } else if (submission) {
+                // Resubmit (create new version)
+                submissionData = await assignmentService.resubmitAssignment(
+                    Number(assignmentId),
+                    submission.id
+                );
+            } else {
+                // First submission
+                submissionData = await assignmentService.submitAssignment(Number(assignmentId));
+            }
 
-            // Mock success
-            const mockSubmission: MySubmission = {
-                id: "sub-1",
-                submittedAt: new Date().toISOString(),
-                fileUrl: "#",
-                fileName: selectedFile.name,
-                note,
-                status: "SUBMITTED",
-            };
-            setSubmission(mockSubmission);
+            // Step 2: Upload file
+            setUploading(true);
+            const uploadedFile = await assignmentService.uploadSubmissionFile(
+                submissionData.id,
+                selectedFile
+            );
+
+            // Step 3: Update submission content with note if provided
+            if (note.trim()) {
+                await assignmentService.updateSubmissionContent(submissionData.id, note);
+            }
+
+            // Refresh submission data
+            const updatedSubmission = await assignmentService.getSubmissionById(submissionData.id);
+            setSubmission(updatedSubmission);
+
+            // Get updated files
+            const files = await assignmentService.getSubmissionFiles(submissionData.id);
+            setSubmissionFiles(files);
+
+            // Mark lesson as completed if we have lessonId
+            if (lessonId) {
+                try {
+                    await progressService.markLessonAsCompleted(lessonId);
+                    refreshProgress();
+                } catch (err) {
+                    console.error("Failed to mark lesson as completed:", err);
+                }
+            }
+
+            // Reset form
             setSelectedFile(null);
             setNote("");
-        } catch (error) {
+
+            toast.success("Assignment submitted successfully!");
+        } catch (error: any) {
             console.error("Failed to submit assignment:", error);
-            setError("Failed to submit assignment. Please try again.");
+            setError(error?.message || "Failed to submit assignment. Please try again.");
+            toast.error(error?.message || "Failed to submit assignment");
         } finally {
             setSubmitting(false);
+            setUploading(false);
         }
     };
 
+    const handleDownloadFile = async (file: SubmissionFileResponse) => {
+        try {
+            if (submission) {
+                const downloadUrl = await assignmentService.getFileDownloadUrl(submission.id, file.id);
+                window.open(downloadUrl, "_blank");
+            }
+        } catch (error) {
+            console.error("Failed to download file:", error);
+            toast.error("Failed to download file");
+        }
+    };
+
+    const handleResubmit = () => {
+        setSubmission(null);
+        setSubmissionFiles([]);
+    };
+
     const getDaysUntilDue = () => {
-        if (!assignment) return 0;
+        if (!assignment?.dueDate) return null;
         const now = new Date();
         const due = new Date(assignment.dueDate);
         const diffTime = due.getTime() - now.getTime();
@@ -165,54 +206,102 @@ Evaluation Criteria:
     };
 
     const isOverdue = () => {
-        if (!assignment) return false;
+        if (!assignment?.dueDate) return false;
         return new Date() > new Date(assignment.dueDate);
+    };
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "GRADED":
+                return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400";
+            case "PENDING":
+                return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400";
+            case "REJECTED":
+                return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400";
+            default:
+                return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400";
+        }
     };
 
     if (loading) {
         return (
             <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-950">
                 <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <Loader2 className="w-16 h-16 text-blue-600 animate-spin mx-auto mb-4" />
                     <p className="text-slate-600 dark:text-slate-400">Loading assignment...</p>
                 </div>
             </div>
         );
     }
 
-    if (!assignment) return null;
+    if (!assignment) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-950">
+                <div className="text-center">
+                    <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <p className="text-slate-600 dark:text-slate-400">Assignment not found</p>
+                    <button
+                        onClick={() => router.push(`/learner/learn/${slug}`)}
+                        className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                        Back to Course
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const daysUntilDue = getDaysUntilDue();
+    const canSubmit = eligibility?.canSubmit ?? true;
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
             <div className="max-w-5xl mx-auto p-6 space-y-6">
                 {/* Assignment Header */}
                 <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-                        {assignment.title}
-                    </h1>
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                            {assignment.title}
+                        </h1>
+                        <span
+                            className={`px-3 py-1 rounded-full text-sm font-medium ${assignment.assignmentType === "PRACTICE"
+                                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                                    : assignment.assignmentType === "HOMEWORK"
+                                        ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
+                                        : assignment.assignmentType === "PROJECT"
+                                            ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
+                                            : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                                }`}
+                        >
+                            {assignment.assignmentType}
+                        </span>
+                    </div>
 
                     <div className="flex flex-wrap gap-4 mb-6">
-                        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${isOverdue()
-                                ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
-                                : daysUntilDue <= 3
-                                    ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
-                                    : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
-                            }`}>
-                            <Calendar className="w-4 h-4" />
-                            <span className="text-sm font-medium">
-                                Due: {new Date(assignment.dueDate).toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                })}
-                            </span>
-                        </div>
+                        {assignment.dueDate && (
+                            <div
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${isOverdue()
+                                        ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                                        : daysUntilDue !== null && daysUntilDue <= 3
+                                            ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
+                                            : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                                    }`}
+                            >
+                                <Calendar className="w-4 h-4" />
+                                <span className="text-sm font-medium">
+                                    Due:{" "}
+                                    {new Date(assignment.dueDate).toLocaleDateString("en-US", {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })}
+                                </span>
+                            </div>
+                        )}
 
-                        {!isOverdue() && (
+                        {daysUntilDue !== null && !isOverdue() && (
                             <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
                                 <Clock className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                                 <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -221,14 +310,28 @@ Evaluation Criteria:
                             </div>
                         )}
 
-                        <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                                Max Score:
-                            </span>
-                            <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                                {assignment.maxScore} points
-                            </span>
-                        </div>
+                        {assignment.totalPoints && (
+                            <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                    Max Score:
+                                </span>
+                                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                    {assignment.totalPoints} points
+                                </span>
+                            </div>
+                        )}
+
+                        {eligibility && (
+                            <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                    Attempts:
+                                </span>
+                                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                    {eligibility.currentAttempts} /{" "}
+                                    {eligibility.maxAttempts ?? "∞"}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {isOverdue() && !submission && (
@@ -240,36 +343,64 @@ Evaluation Criteria:
                         </div>
                     )}
 
-                    <div className="prose dark:prose-invert max-w-none">
-                        <pre className="whitespace-pre-wrap font-sans text-slate-600 dark:text-slate-400">
-                            {assignment.description}
-                        </pre>
-                    </div>
+                    {!canSubmit && eligibility?.reason && (
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                            <p className="text-sm text-red-800 dark:text-red-300 flex items-center gap-2">
+                                <AlertCircle className="w-5 h-5" />
+                                {eligibility.reason}
+                            </p>
+                        </div>
+                    )}
+
+                    {assignment.description && (
+                        <div className="prose dark:prose-invert max-w-none">
+                            <pre className="whitespace-pre-wrap font-sans text-slate-600 dark:text-slate-400">
+                                {assignment.description}
+                            </pre>
+                        </div>
+                    )}
                 </div>
 
                 {/* Submission Status */}
                 {submission && (
-                    <div className={`bg-white dark:bg-slate-900 rounded-xl border p-6 ${submission.status === "GRADED"
-                            ? "border-green-200 dark:border-green-800"
-                            : "border-blue-200 dark:border-blue-800"
-                        }`}>
+                    <div
+                        className={`bg-white dark:bg-slate-900 rounded-xl border p-6 ${submission.status === "GRADED"
+                                ? "border-green-200 dark:border-green-800"
+                                : submission.status === "REJECTED"
+                                    ? "border-red-200 dark:border-red-800"
+                                    : "border-blue-200 dark:border-blue-800"
+                            }`}
+                    >
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${submission.status === "GRADED"
-                                        ? "bg-green-100 dark:bg-green-900/30"
-                                        : "bg-blue-100 dark:bg-blue-900/30"
-                                    }`}>
-                                    <CheckCircle className={`w-6 h-6 ${submission.status === "GRADED"
-                                            ? "text-green-600 dark:text-green-400"
-                                            : "text-blue-600 dark:text-blue-400"
-                                        }`} />
+                                <div
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center ${submission.status === "GRADED"
+                                            ? "bg-green-100 dark:bg-green-900/30"
+                                            : submission.status === "REJECTED"
+                                                ? "bg-red-100 dark:bg-red-900/30"
+                                                : "bg-blue-100 dark:bg-blue-900/30"
+                                        }`}
+                                >
+                                    <CheckCircle
+                                        className={`w-6 h-6 ${submission.status === "GRADED"
+                                                ? "text-green-600 dark:text-green-400"
+                                                : submission.status === "REJECTED"
+                                                    ? "text-red-600 dark:text-red-400"
+                                                    : "text-blue-600 dark:text-blue-400"
+                                            }`}
+                                    />
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                                        {submission.status === "GRADED" ? "Assignment Graded" : "Submission Received"}
+                                        {submission.status === "GRADED"
+                                            ? "Assignment Graded"
+                                            : submission.status === "REJECTED"
+                                                ? "Submission Rejected"
+                                                : "Submission Received"}
                                     </h3>
                                     <p className="text-sm text-slate-600 dark:text-slate-400">
-                                        Submitted on {new Date(submission.submittedAt).toLocaleDateString("en-US", {
+                                        Submitted on{" "}
+                                        {new Date(submission.submittedAt).toLocaleDateString("en-US", {
                                             month: "long",
                                             day: "numeric",
                                             year: "numeric",
@@ -280,63 +411,99 @@ Evaluation Criteria:
                                 </div>
                             </div>
 
-                            {submission.status === "GRADED" && submission.grade !== undefined && (
-                                <div className="text-right">
-                                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                                        {submission.grade}
+                            <div className="flex items-center gap-4">
+                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(submission.status)}`}>
+                                    {submission.status}
+                                </span>
+
+                                {submission.status === "GRADED" && submission.score !== undefined && (
+                                    <div className="text-right">
+                                        <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                                            {submission.score}
+                                        </div>
+                                        <div className="text-sm text-slate-600 dark:text-slate-400">
+                                            / {assignment.totalPoints}
+                                        </div>
                                     </div>
-                                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                                        / {assignment.maxScore}
-                                    </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
 
                         <div className="space-y-3">
-                            <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                <FileText className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                                <a
-                                    href={submission.fileUrl}
-                                    className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                                    download
-                                >
-                                    {submission.fileName}
-                                </a>
-                            </div>
+                            {/* Uploaded Files */}
+                            {submissionFiles.length > 0 && (
+                                <div className="space-y-2">
+                                    {submissionFiles.map((file) => (
+                                        <div
+                                            key={file.id}
+                                            className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                                                <span className="text-slate-900 dark:text-slate-100">
+                                                    {file.fileName}
+                                                </span>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDownloadFile(file)}
+                                                className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                            >
+                                                <Download className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
-                            {submission.note && (
+                            {submission.content && (
                                 <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
                                     <p className="text-sm text-slate-600 dark:text-slate-400">
-                                        <strong>Your Note:</strong> {submission.note}
+                                        <strong>Your Note:</strong> {submission.content}
                                     </p>
                                 </div>
                             )}
 
                             {submission.feedback && (
-                                <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                                    <p className="text-sm font-semibold text-green-900 dark:text-green-100 mb-2">
+                                <div
+                                    className={`p-4 border rounded-lg ${submission.status === "REJECTED"
+                                            ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                                            : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                                        }`}
+                                >
+                                    <p
+                                        className={`text-sm font-semibold mb-2 ${submission.status === "REJECTED"
+                                                ? "text-red-900 dark:text-red-100"
+                                                : "text-green-900 dark:text-green-100"
+                                            }`}
+                                    >
                                         Teacher's Feedback:
                                     </p>
-                                    <p className="text-sm text-green-800 dark:text-green-200">
+                                    <p
+                                        className={`text-sm ${submission.status === "REJECTED"
+                                                ? "text-red-800 dark:text-red-200"
+                                                : "text-green-800 dark:text-green-200"
+                                            }`}
+                                    >
                                         {submission.feedback}
                                     </p>
                                 </div>
                             )}
                         </div>
 
-                        {submission.status !== "GRADED" && !isOverdue() && (
+                        {submission.status !== "GRADED" && canSubmit && (
                             <button
-                                onClick={() => setSubmission(null)}
-                                className="mt-4 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                                onClick={handleResubmit}
+                                className="mt-4 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium inline-flex items-center gap-2"
                             >
-                                Resubmit Assignment →
+                                <RefreshCw className="w-4 h-4" />
+                                Resubmit Assignment
                             </button>
                         )}
                     </div>
                 )}
 
                 {/* Upload Form */}
-                {!submission && (
+                {!submission && canSubmit && (
                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                         <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-6">
                             Submit Your Work
@@ -356,11 +523,10 @@ Evaluation Criteria:
                                             Click to upload or drag and drop
                                         </p>
                                         <p className="text-sm text-slate-600 dark:text-slate-400">
-                                            Allowed: {assignment.allowedFileTypes.join(", ")} (Max {assignment.maxFileSize}MB)
+                                            Max file size: 10MB
                                         </p>
                                         <input
                                             type="file"
-                                            accept={assignment.allowedFileTypes.join(",")}
                                             onChange={handleFileChange}
                                             className="hidden"
                                         />
@@ -426,8 +592,8 @@ Evaluation Criteria:
                             >
                                 {submitting ? (
                                     <>
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        Submitting...
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        {uploading ? "Uploading..." : "Submitting..."}
                                     </>
                                 ) : (
                                     <>
@@ -439,6 +605,14 @@ Evaluation Criteria:
                         </div>
                     </div>
                 )}
+
+                {/* Back Button */}
+                <button
+                    onClick={() => router.push(`/learner/learn/${slug}`)}
+                    className="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors"
+                >
+                    ← Back to Course
+                </button>
             </div>
         </div>
     );
