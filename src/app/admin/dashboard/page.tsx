@@ -62,24 +62,36 @@ export default function AdminDashboardPage() {
   // Prepare chart data
   const userDistributionData = userReport
     ? [
-        { name: "Active Users", value: userReport.activeUsers, color: COLORS.primary },
-        { name: "Inactive Users", value: userReport.inactiveUsers, color: COLORS.warning },
-      ]
+      { name: "Active Users", value: userReport.activeUsers, color: COLORS.primary },
+      {
+        name: "New Users",
+        value: userReport.newUsers,
+        color: COLORS.warning
+      },
+    ]
     : [];
 
   const courseDistributionData = courseReport
     ? [
-        { name: "Active Courses", value: courseReport.activeCourses, color: COLORS.secondary },
-        { name: "Closed Courses", value: courseReport.closedCourses, color: COLORS.danger },
-      ]
+      {
+        name: "Avg Completion",
+        value: Math.round(courseReport.avgCompletionRate || 0),
+        color: COLORS.secondary
+      },
+      {
+        name: "Avg Score",
+        value: Math.round(courseReport.avgScore || 0),
+        color: COLORS.purple
+      },
+    ]
     : [];
 
-  const growthData = statistics
-    ? [
-        { name: "User Growth", value: statistics.userGrowth, color: COLORS.primary },
-        { name: "Course Growth", value: statistics.courseGrowth, color: COLORS.secondary },
-        { name: "Revenue Growth", value: statistics.revenueGrowth, color: COLORS.purple },
-      ]
+  const growthData = statistics?.userGrowth
+    ? statistics.userGrowth.slice(0, 4).map(item => ({
+      name: item.label,
+      value: item.value,
+      color: COLORS.primary,
+    }))
     : [];
 
   return (
@@ -147,18 +159,14 @@ export default function AdminDashboardPage() {
                 title="Total Revenue"
                 value={`${(dashboard.totalRevenue / 1_000_000).toFixed(1)}M`}
                 subtitle="VND"
-                trend={statistics ? `+${statistics.revenueGrowth}%` : undefined}
-                trendUp={statistics ? statistics.revenueGrowth > 0 : undefined}
                 iconBg="bg-emerald-500/20"
                 iconColor="text-emerald-400"
               />
               <StatCard
                 icon={<Users className="w-6 h-6" />}
-                title="Total Users"
-                value={dashboard.totalUsers.toLocaleString()}
+                title="Total Students"
+                value={dashboard.totalStudents.toLocaleString()}
                 subtitle={`${userReport?.activeUsers || 0} active`}
-                trend={statistics ? `+${statistics.userGrowth}%` : undefined}
-                trendUp={statistics ? statistics.userGrowth > 0 : undefined}
                 iconBg="bg-blue-500/20"
                 iconColor="text-blue-400"
               />
@@ -166,16 +174,14 @@ export default function AdminDashboardPage() {
                 icon={<BookOpen className="w-6 h-6" />}
                 title="Total Courses"
                 value={dashboard.totalCourses}
-                subtitle={`${courseReport?.activeCourses || 0} active`}
-                trend={statistics ? `+${statistics.courseGrowth}%` : undefined}
-                trendUp={statistics ? statistics.courseGrowth > 0 : undefined}
+                subtitle={`${courseReport?.totalCourses || 0} total`}
                 iconBg="bg-purple-500/20"
                 iconColor="text-purple-400"
               />
               <StatCard
                 icon={<Award className="w-6 h-6" />}
                 title="Completion Rate"
-                value={`${dashboard.avgCompletionRate}%`}
+                value={`${Math.round(dashboard.avgCompletionRate * 100) / 100}%`}
                 subtitle="Average"
                 iconBg="bg-amber-500/20"
                 iconColor="text-amber-400"
@@ -187,7 +193,9 @@ export default function AdminDashboardPage() {
               <MiniStatCard
                 icon={<GraduationCap className="w-5 h-5" />}
                 label="Avg Students/Course"
-                value={dashboard.avgStudentsPerCourse.toFixed(1)}
+                value={dashboard.totalCourses > 0
+                  ? (dashboard.totalStudents / dashboard.totalCourses).toFixed(1)
+                  : "0"}
               />
               <MiniStatCard
                 icon={<Activity className="w-5 h-5" />}
@@ -197,22 +205,22 @@ export default function AdminDashboardPage() {
               <MiniStatCard
                 icon={<Users className="w-5 h-5" />}
                 label="Active Teachers"
-                value={`${dashboard.teacherActivity.activeTeachers}/${dashboard.teacherActivity.totalTeachers}`}
+                value={dashboard.activeTeachers}
               />
               <MiniStatCard
-                icon={<BookOpen className="w-5 h-5" />}
-                label="Total Lessons"
-                value={dashboard.teacherActivity.totalLessonsCreated}
+                icon={<Award className="w-5 h-5" />}
+                label="Avg Completion"
+                value={`${dashboard.avgCompletionRate.toFixed(1)}%`}
               />
             </div>
 
             {/* ================= CHARTS SECTION ================= */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Revenue Chart */}
-              <ChartCard title="Revenue Overview" subtitle="Weekly breakdown">
-                {revenueReport && revenueReport.chart.length > 0 ? (
+              <ChartCard title="Revenue Trend" subtitle="Weekly breakdown">
+                {statistics?.revenueTrend && statistics.revenueTrend.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={revenueReport.chart}>
+                    <AreaChart data={statistics.revenueTrend}>
                       <defs>
                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.3} />
@@ -250,14 +258,14 @@ export default function AdminDashboardPage() {
                 )}
               </ChartCard>
 
-              {/* Growth Metrics */}
-              <ChartCard title="Growth Metrics" subtitle="Percentage increase">
+              {/* User Growth */}
+              <ChartCard title="User Growth" subtitle="New users per week">
                 {growthData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={growthData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
                       <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
-                      <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={(value) => `${value}%`} />
+                      <YAxis stroke="#94a3b8" fontSize={12} />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "#1e293b",
@@ -265,7 +273,7 @@ export default function AdminDashboardPage() {
                           borderRadius: "8px",
                           color: "#fff",
                         }}
-                        formatter={(value: any) => [`${value}%`, "Growth"]}
+                        formatter={(value: any) => [`${value}`, "Users"]}
                       />
                       <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                         {growthData.map((entry, index) => (
@@ -280,7 +288,7 @@ export default function AdminDashboardPage() {
               </ChartCard>
 
               {/* User Distribution */}
-              <ChartCard title="User Distribution" subtitle="Active vs Inactive">
+              <ChartCard title="User Distribution" subtitle="Active vs New Users">
                 {userDistributionData.length > 0 ? (
                   <div className="flex items-center justify-between">
                     <ResponsiveContainer width="50%" height={250}>
@@ -328,8 +336,8 @@ export default function AdminDashboardPage() {
                 )}
               </ChartCard>
 
-              {/* Course Distribution */}
-              <ChartCard title="Course Distribution" subtitle="Active vs Closed">
+              {/* Course Metrics */}
+              <ChartCard title="Course Metrics" subtitle="Completion & Performance">
                 {courseDistributionData.length > 0 ? (
                   <div className="flex items-center justify-between">
                     <ResponsiveContainer width="50%" height={250}>
@@ -378,38 +386,51 @@ export default function AdminDashboardPage() {
               </ChartCard>
             </div>
 
-            {/* ================= TEACHER ACTIVITY SECTION ================= */}
-            <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <GraduationCap className="w-6 h-6 text-purple-400" />
-                Teacher Activity
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-slate-950/50 rounded-xl p-4 border border-white/5">
-                  <div className="text-sm text-gray-400 mb-1">Total Teachers</div>
-                  <div className="text-2xl font-bold text-white">
-                    {dashboard.teacherActivity.totalTeachers}
+            {/* ================= TEACHER & REVENUE SUMMARY ================= */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  <GraduationCap className="w-6 h-6 text-purple-400" />
+                  Teacher Summary
+                </h3>
+                <div className="space-y-4">
+                  <div className="bg-slate-950/50 rounded-xl p-4 border border-white/5">
+                    <div className="text-sm text-gray-400 mb-1">Active Teachers</div>
+                    <div className="text-3xl font-bold text-emerald-400">
+                      {dashboard.activeTeachers}
+                    </div>
                   </div>
-                </div>
-                <div className="bg-slate-950/50 rounded-xl p-4 border border-white/5">
-                  <div className="text-sm text-gray-400 mb-1">Active Teachers</div>
-                  <div className="text-2xl font-bold text-emerald-400">
-                    {dashboard.teacherActivity.activeTeachers}
-                  </div>
-                </div>
-                <div className="bg-slate-950/50 rounded-xl p-4 border border-white/5">
-                  <div className="text-sm text-gray-400 mb-1">Courses Created</div>
-                  <div className="text-2xl font-bold text-blue-400">
-                    {dashboard.teacherActivity.totalCoursesCreated}
-                  </div>
-                </div>
-                <div className="bg-slate-950/50 rounded-xl p-4 border border-white/5">
-                  <div className="text-sm text-gray-400 mb-1">Lessons Created</div>
-                  <div className="text-2xl font-bold text-purple-400">
-                    {dashboard.teacherActivity.totalLessonsCreated}
+                  <div className="bg-slate-950/50 rounded-xl p-4 border border-white/5">
+                    <div className="text-sm text-gray-400 mb-1">Total Courses</div>
+                    <div className="text-3xl font-bold text-blue-400">
+                      {dashboard.totalCourses}
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {revenueReport && (
+                <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <DollarSign className="w-6 h-6 text-emerald-400" />
+                    Revenue Summary
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="bg-slate-950/50 rounded-xl p-4 border border-white/5">
+                      <div className="text-sm text-gray-400 mb-1">Total Revenue</div>
+                      <div className="text-3xl font-bold text-emerald-400">
+                        {(revenueReport.totalRevenue / 1_000_000).toFixed(1)}M VND
+                      </div>
+                    </div>
+                    <div className="bg-slate-950/50 rounded-xl p-4 border border-white/5">
+                      <div className="text-sm text-gray-400 mb-1">Total Transactions</div>
+                      <div className="text-3xl font-bold text-blue-400">
+                        {revenueReport.totalTransactions}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -447,11 +468,10 @@ function StatCard({
         <div className={`p-3 ${iconBg} rounded-xl ${iconColor}`}>{icon}</div>
         {trend && (
           <div
-            className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg ${
-              trendUp
-                ? "bg-emerald-500/20 text-emerald-400"
-                : "bg-rose-500/20 text-rose-400"
-            }`}
+            className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg ${trendUp
+              ? "bg-emerald-500/20 text-emerald-400"
+              : "bg-rose-500/20 text-rose-400"
+              }`}
           >
             {trendUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
             {trend}
