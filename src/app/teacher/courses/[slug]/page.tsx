@@ -15,11 +15,15 @@ import {
     XCircle,
     Eye,
     Edit,
+    Loader2,
 } from "lucide-react";
 import { courseService } from "@/services/courses/course.service";
 import { courseVersionService } from "@/services/courses/course-version.service";
+import { analyticsService } from "@/services/courses/analytics.service";
 import { CourseDetailResponse, CourseVersionResponse } from "@/services/courses/course.types";
+import { CourseAnalyticsResponse } from "@/services/courses/analytics.types";
 import { CourseManagementLayout } from "@/core/components/teacher/courses/CourseManagementLayout";
+import { useCourseEnrollmentStats } from "@/hooks/teacher/useStudentManagement";
 import Link from "next/link";
 
 export default function CourseOverviewPage() {
@@ -42,6 +46,16 @@ export default function CourseOverviewPage() {
     } = useQuery<CourseVersionResponse[]>({
         queryKey: ["course-versions", course?.id],
         queryFn: () => courseVersionService.getCourseVersions(course!.id),
+        enabled: !!course?.id,
+    });
+
+    // Fetch enrollment stats
+    const { data: enrollmentStats, isLoading: loadingStats } = useCourseEnrollmentStats(course?.id);
+
+    // Fetch analytics data for revenue
+    const { data: analytics, isLoading: loadingAnalytics } = useQuery<CourseAnalyticsResponse>({
+        queryKey: ["course-analytics", course?.id],
+        queryFn: () => analyticsService.getCourseAnalytics(course!.id),
         enabled: !!course?.id,
     });
 
@@ -91,7 +105,11 @@ export default function CourseOverviewPage() {
                             </span>
                         </div>
                         <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                            1,234
+                            {loadingStats ? (
+                                <Loader2 className="w-6 h-6 animate-spin" />
+                            ) : (
+                                (enrollmentStats?.totalEnrollments || 0).toLocaleString()
+                            )}
                         </p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
                             Students Enrolled
@@ -110,19 +128,22 @@ export default function CourseOverviewPage() {
                         </div>
                         <div className="flex items-baseline gap-2 mb-1">
                             <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                                4.8
+                                {(course as any).averageRating?.toFixed(1) || "N/A"}
                             </p>
                             <div className="flex">
                                 {[...Array(5)].map((_, i) => (
                                     <Star
                                         key={i}
-                                        className="w-4 h-4 fill-amber-400 text-amber-400"
+                                        className={`w-4 h-4 ${i < Math.floor((course as any).averageRating || 0)
+                                            ? "fill-amber-400 text-amber-400"
+                                            : "text-slate-300 dark:text-slate-600"
+                                            }`}
                                     />
                                 ))}
                             </div>
                         </div>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
-                            from 456 reviews
+                            from {(course as any).totalReviews || 0} reviews
                         </p>
                     </div>
 
@@ -137,7 +158,11 @@ export default function CourseOverviewPage() {
                             </span>
                         </div>
                         <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                            $45.2K
+                            {loadingAnalytics ? (
+                                <Loader2 className="w-6 h-6 animate-spin" />
+                            ) : (
+                                `$${((analytics?.totalRevenue || 0) / 1000).toFixed(1)}K`
+                            )}
                         </p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
                             Total earnings
@@ -155,7 +180,11 @@ export default function CourseOverviewPage() {
                             </span>
                         </div>
                         <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                            78%
+                            {loadingStats ? (
+                                <Loader2 className="w-6 h-6 animate-spin" />
+                            ) : (
+                                `${Math.round(enrollmentStats?.averageCompletionPercentage || 0)}%`
+                            )}
                         </p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
                             Completion rate

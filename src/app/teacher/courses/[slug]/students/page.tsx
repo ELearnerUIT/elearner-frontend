@@ -2,14 +2,19 @@
 import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { courseService } from "@/services/courses/course.service";
-import { enrollmentService } from "@/services/courses/enrollment.service";
 import { CourseDetailResponse } from "@/services/courses/course.types";
 import {
-    CourseEnrollmentResponse,
+    EnrollmentResponse,
     EnrollmentStatus,
-} from "@/services/courses/enrollment.types";
+} from "@/services/learning/enrollment.types";
 import { CourseManagementLayout } from "@/core/components/teacher/courses/CourseManagementLayout";
+import {
+    useCourseEnrollments,
+    useCourseEnrollmentStats,
+    useExportEnrollments,
+} from "@/hooks/teacher/useStudentManagement";
 import {
     Users,
     Download,
@@ -21,6 +26,7 @@ import {
     Mail,
     Calendar,
     BarChart3,
+    Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,86 +42,15 @@ export default function CourseStudentsPage() {
         queryFn: () => courseService.getCourseBySlug(slug),
     });
 
-    // TODO: Uncomment when backend API is ready
-    // Fetch enrollments
-    // const { data: enrollmentsData, isLoading: loadingEnrollments } = useQuery({
-    //     queryKey: ["course-enrollments", course?.id],
-    //     queryFn: () => enrollmentService.getCourseEnrollments(course!.id, 0, 100),
-    //     enabled: !!course?.id,
-    // });
-    // const enrollments = enrollmentsData?.items || [];
+    // Fetch enrollments using real API
+    const { data: enrollmentsData, isLoading: loadingEnrollments } = useCourseEnrollments(course?.id, 0, 100);
+    const enrollments = enrollmentsData?.items || [];
 
-    // Fetch enrollment stats
-    // const { data: stats } = useQuery({
-    //     queryKey: ["course-enrollment-stats", course?.id],
-    //     queryFn: () => enrollmentService.getCourseEnrollmentStats(course!.id),
-    //     enabled: !!course?.id,
-    // });
+    // Fetch enrollment stats using real API
+    const { data: enrollmentStatsData } = useCourseEnrollmentStats(course?.id);
 
-    // Mock data (temporary - replace with real API when ready)
-    const mockEnrollments: CourseEnrollmentResponse[] = [
-        {
-            id: 1,
-            courseId: course?.id || 0,
-            studentId: 101,
-            studentName: "John Doe",
-            studentEmail: "john.doe@example.com",
-            enrolledAt: "2024-01-15T10:00:00Z",
-            progress: 75,
-            status: "ACTIVE",
-            lastActivityAt: "2024-03-20T14:30:00Z",
-            completedLessons: 15,
-            totalLessons: 20,
-            quizScore: 85,
-            certificateIssued: false,
-        },
-        {
-            id: 2,
-            courseId: course?.id || 0,
-            studentId: 102,
-            studentName: "Jane Smith",
-            studentEmail: "jane.smith@example.com",
-            enrolledAt: "2024-01-20T09:00:00Z",
-            progress: 100,
-            status: "COMPLETED",
-            lastActivityAt: "2024-03-18T16:45:00Z",
-            completedLessons: 20,
-            totalLessons: 20,
-            quizScore: 92,
-            certificateIssued: true,
-        },
-        {
-            id: 3,
-            courseId: course?.id || 0,
-            studentId: 103,
-            studentName: "Bob Johnson",
-            studentEmail: "bob.johnson@example.com",
-            enrolledAt: "2024-02-01T11:30:00Z",
-            progress: 45,
-            status: "ACTIVE",
-            lastActivityAt: "2024-03-19T10:15:00Z",
-            completedLessons: 9,
-            totalLessons: 20,
-            quizScore: 78,
-            certificateIssued: false,
-        },
-        {
-            id: 4,
-            courseId: course?.id || 0,
-            studentId: 104,
-            studentName: "Alice Williams",
-            studentEmail: "alice.w@example.com",
-            enrolledAt: "2024-02-10T13:00:00Z",
-            progress: 20,
-            status: "DROPPED",
-            lastActivityAt: "2024-02-25T09:00:00Z",
-            completedLessons: 4,
-            totalLessons: 20,
-            certificateIssued: false,
-        },
-    ];
-
-    const enrollments = mockEnrollments;
+    // Export functionality
+    const exportEnrollments = useExportEnrollments();
 
     const filteredEnrollments = useMemo(() => {
         let result = enrollments;
@@ -136,25 +71,31 @@ export default function CourseStudentsPage() {
         return result;
     }, [enrollments, filterStatus, searchQuery]);
 
-    const stats = {
+    // Use API stats if available, fallback to computed stats
+    const stats = enrollmentStatsData ? {
+        total: enrollmentStatsData.totalEnrollments,
+        active: enrollmentStatsData.activeEnrollments,
+        completed: enrollmentStatsData.completedEnrollments,
+        cancelled: enrollmentStatsData.cancelledEnrollments,
+        avgProgress: Math.round(enrollmentStatsData.averageCompletionPercentage),
+    } : {
         total: enrollments.length,
         active: enrollments.filter((e) => e.status === "ACTIVE").length,
         completed: enrollments.filter((e) => e.status === "COMPLETED").length,
-        dropped: enrollments.filter((e) => e.status === "DROPPED").length,
-        paused: enrollments.filter((e) => e.status === "PAUSED").length,
+        cancelled: enrollments.filter((e) => e.status === "CANCELLED").length,
         avgProgress: enrollments.length > 0
-            ? Math.round(enrollments.reduce((sum, e) => sum + e.progress, 0) / enrollments.length)
+            ? Math.round(enrollments.reduce((sum, e) => sum + e.completionPercentage, 0) / enrollments.length)
             : 0,
     };
 
     const getStatusBadge = (status: EnrollmentStatus) => {
-        const styles = {
+        const styles: Record<EnrollmentStatus, string> = {
             ACTIVE: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
             COMPLETED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-            DROPPED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-            PAUSED: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+            CANCELLED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+            EXPIRED: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
         };
-        return styles[status];
+        return styles[status] || "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400";
     };
 
     const formatDate = (dateString: string) => {
@@ -167,23 +108,7 @@ export default function CourseStudentsPage() {
 
     const handleExportData = async () => {
         if (!course?.id) return;
-
-        try {
-            toast.info("Export functionality will be available when API is ready");
-            // TODO: Uncomment when API is ready
-            // const blob = await enrollmentService.exportCourseEnrollments(course.id, "CSV");
-            // const url = window.URL.createObjectURL(blob);
-            // const a = document.createElement("a");
-            // a.href = url;
-            // a.download = `${course.slug}-enrollments.csv`;
-            // document.body.appendChild(a);
-            // a.click();
-            // window.URL.revokeObjectURL(url);
-            // document.body.removeChild(a);
-            // toast.success("Enrollments exported successfully!");
-        } catch (error: any) {
-            toast.error(error?.message || "Failed to export data");
-        }
+        exportEnrollments.mutate({ courseId: course.id, format: "CSV" });
     };
 
     if (!course) {
@@ -221,8 +146,8 @@ export default function CourseStudentsPage() {
                     <button
                         onClick={() => setFilterStatus("all")}
                         className={`p-6 rounded-2xl border-2 transition-all text-left ${filterStatus === "all"
-                                ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
-                                : "border-slate-200 dark:border-slate-700 hover:border-indigo-300 bg-white dark:bg-slate-800"
+                            ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
+                            : "border-slate-200 dark:border-slate-700 hover:border-indigo-300 bg-white dark:bg-slate-800"
                             }`}
                     >
                         <div className="flex items-center gap-3 mb-3">
@@ -239,8 +164,8 @@ export default function CourseStudentsPage() {
                     <button
                         onClick={() => setFilterStatus("ACTIVE")}
                         className={`p-6 rounded-2xl border-2 transition-all text-left ${filterStatus === "ACTIVE"
-                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                                : "border-slate-200 dark:border-slate-700 hover:border-blue-300 bg-white dark:bg-slate-800"
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                            : "border-slate-200 dark:border-slate-700 hover:border-blue-300 bg-white dark:bg-slate-800"
                             }`}
                     >
                         <div className="flex items-center gap-3 mb-3">
@@ -257,8 +182,8 @@ export default function CourseStudentsPage() {
                     <button
                         onClick={() => setFilterStatus("COMPLETED")}
                         className={`p-6 rounded-2xl border-2 transition-all text-left ${filterStatus === "COMPLETED"
-                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
-                                : "border-slate-200 dark:border-slate-700 hover:border-emerald-300 bg-white dark:bg-slate-800"
+                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
+                            : "border-slate-200 dark:border-slate-700 hover:border-emerald-300 bg-white dark:bg-slate-800"
                             }`}
                     >
                         <div className="flex items-center gap-3 mb-3">
@@ -273,20 +198,20 @@ export default function CourseStudentsPage() {
                     </button>
 
                     <button
-                        onClick={() => setFilterStatus("DROPPED")}
-                        className={`p-6 rounded-2xl border-2 transition-all text-left ${filterStatus === "DROPPED"
-                                ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                                : "border-slate-200 dark:border-slate-700 hover:border-red-300 bg-white dark:bg-slate-800"
+                        onClick={() => setFilterStatus("CANCELLED")}
+                        className={`p-6 rounded-2xl border-2 transition-all text-left ${filterStatus === "CANCELLED"
+                            ? "border-red-500 bg-red-50 dark:bg-red-900/20"
+                            : "border-slate-200 dark:border-slate-700 hover:border-red-300 bg-white dark:bg-slate-800"
                             }`}
                     >
                         <div className="flex items-center gap-3 mb-3">
                             <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                         </div>
                         <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                            {stats.dropped}
+                            {stats.cancelled}
                         </p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
-                            Dropped
+                            Cancelled
                         </p>
                     </button>
 
@@ -338,9 +263,6 @@ export default function CourseStudentsPage() {
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                                         Last Activity
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                                        Quiz Score
-                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -350,12 +272,15 @@ export default function CourseStudentsPage() {
                                         className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
                                     >
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
+                                            <Link
+                                                href={`/teacher/students/${enrollment.studentId}`}
+                                                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                                            >
                                                 <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
                                                     {enrollment.studentName.charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                                    <p className="text-sm font-medium text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400">
                                                         {enrollment.studentName}
                                                     </p>
                                                     <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
@@ -363,7 +288,7 @@ export default function CourseStudentsPage() {
                                                         {enrollment.studentEmail}
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400">
@@ -375,7 +300,7 @@ export default function CourseStudentsPage() {
                                             <div className="space-y-1">
                                                 <div className="flex items-center justify-between text-sm">
                                                     <span className="text-slate-900 dark:text-white font-medium">
-                                                        {enrollment.progress}%
+                                                        {enrollment.completionPercentage}%
                                                     </span>
                                                     <span className="text-xs text-slate-500">
                                                         {enrollment.completedLessons}/{enrollment.totalLessons}
@@ -384,7 +309,7 @@ export default function CourseStudentsPage() {
                                                 <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                                                     <div
                                                         className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all"
-                                                        style={{ width: `${enrollment.progress}%` }}
+                                                        style={{ width: `${enrollment.completionPercentage}%` }}
                                                     />
                                                 </div>
                                             </div>
@@ -399,22 +324,13 @@ export default function CourseStudentsPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {enrollment.lastActivityAt ? (
+                                            {enrollment.lastAccessedAt ? (
                                                 <div className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400">
                                                     <Clock className="w-4 h-4" />
-                                                    {formatDate(enrollment.lastActivityAt)}
+                                                    {formatDate(enrollment.lastAccessedAt)}
                                                 </div>
                                             ) : (
                                                 <span className="text-sm text-slate-400">N/A</span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {enrollment.quizScore !== undefined ? (
-                                                <span className="text-sm font-medium text-slate-900 dark:text-white">
-                                                    {enrollment.quizScore}%
-                                                </span>
-                                            ) : (
-                                                <span className="text-sm text-slate-400">-</span>
                                             )}
                                         </td>
                                     </tr>

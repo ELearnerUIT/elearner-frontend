@@ -12,6 +12,7 @@ import {
     PieChart,
     Calendar,
     Download,
+    Loader2,
 } from "lucide-react";
 import { courseService } from "@/services/courses/course.service";
 import { analyticsService } from "@/services/courses/analytics.service";
@@ -30,13 +31,12 @@ export default function CourseAnalyticsPage() {
         queryFn: () => courseService.getCourseBySlug(slug),
     });
 
-    // TODO: Uncomment when backend API is ready
-    // Fetch analytics data
-    // const { data: analytics, isLoading: loadingAnalytics } = useQuery<CourseAnalyticsResponse>({
-    //     queryKey: ["course-analytics", course?.id],
-    //     queryFn: () => analyticsService.getCourseAnalytics(course!.id),
-    //     enabled: !!course?.id,
-    // });
+    // Fetch analytics data from real API
+    const { data: analytics, isLoading: loadingAnalytics } = useQuery<CourseAnalyticsResponse>({
+        queryKey: ["course-analytics", course?.id],
+        queryFn: () => analyticsService.getCourseAnalytics(course!.id),
+        enabled: !!course?.id,
+    });
 
     if (!course) {
         return (
@@ -46,42 +46,30 @@ export default function CourseAnalyticsPage() {
         );
     }
 
-    // Mock data (replace with actual API calls)
-    const analyticsData = {
-        enrollmentTrend: [
-            { month: "Jan", count: 45 },
-            { month: "Feb", count: 78 },
-            { month: "Mar", count: 92 },
-            { month: "Apr", count: 156 },
-        ],
-        revenue: {
-            total: 45200,
-            thisMonth: 8400,
-            growth: 24.5,
-        },
-        engagement: {
-            avgCompletionRate: 78,
-            avgTimeSpent: "4.2 hours",
-            activeStudents: 234,
-        },
+    // Format time spent from seconds to readable string
+    const formatTimeSpent = (seconds: number): string => {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        if (hours > 0) {
+            return `${hours}.${Math.floor(minutes / 6)} hours`;
+        }
+        return `${minutes} min`;
     };
 
     const handleExportReport = async () => {
         if (!course?.id) return;
 
         try {
-            toast.info("Export functionality will be available when API is ready");
-            // TODO: Uncomment when API is ready
-            // const blob = await analyticsService.exportAnalyticsReport(course.id, "PDF");
-            // const url = window.URL.createObjectURL(blob);
-            // const a = document.createElement("a");
-            // a.href = url;
-            // a.download = `${course.slug}-analytics-report.pdf`;
-            // document.body.appendChild(a);
-            // a.click();
-            // window.URL.revokeObjectURL(url);
-            // document.body.removeChild(a);
-            // toast.success("Report exported successfully!");
+            const blob = await analyticsService.exportAnalyticsReport(course.id, "PDF");
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${course.slug}-analytics-report.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            toast.success("Report exported successfully!");
         } catch (error: any) {
             toast.error(error?.message || "Failed to export report");
         }
@@ -143,14 +131,14 @@ export default function CourseAnalyticsPage() {
                             </span>
                         </div>
                         <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                            ${analyticsData.revenue.total.toLocaleString()}
+                            {loadingAnalytics ? "..." : `$${(analytics?.totalRevenue || 0).toLocaleString()}`}
                         </p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
                             Total Revenue
                         </p>
                         <div className="mt-2 flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
                             <TrendingUp className="w-4 h-4" />
-                            <span className="font-medium">+{analyticsData.revenue.growth}%</span>
+                            <span className="font-medium">+{analytics?.revenueGrowth || 0}%</span>
                             <span className="text-slate-500">growth</span>
                         </div>
                     </div>
@@ -165,7 +153,7 @@ export default function CourseAnalyticsPage() {
                             </span>
                         </div>
                         <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                            {analyticsData.engagement.avgCompletionRate}%
+                            {loadingAnalytics ? "..." : `${analytics?.averageCompletionRate || 0}%`}
                         </p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
                             Completion Rate
@@ -185,7 +173,7 @@ export default function CourseAnalyticsPage() {
                             </span>
                         </div>
                         <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                            {analyticsData.engagement.avgTimeSpent}
+                            {loadingAnalytics ? "..." : formatTimeSpent(analytics?.averageTimeSpent || 0)}
                         </p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
                             Avg. Time Spent
@@ -207,26 +195,34 @@ export default function CourseAnalyticsPage() {
                             <BarChart3 className="w-5 h-5 text-slate-400" />
                         </div>
                         <div className="h-64 flex items-end justify-around gap-4">
-                            {analyticsData.enrollmentTrend.map((data) => (
-                                <div key={data.month} className="flex-1 flex flex-col items-center gap-2">
-                                    <div className="w-full bg-indigo-100 dark:bg-indigo-900/30 rounded-t-lg flex items-end justify-center relative group">
-                                        <div
-                                            className="w-full bg-gradient-to-t from-indigo-600 to-indigo-500 rounded-t-lg transition-all hover:opacity-80"
-                                            style={{
-                                                height: `${(data.count / 200) * 100}%`,
-                                                minHeight: "60px",
-                                            }}
-                                        >
-                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-xs px-2 py-1 rounded">
-                                                {data.count}
+                            {loadingAnalytics ? (
+                                <div className="flex items-center justify-center w-full">
+                                    <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+                                </div>
+                            ) : analytics?.enrollmentTrend && analytics.enrollmentTrend.length > 0 ? (
+                                analytics.enrollmentTrend.slice(0, 6).map((data) => (
+                                    <div key={data.date} className="flex-1 flex flex-col items-center gap-2">
+                                        <div className="w-full bg-indigo-100 dark:bg-indigo-900/30 rounded-t-lg flex items-end justify-center relative group h-48">
+                                            <div
+                                                className="w-full bg-gradient-to-t from-indigo-600 to-indigo-500 rounded-t-lg transition-all hover:opacity-80"
+                                                style={{
+                                                    height: `${Math.min((data.count / Math.max(...analytics.enrollmentTrend.map(d => d.count), 1)) * 100, 100)}%`,
+                                                    minHeight: "4px",
+                                                }}
+                                            >
+                                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-xs px-2 py-1 rounded">
+                                                    {data.count}
+                                                </div>
                                             </div>
                                         </div>
+                                        <span className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate max-w-full">
+                                            {data.date.slice(5, 10)}
+                                        </span>
                                     </div>
-                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                                        {data.month}
-                                    </span>
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <div className="text-center text-slate-500 py-8">No enrollment data available</div>
+                            )}
                         </div>
                     </div>
 
@@ -239,29 +235,32 @@ export default function CourseAnalyticsPage() {
                             <PieChart className="w-5 h-5 text-slate-400" />
                         </div>
                         <div className="space-y-4">
-                            {[
-                                { name: "Introduction to React", views: 856, completion: 92 },
-                                { name: "React Hooks Deep Dive", views: 743, completion: 85 },
-                                { name: "State Management", views: 691, completion: 78 },
-                                { name: "Advanced Patterns", views: 624, completion: 71 },
-                            ].map((lesson, idx) => (
-                                <div key={idx} className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                            {lesson.name}
-                                        </span>
-                                        <span className="text-sm text-slate-500 dark:text-slate-400">
-                                            {lesson.views} views
-                                        </span>
-                                    </div>
-                                    <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
-                                            style={{ width: `${lesson.completion}%` }}
-                                        />
-                                    </div>
+                            {loadingAnalytics ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
                                 </div>
-                            ))}
+                            ) : analytics?.topPerformingLessons && analytics.topPerformingLessons.length > 0 ? (
+                                analytics.topPerformingLessons.slice(0, 4).map((lesson) => (
+                                    <div key={lesson.lessonId} className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[200px]">
+                                                {lesson.lessonTitle}
+                                            </span>
+                                            <span className="text-sm text-slate-500 dark:text-slate-400">
+                                                {lesson.viewCount} views
+                                            </span>
+                                        </div>
+                                        <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
+                                                style={{ width: `${lesson.completionRate}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center text-slate-500 py-8">No lesson data available</div>
+                            )}
                         </div>
                     </div>
                 </div>

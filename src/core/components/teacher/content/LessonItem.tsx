@@ -1,7 +1,7 @@
 "use client";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Edit, Trash2, FileText, Video, CheckSquare, ClipboardList } from "lucide-react";
+import { GripVertical, Edit, Trash2, FileText, Video, CheckSquare, ClipboardList, Link as LinkIcon } from "lucide-react";
 import { LessonResponse } from "@/services/courses/content/lesson.types";
 
 interface LessonItemProps {
@@ -14,6 +14,8 @@ interface LessonItemProps {
     onManageDocument?: (lesson: LessonResponse) => void;
     onManageQuiz?: (lessonId: number) => void;
     onManageAssignment?: (lessonId: number) => void;
+    onLinkQuiz?: (lessonId: number) => void;
+    onLinkAssignment?: (lessonId: number) => void;
 }
 
 export const LessonItem = ({
@@ -26,6 +28,8 @@ export const LessonItem = ({
     onManageDocument,
     onManageQuiz,
     onManageAssignment,
+    onLinkQuiz,
+    onLinkAssignment,
 }: LessonItemProps) => {
     const {
         attributes,
@@ -141,30 +145,62 @@ export const LessonItem = ({
                     </button>
                 )}
 
-                {lesson.type === "QUIZ" && onManageQuiz && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onManageQuiz(lesson.id);
-                        }}
-                        className="p-2 hover:bg-purple-100 dark:hover:bg-purple-950 rounded-lg transition-colors"
-                        title="Manage Quiz"
-                    >
-                        <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                    </button>
+                {lesson.type === "QUIZ" && (
+                    <>
+                        {onLinkQuiz && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onLinkQuiz(lesson.id);
+                                }}
+                                className="p-2 hover:bg-blue-100 dark:hover:bg-blue-950 rounded-lg transition-colors"
+                                title="Link Quiz"
+                            >
+                                <LinkIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            </button>
+                        )}
+                        {onManageQuiz && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onManageQuiz(lesson.id);
+                                }}
+                                className="p-2 hover:bg-purple-100 dark:hover:bg-purple-950 rounded-lg transition-colors"
+                                title="Manage Quiz"
+                            >
+                                <CheckSquare className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                            </button>
+                        )}
+                    </>
                 )}
 
-                {lesson.type === "ASSIGNMENT" && onManageAssignment && (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onManageAssignment(lesson.id);
-                        }}
-                        className="p-2 hover:bg-amber-100 dark:hover:bg-amber-950 rounded-lg transition-colors"
-                        title="Manage Assignment"
-                    >
-                        <ClipboardList className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    </button>
+                {lesson.type === "ASSIGNMENT" && (
+                    <>
+                        {onLinkAssignment && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onLinkAssignment(lesson.id);
+                                }}
+                                className="p-2 hover:bg-blue-100 dark:hover:bg-blue-950 rounded-lg transition-colors"
+                                title="Link Assignment"
+                            >
+                                <LinkIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            </button>
+                        )}
+                        {onManageAssignment && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onManageAssignment(lesson.id);
+                                }}
+                                className="p-2 hover:bg-amber-100 dark:hover:bg-amber-950 rounded-lg transition-colors"
+                                title="Manage Assignment"
+                            >
+                                <ClipboardList className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                            </button>
+                        )}
+                    </>
                 )}
 
                 <button

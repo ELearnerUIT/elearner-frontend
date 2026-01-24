@@ -60,8 +60,6 @@ export default function CheckoutPage() {
             const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
             const returnUrl = `${baseUrl}/learner/payment/success?courseId=${course.id}&slug=${slug}`;
             const cancelUrl = `${baseUrl}/courses/${slug}`;
-            // Callback URL is for gateway to POST to backend, not frontend
-            // Backend will construct this automatically based on its own domain
 
             console.log("Creating payment with:", {
                 courseId: course.id,
@@ -83,7 +81,6 @@ export default function CheckoutPage() {
         },
         onSuccess: (data) => {
             toast.success("Redirecting to payment gateway...");
-            // Redirect to payment URL
             window.location.href = data.paymentUrl;
         },
         onError: (error: any) => {
@@ -103,9 +100,6 @@ export default function CheckoutPage() {
             toast.error("Only students can enroll in courses");
             return;
         }
-
-        // Check if course is free
-        const isFree = !publishedVersion?.price || publishedVersion.price === 0;
 
         if (isFree) {
             // Handle free course enrollment
@@ -165,7 +159,7 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="min-h-screen px-4 sm:px-6 md:px-10 xl:px-16 py-12">
+        <div className="min-h-screen bg-background text-foreground px-4 sm:px-6 md:px-10 xl:px-16 py-12">
             <div className="max-w-4xl mx-auto">
                 {/* Back Button */}
                 <Link
@@ -179,10 +173,10 @@ export default function CheckoutPage() {
                 <h1 className="text-3xl md:text-4xl font-bold mb-8">Checkout</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Payment Method Selection */}
+                    {/* Payment Method Selection - Only show for paid courses */}
                     {!isFree && (
                         <div className="lg:col-span-2">
-                            <div className="rounded-xl border border-white/20 bg-white/[0.03] p-6">
+                            <div className="rounded-xl border border-border bg-card p-6">
                                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                                     <CreditCard className="h-5 w-5" />
                                     Select Payment Method
@@ -193,7 +187,7 @@ export default function CheckoutPage() {
                                     <label
                                         className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition ${selectedGateway === "VNPAY"
                                             ? "border-primary bg-primary/10"
-                                            : "border-white/20 hover:border-white/40"
+                                            : "border-border hover:border-muted-foreground"
                                             }`}
                                     >
                                         <input
@@ -217,7 +211,7 @@ export default function CheckoutPage() {
                                     <label
                                         className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition ${selectedGateway === "ZALOPAY"
                                             ? "border-primary bg-primary/10"
-                                            : "border-white/20 hover:border-white/40"
+                                            : "border-border hover:border-muted-foreground"
                                             }`}
                                     >
                                         <input
@@ -241,7 +235,7 @@ export default function CheckoutPage() {
                                     <label
                                         className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition ${selectedGateway === "MOMO"
                                             ? "border-primary bg-primary/10"
-                                            : "border-white/20 hover:border-white/40"
+                                            : "border-border hover:border-muted-foreground"
                                             }`}
                                     >
                                         <input
@@ -263,7 +257,7 @@ export default function CheckoutPage() {
                                 </div>
 
                                 {/* Security Notice */}
-                                <div className="mt-6 p-4 rounded-lg bg-white/[0.05] border border-white/10">
+                                <div className="mt-6 p-4 rounded-lg bg-muted border border-border">
                                     <div className="flex items-start gap-3">
                                         <Shield className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                                         <div className="text-sm text-muted-foreground">
@@ -280,7 +274,7 @@ export default function CheckoutPage() {
 
                     {/* Order Summary */}
                     <div className={isFree ? "max-w-md mx-auto w-full lg:col-span-3" : "lg:col-span-1"}>
-                        <div className="rounded-xl border border-white/20 bg-white/[0.03] p-6 sticky top-24">
+                        <div className="rounded-xl border border-border bg-card p-6 sticky top-24">
                             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
 
                             {course && (
@@ -297,7 +291,7 @@ export default function CheckoutPage() {
                                         <h3 className="font-semibold line-clamp-2">{course.title}</h3>
                                     </div>
 
-                                    <div className="border-t border-white/10 pt-4 space-y-3">
+                                    <div className="border-t border-border pt-4 space-y-3">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-muted-foreground">Original Price</span>
                                             <span>
@@ -307,7 +301,7 @@ export default function CheckoutPage() {
                                             </span>
                                         </div>
 
-                                        <div className="border-t border-white/10 pt-3 flex justify-between font-semibold text-lg">
+                                        <div className="border-t border-border pt-3 flex justify-between font-semibold text-lg">
                                             <span>Total</span>
                                             <span>
                                                 {publishedVersion?.price
@@ -320,7 +314,7 @@ export default function CheckoutPage() {
                                     <button
                                         onClick={handlePayment}
                                         disabled={createPaymentMutation.isPending}
-                                        className="w-full mt-6 btn btn-primary neon flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg transition shadow-lg shadow-green-600/30 hover:shadow-xl hover:shadow-green-600/40 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                                     >
                                         {createPaymentMutation.isPending ? (
                                             <>

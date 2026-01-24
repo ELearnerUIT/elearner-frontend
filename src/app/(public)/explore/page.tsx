@@ -6,9 +6,13 @@ import { useQuery } from "@tanstack/react-query";
 import { courseService } from "@/services/courses/course.service";
 import { categoryService } from "@/services/courses/category.service";
 import { tagService } from "@/services/courses/tag.service";
+import type { CourseResponse } from "@/services/courses/course.types";
 import CourseCard, { type Course } from "@/core/components/course/CourseCard";
 import CategoryTree from "@/core/components/course/CategoryTree";
 import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react";
+
+// Extended type to include price (returned by backend but not in CourseResponse type)
+type CourseWithPrice = CourseResponse & { price?: number; averageRating?: number; totalReviews?: number; totalStudents?: number };
 import { toast } from "sonner";
 
 // Import components form Incoming change
@@ -48,11 +52,17 @@ function ExplorePageContent() {
   });
 
   // Fetch ALL courses once (client-side filtering for demo)
+  // Cast to CourseWithPrice which includes price field from backend
   const { data: allCoursesData, isLoading: loadingCourses } = useQuery({
     queryKey: ["all-published-courses"],
     queryFn: async () => {
       // Load 1000 courses at once for client-side filtering
-      return courseService.getPublishedCourses(0, 1000, undefined);
+      // The backend returns extra fields (price, averageRating) not in CourseResponse type
+      const response = await courseService.getPublishedCourses(0, 1000, undefined);
+      return {
+        ...response,
+        items: response.items as unknown as CourseWithPrice[],
+      };
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
@@ -244,12 +254,12 @@ function ExplorePageContent() {
                 {/* Categories */}
                 <div className="rounded-xl border border-white/20 bg-white/[0.03] p-4">
                   <h3 className="font-semibold mb-3">Categories</h3>
-                  <CategoryTree 
-                    categories={categories || []} 
+                  <CategoryTree
+                    categories={categories || []}
                     loading={loadingCategories}
-                    // TODO: Pass props to handle selection if CategoryTree supports it
-                    // selectedId={selectedCategory}
-                    // onSelect={handleCategorySelect}
+                  // TODO: Pass props to handle selection if CategoryTree supports it
+                  // selectedId={selectedCategory}
+                  // onSelect={handleCategorySelect}
                   />
                 </div>
 
@@ -349,16 +359,15 @@ function ExplorePageContent() {
                             p = page - 2 + i;
                             if (p >= coursesData.totalPages) p = coursesData.totalPages - (5 - i);
                           }
-                          
+
                           return (
                             <button
                               key={p}
                               onClick={() => setPage(p)}
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition border ${
-                                page === p
-                                  ? "bg-primary text-primary-foreground border-primary"
-                                  : "bg-white/[0.05] hover:bg-white/[0.1] border-white/20"
-                              }`}
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition border ${page === p
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-white/[0.05] hover:bg-white/[0.1] border-white/20"
+                                }`}
                             >
                               {p + 1}
                             </button>
@@ -402,7 +411,7 @@ function ExplorePageContent() {
 
       {/* 4. Trending Topics (from Incoming) */}
       <TrendingTopics />
-      
+
       {/* 5. Popular Courses (from Incoming - Optional, maybe redundant with main grid) */}
       {/* <PopularCoursesSection /> */}
     </div>

@@ -16,6 +16,7 @@ import {
     GraduationCap,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/cn";
 import { LearnerProfileMenu } from "@/core/components/learner/navbar/LearnerProfileMenu";
 import { useAssistantStore } from "@/core/components/public/store";
@@ -52,25 +53,12 @@ export default function LearnerNavbar() {
     const [profileOpen, setProfileOpen] = useState(false);
     const profileRef = useRef<HTMLDivElement>(null);
 
-    const [theme, setTheme] = useState<"light" | "dark">(
-        typeof window !== "undefined" &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light",
-    );
+    const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
-
-    useEffect(() => {
-        if (theme === "dark") {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
-    }, [theme]);
 
     useEffect(() => {
         if (!open) return;
@@ -210,11 +198,11 @@ export default function LearnerNavbar() {
               hover:bg-slate-800/80 hover:text-[var(--brand-300)] 
               transition"
                         onClick={() =>
-                            setTheme(theme === "dark" ? "light" : "dark")
+                            setTheme(resolvedTheme === "dark" ? "light" : "dark")
                         }
                     >
                         {mounted &&
-                            (theme === "dark" ? (
+                            (resolvedTheme === "dark" ? (
                                 <Sun className="w-5 h-5" />
                             ) : (
                                 <Moon className="w-5 h-5" />
