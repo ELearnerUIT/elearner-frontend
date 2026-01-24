@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import { User, Mail, Phone, Calendar, Camera, Save, X } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile, useUpdateProfile } from "@/hooks/learner/useProfile";
 
 interface UserProfile {
-    id: string;
+    id: number;
     username: string;
     fullName: string;
     email: string;
-    avatarUrl: string;
+    avatarUrl?: string;
     bio?: string;
     phone?: string;
     birthDate?: string;
@@ -18,41 +20,38 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+    const { user } = useAuth();
+    const studentId = user?.profile?.studentId;
+
+    // Fetch profile from backend
+    const { data: profileData, isLoading: loading, error } = useProfile(studentId || 0);
+    const updateProfileMutation = useUpdateProfile(studentId || 0);
+
     const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [editing, setEditing] = useState(false);
     const [formData, setFormData] = useState<Partial<UserProfile>>({});
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
+    // Map backend data to local profile state
     useEffect(() => {
-        // TODO: Replace with actual API call
-        const fetchProfile = async () => {
-            setLoading(true);
-            try {
-                const mockProfile: UserProfile = {
-                    id: "user-123",
-                    username: "student123",
-                    fullName: "John Doe",
-                    email: "john.doe@example.com",
-                    avatarUrl: "/images/avatars/default.jpg",
-                    bio: "Passionate learner interested in web development and cloud technologies.",
-                    phone: "+84 123 456 789",
-                    birthDate: "1998-05-15",
-                    studentCode: "STU2024001",
-                    createdAt: "2024-01-15T10:00:00Z",
-                };
-                setProfile(mockProfile);
-                setFormData(mockProfile);
-            } catch (error) {
-                console.error("Failed to fetch profile:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProfile();
-    }, []);
+        if (profileData?.profile) {
+            const mappedProfile: UserProfile = {
+                id: profileData.profile.id,
+                username: profileData.profile.username,
+                fullName: profileData.profile.fullName,
+                email: profileData.profile.email,
+                avatarUrl: profileData.profile.avatarUrl,
+                bio: "", // Backend doesn't have bio field yet
+                phone: profileData.profile.phone,
+                birthDate: profileData.profile.birthday,
+                studentCode: "", // Not in backend profile yet
+                createdAt: profileData.profile.joinedAt,
+            };
+            setProfile(mappedProfile);
+            setFormData(mappedProfile);
+        }
+    }, [profileData]);
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -69,14 +68,23 @@ export default function ProfilePage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            // TODO: Replace with actual API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            setProfile({ ...profile!, ...formData });
+            await updateProfileMutation.mutateAsync({
+                fullName: formData.fullName,
+                phone: formData.phone,
+                birthday: formData.birthDate,
+                avatarUrl: avatarPreview || formData.avatarUrl,
+            });
+
+            // Update local state
+            if (profile) {
+                setProfile({ ...profile, ...formData });
+            }
             setEditing(false);
-            // Show success toast
+            // TODO: Show success toast
+            console.log("Profile updated successfully");
         } catch (error) {
             console.error("Failed to update profile:", error);
-            // Show error toast
+            // TODO: Show error toast
         } finally {
             setSaving(false);
         }
@@ -162,15 +170,13 @@ export default function ProfilePage() {
                             {/* Avatar */}
                             <div className="relative">
                                 <div className="w-32 h-32 rounded-full border-4 border-white dark:border-slate-900 overflow-hidden bg-slate-200 dark:bg-slate-800">
-                                    {(avatarPreview || profile.avatarUrl) && (
-                                        <Image
-                                            src={avatarPreview || profile.avatarUrl}
-                                            alt={profile.fullName}
-                                            width={128}
-                                            height={128}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    )}
+                                    <Image
+                                        src={avatarPreview || profile.avatarUrl || "/images/avatars/default.jpg"}
+                                        alt={profile.fullName}
+                                        width={128}
+                                        height={128}
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
                                 {editing && (
                                     <label className="absolute bottom-0 right-0 w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-colors">

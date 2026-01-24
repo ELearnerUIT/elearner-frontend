@@ -233,13 +233,15 @@ export const courseService = {
     categoryId?: number,
     difficulty?: string,
     tags?: string,
+    minPrice?: number,
+    maxPrice?: number,
     page?: number,
     size?: number,
   ): Promise<PageResponse<CourseResponse>> => {
     const response = await axiosClient.get<
       ApiResponse<PageResponse<CourseResponse>>
     >("/public/courses/search", {
-      params: { query, categoryId, difficulty, tags, page, size },
+      params: { query, categoryId, difficulty, tags, minPrice, maxPrice, page, size },
     });
 
     return unwrapResponse(response);

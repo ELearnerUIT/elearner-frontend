@@ -3,10 +3,23 @@
 
 export interface StudentProgressOverview {
   studentId: number;
-  totalCourses: number;
+  studentName: string;
+  totalEnrolledCourses: number;
   completedCourses: number;
   inProgressCourses: number;
-  progressPercent: number;
+  overallCompletionPercentage: number;
+  totalWatchedHours: number;
+  averageScore: number;
+  courses: CourseProgressSummary[];
+}
+
+export interface CourseProgressSummary {
+  courseId: number;
+  courseTitle: string;
+  completionPercentage: number;
+  averageScore: number | null;
+  totalLessons: number;
+  completedLessons: number;
 }
 
 export interface CourseProgress {

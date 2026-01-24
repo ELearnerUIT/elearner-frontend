@@ -57,7 +57,7 @@ export default function HomePageClient({ slides }: { slides: BannerSlideType[] }
             Featured Courses
           </h2>
           <a
-            href="/courses"
+            href="/explore"
             className="
               inline-flex items-center gap-1.5 rounded-full border border-white/10 
               bg-white/5 px-4 py-1.5 text-sm font-medium text-muted-foreground 

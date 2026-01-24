@@ -145,21 +145,21 @@ export default function Navbar() {
 
                 {/* RIGHT */}
                 <div className="flex items-center gap-2 flex-shrink-0">
-                    <Link href="#" className="hidden xl:block nav-link">
+                    {/* <Link href="#" className="hidden xl:block nav-link">
                         LMS Business
-                    </Link>
+                    </Link> */}
                     <Link href="#" className="hidden lg:block nav-link">
                         Teach on ELearner
                     </Link>
 
                     {/* Cart */}
-                    <Link
+                    {/* <Link
                         href="/cart"
                         className="btn-icon hidden sm:inline-flex relative"
                         aria-label="Cart"
                     >
                         <ShoppingCart size={18} />
-                    </Link>
+                    </Link> */}
 
                     {/* Conditional Auth Buttons */}
                     {!isLoggedIn ? (
@@ -238,7 +238,7 @@ export default function Navbar() {
                     </button>
 
                     {/* AI Tutor button – thay cho nút chọn ngôn ngữ */}
-                    <button
+                    {/* <button
                         onClick={openPopup}
                         aria-label="Open AI study assistant"
                         className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 
@@ -247,7 +247,7 @@ export default function Navbar() {
         transition"
                     >
                         <Bot className="w-5 h-5" />
-                    </button>
+                    </button> */}
                 </div>
             </div>
 

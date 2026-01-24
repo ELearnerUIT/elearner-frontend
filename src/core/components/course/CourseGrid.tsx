@@ -26,6 +26,7 @@ export default function CourseGrid() {
     return <p className="text-muted-foreground mt-10">No courses available</p>;
   }
 
+  
   // Map API data to Course interface
   const mappedCourses: Course[] = courses.map(c => ({
     id: c.id.toString(),

@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Calendar as CalendarIcon, Clock, AlertCircle, CheckCircle, Filter } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useAssignments } from "@/hooks/learner/useAssignment";
+import { useQuizzes } from "@/hooks/learner/useQuiz";
 
 interface CalendarEvent {
     id: string;
@@ -15,80 +18,71 @@ interface CalendarEvent {
 }
 
 export default function CalendarPage() {
-    const [events, setEvents] = useState<CalendarEvent[]>([]);
+    const { user } = useAuth();
+    const studentId = user?.profile?.studentId;
+
+    // Fetch assignments and quizzes from backend
+    const { data: assignmentsData, isLoading: assignmentsLoading } = useAssignments(studentId || 0);
+    const { data: quizzesData, isLoading: quizzesLoading } = useQuizzes(studentId || 0);
+
     const [filteredEvents, setFilteredEvents] = useState<CalendarEvent[]>([]);
-    const [loading, setLoading] = useState(true);
     const [filterType, setFilterType] = useState<"ALL" | "QUIZ" | "ASSIGNMENT" | "EXAM">("ALL");
     const [filterStatus, setFilterStatus] = useState<"ALL" | "UPCOMING" | "COMPLETED">("ALL");
 
-    useEffect(() => {
-        // TODO: Replace with actual API call
-        const fetchCalendarEvents = async () => {
-            setLoading(true);
-            try {
-                const mockEvents: CalendarEvent[] = [
-                    {
-                        id: "1",
-                        title: "Module 3 Quiz",
-                        courseTitle: "Advanced React Patterns",
-                        courseSlug: "advanced-react-patterns",
-                        type: "QUIZ",
-                        dueDate: "2026-01-25T23:59:00Z",
-                        status: "DUE_SOON",
-                        description: "Multiple choice quiz covering hooks and context",
-                    },
-                    {
-                        id: "2",
-                        title: "Final Project Submission",
-                        courseTitle: "Node.js Microservices",
-                        courseSlug: "nodejs-microservices",
-                        type: "ASSIGNMENT",
-                        dueDate: "2026-01-28T23:59:00Z",
-                        status: "UPCOMING",
-                        description: "Build a complete microservices application",
-                    },
-                    {
-                        id: "3",
-                        title: "Chapter 1 Assessment",
-                        courseTitle: "TypeScript Advanced",
-                        courseSlug: "typescript-advanced",
-                        type: "QUIZ",
-                        dueDate: "2026-01-24T23:59:00Z",
-                        status: "OVERDUE",
-                        description: "Basic concepts quiz",
-                    },
-                    {
-                        id: "4",
-                        title: "Mid-term Exam",
-                        courseTitle: "Advanced React Patterns",
-                        courseSlug: "advanced-react-patterns",
-                        type: "EXAM",
-                        dueDate: "2026-02-05T23:59:00Z",
-                        status: "UPCOMING",
-                        description: "Comprehensive exam covering modules 1-5",
-                    },
-                    {
-                        id: "5",
-                        title: "Practice Assignment",
-                        courseTitle: "Node.js Microservices",
-                        courseSlug: "nodejs-microservices",
-                        type: "ASSIGNMENT",
-                        dueDate: "2026-01-20T23:59:00Z",
-                        status: "COMPLETED",
-                        description: "Build a simple REST API",
-                    },
-                ];
-                setEvents(mockEvents);
-                setFilteredEvents(mockEvents);
-            } catch (error) {
-                console.error("Failed to fetch calendar events:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const loading = assignmentsLoading || quizzesLoading;
 
-        fetchCalendarEvents();
-    }, []);
+    // Calculate status based on due date and completion
+    const calculateStatus = (dueDate: string, isCompleted: boolean): CalendarEvent["status"] => {
+        if (isCompleted) return "COMPLETED";
+
+        const now = new Date();
+        const due = new Date(dueDate);
+        const diffMs = due.getTime() - now.getTime();
+        const diffHours = diffMs / (1000 * 60 * 60);
+
+        if (diffMs < 0) return "OVERDUE";
+        if (diffHours <= 48) return "DUE_SOON";
+        return "UPCOMING";
+    };
+
+    // Combine assignments and quizzes into calendar events
+    const events: CalendarEvent[] = useMemo(() => {
+        const combined: CalendarEvent[] = [];
+
+        // Add assignments
+        if (assignmentsData?.assignments) {
+            assignmentsData.assignments.forEach((assignment: any) => {
+                combined.push({
+                    id: `assignment-${assignment.id}`,
+                    title: assignment.title,
+                    courseTitle: assignment.courseTitle || "Course",
+                    courseSlug: assignment.courseSlug || "",
+                    type: "ASSIGNMENT",
+                    dueDate: assignment.dueDate,
+                    status: calculateStatus(assignment.dueDate, assignment.isSubmitted || false),
+                    description: assignment.description,
+                });
+            });
+        }
+
+        // Add quizzes
+        if (quizzesData?.quizzes) {
+            quizzesData.quizzes.forEach((quiz: any) => {
+                combined.push({
+                    id: `quiz-${quiz.id}`,
+                    title: quiz.title,
+                    courseTitle: quiz.courseTitle || "Course",
+                    courseSlug: quiz.courseSlug || "",
+                    type: "QUIZ",
+                    dueDate: quiz.dueDate,
+                    status: calculateStatus(quiz.dueDate, quiz.isCompleted || false),
+                    description: quiz.description,
+                });
+            });
+        }
+
+        return combined;
+    }, [assignmentsData, quizzesData]);
 
     useEffect(() => {
         let filtered = events;
@@ -209,8 +203,8 @@ export default function CalendarPage() {
                             <button
                                 onClick={() => setFilterType("ALL")}
                                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filterType === "ALL"
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
                                     }`}
                             >
                                 All
@@ -218,8 +212,8 @@ export default function CalendarPage() {
                             <button
                                 onClick={() => setFilterType("QUIZ")}
                                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filterType === "QUIZ"
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
                                     }`}
                             >
                                 Quiz
@@ -227,8 +221,8 @@ export default function CalendarPage() {
                             <button
                                 onClick={() => setFilterType("ASSIGNMENT")}
                                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filterType === "ASSIGNMENT"
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
                                     }`}
                             >
                                 Assignment
@@ -236,8 +230,8 @@ export default function CalendarPage() {
                             <button
                                 onClick={() => setFilterType("EXAM")}
                                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filterType === "EXAM"
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
                                     }`}
                             >
                                 Exam
@@ -249,8 +243,8 @@ export default function CalendarPage() {
                             <button
                                 onClick={() => setFilterStatus("ALL")}
                                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filterStatus === "ALL"
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
                                     }`}
                             >
                                 All
@@ -258,8 +252,8 @@ export default function CalendarPage() {
                             <button
                                 onClick={() => setFilterStatus("UPCOMING")}
                                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filterStatus === "UPCOMING"
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
                                     }`}
                             >
                                 Upcoming
@@ -267,8 +261,8 @@ export default function CalendarPage() {
                             <button
                                 onClick={() => setFilterStatus("COMPLETED")}
                                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filterStatus === "COMPLETED"
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
                                     }`}
                             >
                                 Completed

@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { BookOpen, Award, Clock, TrendingUp, Calendar, Play } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { useStudentProgress } from "@/hooks/learner/useProgress";
+import { useEnrollments } from "@/hooks/learner/useEnrollment";
+import { useCertificates } from "@/hooks/learner/useCertificate";
 
 interface DashboardStats {
     enrolledCourses: number;
@@ -31,77 +35,38 @@ interface UpcomingDeadline {
 }
 
 export default function LearnerDashboardPage() {
-    const [stats, setStats] = useState<DashboardStats>({
-        enrolledCourses: 0,
-        completedCourses: 0,
-        totalLearningHours: 0,
-        certificatesEarned: 0,
-    });
-    const [recentCourses, setRecentCourses] = useState<RecentCourse[]>([]);
-    const [upcomingDeadlines, setUpcomingDeadlines] = useState<UpcomingDeadline[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { user } = useAuth();
+    const studentId = user?.profile?.studentId;
 
-    useEffect(() => {
-        // TODO: Replace with actual API calls
-        const fetchDashboardData = async () => {
-            setLoading(true);
-            try {
-                // Simulated data
-                setStats({
-                    enrolledCourses: 12,
-                    completedCourses: 5,
-                    totalLearningHours: 48,
-                    certificatesEarned: 3,
-                });
+    // Fetch backend data
+    const { data: progressData, isLoading: progressLoading } = useStudentProgress(studentId || 0);
+    const { courses: enrolledCourses, isLoading: enrollmentsLoading } = useEnrollments(1, 5);
+    const { data: certificatesData, isLoading: certificatesLoading } = useCertificates(studentId || 0);
 
-                setRecentCourses([
-                    {
-                        id: "1",
-                        title: "Advanced React Patterns",
-                        slug: "advanced-react-patterns",
-                        thumbnailUrl: "/images/course/placeholder.jpg",
-                        progress: 65,
-                        lastAccessedAt: "2 hours ago",
-                        instructor: "John Doe",
-                    },
-                    {
-                        id: "2",
-                        title: "Node.js Microservices",
-                        slug: "nodejs-microservices",
-                        thumbnailUrl: "/images/course/placeholder.jpg",
-                        progress: 32,
-                        lastAccessedAt: "1 day ago",
-                        instructor: "Jane Smith",
-                    },
-                ]);
+    const [upcomingDeadlines] = useState<UpcomingDeadline[]>([]);
 
-                setUpcomingDeadlines([
-                    {
-                        id: "1",
-                        title: "Module 3 Quiz",
-                        courseTitle: "Advanced React Patterns",
-                        type: "QUIZ",
-                        dueDate: "2026-01-25T23:59:00",
-                        courseSlug: "advanced-react-patterns",
-                    },
-                    {
-                        id: "2",
-                        title: "Final Project Submission",
-                        courseTitle: "Node.js Microservices",
-                        type: "ASSIGNMENT",
-                        dueDate: "2026-01-28T23:59:00",
-                        courseSlug: "nodejs-microservices",
-                    },
-                ]);
-            } catch (error) {
-                console.error("Failed to fetch dashboard data:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    console.log(enrolledCourses);
+    // Combine loading states
+    const loading = progressLoading || enrollmentsLoading || certificatesLoading;
 
-        fetchDashboardData();
-    }, []);
+    // Map stats from backend data
+    const stats: DashboardStats = {
+        enrolledCourses: progressData?.totalEnrolledCourses || 0,
+        completedCourses: progressData?.completedCourses || 0,
+        totalLearningHours: progressData?.totalWatchedHours || 0,
+        certificatesEarned: certificatesData?.certificates?.length || 0,
+    };
+
+    // Map enrolled courses to recent courses format
+    const recentCourses: RecentCourse[] = enrolledCourses.slice(0, 5).map(course => ({
+        id: course.id,
+        title: course.title,
+        slug: course.slug,
+        thumbnailUrl: course.thumbnailUrl || "/images/course/placeholder.jpg",
+        progress: Math.round(course.progress * 100) / 100,
+        lastAccessedAt: course.lastViewed,
+        instructor: course.instructor,
+    }));
 
     if (loading) {
         return (
@@ -251,8 +216,8 @@ export default function LearnerDashboardPage() {
                                             </div>
                                             <span
                                                 className={`px-2 py-1 rounded text-xs font-medium ${deadline.type === "QUIZ"
-                                                        ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                                                        : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                                                    ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                                                    : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
                                                     }`}
                                             >
                                                 {deadline.type}

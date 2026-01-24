@@ -114,7 +114,7 @@ export default function LearnerNavbar() {
                     </button>
 
                     <Link
-                        href="/learner/catalog"
+                        href="/"
                         className="flex items-center gap-2"
                     >
                         <div className="w-10 h-10 bg-[color:var(--brand-primary)] rounded-xl flex items-center justify-center shadow-lg">
@@ -150,12 +150,12 @@ export default function LearnerNavbar() {
                 </div>
 
                 <div className="flex items-center gap-3 flex-shrink-0">
-                    <Link href="/business" className="hidden xl:block nav-link">
+                    {/* <Link href="/business" className="hidden xl:block nav-link">
                         LMS Business
-                    </Link>
-                    <Link href="/teach" className="hidden lg:block nav-link">
+                    </Link> */}
+                    {/* <Link href="/teach" className="hidden lg:block nav-link">
                         Teacher
-                    </Link>
+                    </Link> */}
                     <Link
                         href="/learner/dashboard"
                         className="hidden md:block nav-link"
@@ -163,14 +163,14 @@ export default function LearnerNavbar() {
                         My learning
                     </Link>
 
-                    <button
+                    {/* <button
                         className="btn-icon hidden sm:inline-flex"
                         aria-label="Wishlist"
                     >
                         <Heart size={18} />
-                    </button>
+                    </button> */}
 
-                    <div className="relative">
+                    {/* <div className="relative">
                         <button
                             className="btn-icon hidden sm:inline-flex"
                             aria-label="Cart"
@@ -183,7 +183,7 @@ export default function LearnerNavbar() {
                                 <CartQueue />
                             </div>
                         )}
-                    </div>
+                    </div> */}
 
                     <button
                         className="btn-icon hidden sm:inline-flex"
@@ -192,7 +192,7 @@ export default function LearnerNavbar() {
                         <Bell size={18} />
                     </button>
 
-                    <button
+                    {/* <button
                         onClick={openPopup}
                         aria-label="Open AI study assistant"
                         className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 
@@ -201,7 +201,7 @@ export default function LearnerNavbar() {
         transition"
                     >
                         <Bot className="w-5 h-5" />
-                    </button>
+                    </button> */}
 
                     <button
                         aria-label="Toggle theme"
@@ -301,20 +301,20 @@ export default function LearnerNavbar() {
                         <NavItem href="/explore" label="Explore" />
                         <NavItem href="/my-learning" label="My learning" />
                         <NavItem href="/business" label="LMS Business" />
-                        <NavItem href="/teach" label="Teacher" />
+                        {/* <NavItem href="/teach" label="Teacher" /> */}
                     </div>
 
                     <div className="mt-auto flex items-center justify-between gap-3">
                         <button className="btn-icon" aria-label="Wishlist">
                             <Heart size={18} />
                         </button>
-                        <button className="btn-icon" aria-label="Cart">
+                        {/* <button className="btn-icon" aria-label="Cart">
                             <ShoppingCart size={18} />
-                        </button>
+                        </button> */}
                         <button className="btn-icon" aria-label="Notifications">
                             <Bell size={18} />
                         </button>
-                        <Link
+                        {/* <Link
                             href="/assistant"
                             aria-label="Open AI study assistant"
                             className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 
@@ -323,7 +323,7 @@ export default function LearnerNavbar() {
                transition"
                         >
                             <Bot className="w-5 h-5" />
-                        </Link>
+                        </Link> */}
                         <button
                             className="h-9 w-9 rounded-full bg-slate-900 text-xs font-semibold text-white 
                          flex items-center justify-center border border-white/10"
