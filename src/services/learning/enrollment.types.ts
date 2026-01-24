@@ -48,6 +48,7 @@ export interface EnrollmentResponse {
   courseId: number;
   courseName: string;
   courseSlug?: string;
+  instructorName?: string;
   courseImageUrl?: string;
   studentId: number;
   studentName: string;

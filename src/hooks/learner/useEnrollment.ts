@@ -42,9 +42,9 @@ export function useEnrollments(page: number, size: number) {
             courseId: enrollment.courseId, // thêm trường này để so sánh chuẩn
             slug: String(course.slug || course.id),
             title: course.title,
-            instructor: String(course.teacherName || "Unknown"),
+            instructor: String(enrollment.instructorName || "Unknown"),
             thumbColor: "from-emerald-500 via-sky-500 to-indigo-500",
-            thumbnail: course.thumbnailUrl,
+            thumbnailUrl: course.thumbnailUrl,
             progress: enrollment.completionPercentage ?? 0,
             lastViewed: enrollment.enrolledAt ? new Date(enrollment.enrolledAt).toLocaleDateString() : "-",
             level: (course.difficulty === 'BEGINNER' ? 'Beginner' : course.difficulty === 'INTERMEDIATE' ? 'Intermediate' : 'Advanced') as 'Beginner' | 'Intermediate' | 'Advanced',
