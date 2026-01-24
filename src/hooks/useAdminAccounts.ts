@@ -6,6 +6,7 @@ import {
   AccountResponse,
   AccountProfileResponse,
   AccountActionRequest,
+  AccountStatsResponse,
 } from "@/services/account/account.types";
 import { PageResponse } from "@/lib/api/api.types";
 import { sfAnd, sfOr, sfEqual, sfLike } from "spring-filter-query-builder";
@@ -186,3 +187,14 @@ export const useDeactivateAccount = () => {
     },
   });
 };
+
+// Get account statistics hook
+export const useAccountStats = () => {
+  return useQuery({
+    queryKey: ["accountStats"],
+    queryFn: () => accountService.getAccountStats(),
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+};
+

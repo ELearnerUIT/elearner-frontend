@@ -1,11 +1,13 @@
-import { Users, BarChart3 } from "lucide-react";
+import { Users, BarChart3, Download, Upload } from "lucide-react";
 
 interface UserHeaderProps {
   onShowStats: () => void;
   onShowExport: () => void;
+  onDownloadTemplate: () => void;
+  onImportStudents: () => void;
 }
 
-export function UserHeader({ onShowStats, onShowExport }: UserHeaderProps) {
+export function UserHeader({ onShowStats, onShowExport, onDownloadTemplate, onImportStudents }: UserHeaderProps) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="flex-1">
@@ -27,6 +29,20 @@ export function UserHeader({ onShowStats, onShowExport }: UserHeaderProps) {
         >
           <BarChart3 className="w-5 h-5" />
           Statistics
+        </button>
+        <button
+          className="px-4 py-2.5 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg hover:shadow-blue-500/20"
+          onClick={onDownloadTemplate}
+        >
+          <Download className="w-5 h-5" />
+          Download Template
+        </button>
+        <button
+          className="px-4 py-2.5 bg-gradient-to-br from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 text-white rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg hover:shadow-orange-500/20"
+          onClick={onImportStudents}
+        >
+          <Upload className="w-5 h-5" />
+          Import Students
         </button>
         <button
           className="px-4 py-2.5 bg-gradient-to-br from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"

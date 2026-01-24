@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import {
@@ -9,16 +9,21 @@ import {
   useApproveTeacherAccount,
   useDeactivateAccount,
   useRejectTeacherAccount,
+  useAccountStats,
 } from "@/hooks/useAdminAccounts";
 import { AccountResponse } from "@/services/account/account.types";
+import { accountService } from "@/services/account/account.service";
 import AdminExportUsersScreen from "./export/page";
 import { AdminUserStatsScreen } from "./stats/page";
+import { toast } from "sonner";
 
-import { UserHeader ,UserStatsCards,
+import {
+  UserHeader, UserStatsCards,
   UserSearchBar,
   UserTabs,
   UserTable,
-  UserActionModal, } from "@/core/components/admin/users";
+  UserActionModal,
+} from "@/core/components/admin/users";
 function AdminUsersScreenContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,6 +52,8 @@ function AdminUsersScreenContent() {
 
   const [actionType, setActionType] = useState<"approve" | "reject" | "deactivate" | null>(null);
   const [actionReason, setActionReason] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Build filter params based on selected tab
   const filterParams = useMemo(() => {
@@ -54,12 +61,16 @@ function AdminUsersScreenContent() {
 
     if (selectedTab === "learners") {
       params.role = "STUDENT";
+      setPage(0);
     } else if (selectedTab === "instructors") {
       params.role = "TEACHER";
+      setPage(0);
     } else if (selectedTab === "suspended") {
       params.status = "SUSPENDED";
+      setPage(0);
     } else if (selectedTab === "pending") {
       params.status = "PENDING_APPROVAL";
+      setPage(0);
     }
 
     return params;
@@ -75,25 +86,17 @@ function AdminUsersScreenContent() {
 
   const users = data?.items || [];
 
-/**
- * Status of user accounts in the system
- */
-// (alias) type AccountStatus = "ACTIVE" | "PENDING_APPROVAL" | "PENDING_EMAIL" | "SUSPENDED" | "INACTIVE"
-  // Calculate stats
-// const stats = useMemo(() => ({
-//   total: users.length,
-//   learners: users.filter(u => u.role === "STUDENT").length,
-//   instructors: users.filter(u => u.role === "TEACHER").length,
-//   pending: users.filter(u => u.status === "PENDING_APPROVAL").length,
-//   suspended: users.filter(u => u.status === "SUSPENDED").length,
-// }), [users]);
-const stats = useMemo(() => ({
-  totalUsers: users.length,
-  learners: users.filter(u => u.role === "STUDENT").length,
-  instructors: users.filter(u => u.role === "TEACHER").length,
-  suspended: users.filter(u => u.status === "SUSPENDED").length,
-  pending: users.filter(u => u.status === "PENDING_APPROVAL").length,
-}), [data, users]);
+  // Fetch account statistics from API
+  const { data: statsData } = useAccountStats();
+
+  // Map API stats to UI stats format
+  const stats = useMemo(() => ({
+    totalUsers: statsData?.totalUsers ?? 0,
+    learners: statsData?.totalLearners ?? 0,
+    instructors: statsData?.totalInstructors ?? 0,
+    suspended: statsData?.totalSuspended ?? 0,
+    pending: statsData?.totalPending ?? 0,
+  }), [statsData]);
 
 
   // Filter users by tab
@@ -151,6 +154,92 @@ const stats = useMemo(() => ({
     }
   };
 
+  const handleDownloadTemplate = async () => {
+    try {
+      toast.info("Downloading import template...");
+      const blob = await accountService.downloadImportTemplate();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "student-import-template.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Template downloaded successfully!");
+    } catch (error) {
+      console.error("Error downloading template:", error);
+      toast.error("Failed to download template");
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
+      toast.error("Please select a valid Excel file (.xlsx or .xls)");
+      return;
+    }
+
+    setIsImporting(true);
+    toast.info("Importing students...");
+
+    try {
+      const result = await accountService.importStudents(file);
+      console.log(result);
+
+      // Show import results
+      const successCount = result.successCount || 0;
+      const failureCount = result.failureCount || 0;
+
+      if (failureCount === 0) {
+        toast.success(`Successfully imported ${successCount} student(s)!`);
+      } else {
+        toast.warning(
+          `Import completed with ${successCount} success(es) and ${failureCount} failure(s). Check console for details.`
+        );
+        if (result.errors && result.errors.length > 0) {
+          console.error("Import errors:", result.errors);
+        }
+      }
+
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error: any) {
+      console.error("Error importing students:", error);
+      toast.error(error?.response?.data?.message || "Failed to import students");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (data?.hasNext) {
+      setPage(page + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (data?.hasPrevious) {
+      setPage(page - 1);
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
   const isProcessing =
     suspendMutation.isPending || unlockMutation.isPending;
 
@@ -168,6 +257,16 @@ const stats = useMemo(() => ({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 py-8">
+      {/* Hidden file input for import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx,.xls"
+        onChange={handleFileImport}
+        className="hidden"
+        disabled={isImporting}
+      />
+
       {/* Action Modal */}
       <UserActionModal
         isOpen={showActionModal}
@@ -192,6 +291,8 @@ const stats = useMemo(() => ({
       <UserHeader
         onShowStats={() => setShowStatsView(true)}
         onShowExport={() => setShowExportPopup(true)}
+        onDownloadTemplate={handleDownloadTemplate}
+        onImportStudents={handleImportClick}
       />
 
       {/* Stats Cards */}
@@ -215,6 +316,31 @@ const stats = useMemo(() => ({
         onReject={(user) => openActionModal(user, "reject")}
         onDeactivate={(user) => openActionModal(user, "deactivate")}
       />
+
+      {/* Pagination Controls */}
+      {data && data.totalPages > 1 && (
+        <div className="flex items-center justify-between px-6 py-4 bg-slate-800/50 border border-gray-700 rounded-xl">
+          <div className="text-sm text-gray-400">
+            Page {data.page + 1} of {data.totalPages} • {data.totalItems} total users
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handlePreviousPage}
+              disabled={!data.hasPrevious}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all"
+            >
+              Previous
+            </button>
+            <button
+              onClick={handleNextPage}
+              disabled={!data.hasNext}
+              className="px-4 py-2 bg-gradient-to-br from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 disabled:from-slate-800 disabled:to-slate-800 disabled:text-gray-600 disabled:cursor-not-allowed text-slate-950 disabled:text-gray-600 rounded-lg font-bold transition-all"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

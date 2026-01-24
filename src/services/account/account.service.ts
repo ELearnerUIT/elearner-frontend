@@ -13,6 +13,7 @@ import {
   AccountActionType,
   ExportType,
   ImportResultResponse,
+  AccountStatsResponse,
 } from "./account.types";
 
 const ACCOUNT_PREFIX = "/accounts";
@@ -229,5 +230,15 @@ export const accountService = {
       responseType: "blob",
     });
     return response.data;
+  },
+
+  /**
+   * Get account statistics (Admin only)
+   */
+  getAccountStats: async (): Promise<AccountStatsResponse> => {
+    const response = await axiosClient.get<ApiResponse<AccountStatsResponse>>(
+      `${ADMIN_ACCOUNT_PREFIX}/stats`
+    );
+    return unwrapResponse(response);
   },
 };

@@ -126,3 +126,13 @@ export interface ImportErrorDetail {
   message: string;
   value?: string;
 }
+
+/** Backend: AccountStatsResponse */
+export interface AccountStatsResponse {
+  totalUsers: number;
+  totalLearners: number;
+  totalInstructors: number;
+  totalSuspended: number;
+  totalPending: number;
+}
+
