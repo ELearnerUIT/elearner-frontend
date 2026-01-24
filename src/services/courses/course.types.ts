@@ -131,6 +131,10 @@ export interface CourseResponse {
   teacherName?: string;
   publicVersionId?: number;
   tags?: string[];
+  price?: number;
+  averageRating?: number;
+  reviewCount?: number;
+  enrollmentCount?: number;
 }
 
 /** Backend: CourseDetailResponse */

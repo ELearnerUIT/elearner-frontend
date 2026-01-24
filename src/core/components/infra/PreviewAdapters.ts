@@ -17,6 +17,7 @@ export function previewFromSkillCourse(c: SkillCourse): CoursePreview {
         ],
         price: c.price,
         ctaLabel: "Add to cart",
+        slug: String(c.id),
     };
 }
 

@@ -1,106 +1,64 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { BookOpen, Clock, Award, Search, Filter, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { useEnrollments } from "@/hooks/learner/useEnrollment";
+import { useCertificates } from "@/hooks/learner/useCertificate";
 
 interface Course {
     id: string;
     title: string;
     slug: string;
     thumbnailUrl: string;
-    instructor: {
-        id: string;
-        name: string;
-        avatarUrl: string;
-    };
+    instructor: string;
     progress: number;
     enrolledAt: string;
     lastAccessedAt: string;
-    totalLessons: number;
-    completedLessons: number;
-    status: "ENROLLED" | "COMPLETED" | "EXPIRED";
+    status: "ENROLLED" | "COMPLETED";
     certificateId?: string;
 }
 
 export default function MyCoursesPage() {
-    const [courses, setCourses] = useState<Course[]>([]);
+    const { user } = useAuth();
+    const studentId = user?.profile?.studentId;
+
+    // Fetch enrollments and certificates from backend
+    const { courses: enrolledCourses, isLoading: enrollmentsLoading } = useEnrollments(1, 100);
+    const { data: certificatesData, isLoading: certificatesLoading } = useCertificates(studentId || 0);
+
     const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
-    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<"ALL" | "ENROLLED" | "COMPLETED">("ALL");
 
-    useEffect(() => {
-        // TODO: Replace with actual API call
-        const fetchMyCourses = async () => {
-            setLoading(true);
-            try {
-                // Simulated data
-                const mockCourses: Course[] = [
-                    {
-                        id: "1",
-                        title: "Advanced React Patterns & Best Practices",
-                        slug: "advanced-react-patterns",
-                        thumbnailUrl: "/images/course/placeholder.jpg",
-                        instructor: {
-                            id: "t1",
-                            name: "John Doe",
-                            avatarUrl: "/images/avatars/default.jpg",
-                        },
-                        progress: 65,
-                        enrolledAt: "2025-12-15T10:00:00Z",
-                        lastAccessedAt: "2 hours ago",
-                        totalLessons: 45,
-                        completedLessons: 29,
-                        status: "ENROLLED",
-                    },
-                    {
-                        id: "2",
-                        title: "Node.js Microservices Architecture",
-                        slug: "nodejs-microservices",
-                        thumbnailUrl: "/images/course/placeholder.jpg",
-                        instructor: {
-                            id: "t2",
-                            name: "Jane Smith",
-                            avatarUrl: "/images/avatars/default.jpg",
-                        },
-                        progress: 100,
-                        enrolledAt: "2025-11-01T10:00:00Z",
-                        lastAccessedAt: "3 days ago",
-                        totalLessons: 38,
-                        completedLessons: 38,
-                        status: "COMPLETED",
-                        certificateId: "cert-123",
-                    },
-                    {
-                        id: "3",
-                        title: "TypeScript Advanced Types",
-                        slug: "typescript-advanced",
-                        thumbnailUrl: "/images/course/placeholder.jpg",
-                        instructor: {
-                            id: "t3",
-                            name: "Mike Johnson",
-                            avatarUrl: "/images/avatars/default.jpg",
-                        },
-                        progress: 32,
-                        enrolledAt: "2026-01-10T10:00:00Z",
-                        lastAccessedAt: "1 day ago",
-                        totalLessons: 28,
-                        completedLessons: 9,
-                        status: "ENROLLED",
-                    },
-                ];
-                setCourses(mockCourses);
-                setFilteredCourses(mockCourses);
-            } catch (error) {
-                console.error("Failed to fetch courses:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    // Map enrollments to Course format and add certificate info
+    const courses: Course[] = useMemo(() => {
+        return enrolledCourses.map((enrollment) => {
+            // Find certificate for this course
+            const certificate = certificatesData?.certificates?.find(
+                (cert: any) => cert.courseId === enrollment.courseId
+            );
 
-        fetchMyCourses();
-    }, []);
+            // Determine status based on progress
+            const status: "ENROLLED" | "COMPLETED" = enrollment.progress >= 100 ? "COMPLETED" : "ENROLLED";
+
+            return {
+                id: enrollment.id,
+                title: enrollment.title,
+                slug: enrollment.slug,
+                thumbnailUrl: enrollment.thumbnailUrl || "/images/course/placeholder.jpg",
+                instructor: enrollment.instructor,
+                progress: Math.round(enrollment.progress * 100) / 100,
+                enrolledAt: enrollment.lastViewed,
+                lastAccessedAt: enrollment.lastViewed,
+                status,
+                certificateId: certificate?.id ? String(certificate.id) : undefined,
+            };
+        });
+    }, [enrolledCourses, certificatesData]);
+
+    const loading = enrollmentsLoading || certificatesLoading;
 
     useEffect(() => {
         let filtered = courses;
@@ -114,7 +72,7 @@ export default function MyCoursesPage() {
         if (searchQuery.trim()) {
             filtered = filtered.filter((course) =>
                 course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                course.instructor.name.toLowerCase().includes(searchQuery.toLowerCase())
+                course.instructor.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
 
@@ -166,8 +124,8 @@ export default function MyCoursesPage() {
                             <button
                                 onClick={() => setStatusFilter("ALL")}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === "ALL"
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                                     }`}
                             >
                                 All
@@ -175,8 +133,8 @@ export default function MyCoursesPage() {
                             <button
                                 onClick={() => setStatusFilter("ENROLLED")}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === "ENROLLED"
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                                     }`}
                             >
                                 In Progress
@@ -184,8 +142,8 @@ export default function MyCoursesPage() {
                             <button
                                 onClick={() => setStatusFilter("COMPLETED")}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === "COMPLETED"
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                                     }`}
                             >
                                 Completed
@@ -252,7 +210,7 @@ function CourseCard({ course }: CourseCardProps) {
                         {course.title}
                     </Link>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                        By {course.instructor.name}
+                        By {course.instructor}
                     </p>
                 </div>
 
@@ -272,7 +230,6 @@ function CourseCard({ course }: CourseCardProps) {
                         />
                     </div>
                     <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-                        <span>{course.completedLessons}/{course.totalLessons} lessons</span>
                         <span>Last viewed {course.lastAccessedAt}</span>
                     </div>
                 </div>

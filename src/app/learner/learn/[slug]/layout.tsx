@@ -12,6 +12,7 @@ import type { CourseStructureResponse, ChapterWithLessonsDto, LessonDTO } from "
 import type { CourseProgressResponse, LessonProgressResponse } from "@/services/learning/progress.types";
 import type { CourseDetailResponse } from "@/services/courses/course.types";
 import { useAuth } from "@/hooks/useAuth";
+import { CourseProgressProvider, useCourseProgress } from "./course-progress-context";
 
 interface CourseData {
     id: number;
@@ -21,11 +22,12 @@ interface CourseData {
     progress: CourseProgressResponse;
 }
 
-export default function LearnLayout({ children }: { children: React.ReactNode }) {
+function LearnLayoutContent({ children }: { children: React.ReactNode }) {
     const params = useParams();
     const pathname = usePathname();
     const slug = params?.slug as string;
     const { user } = useAuth();
+    const { setProgress: setContextProgress, triggerRefresh } = useCourseProgress();
 
     const [courseData, setCourseData] = useState<CourseData | null>(null);
     const [expandedChapters, setExpandedChapters] = useState<Set<number>>(new Set());
@@ -41,11 +43,11 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
 
             setLoading(true);
             setError(null);
-            
+
             try {
                 // Get course info by slug first
                 const course = await courseService.getCourseBySlug(slug);
-                
+
                 // Get course structure and progress in parallel
                 const [structure, progress] = await Promise.all([
                     studentCourseService.getCourseStructure(course.id),
@@ -59,6 +61,9 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
                     structure,
                     progress
                 });
+
+                // Update context with the latest progress
+                setContextProgress(progress);
 
                 // Auto-expand first chapter
                 if (structure.chapters.length > 0) {
@@ -80,7 +85,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
         if (slug && user) {
             fetchCourseData();
         }
-    }, [slug, user]);
+    }, [slug, user, triggerRefresh, setContextProgress]);
 
     const toggleChapter = (chapterId: number) => {
         const newExpanded = new Set(expandedChapters);
@@ -124,7 +129,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
 
     const getLessonProgress = (lessonId: number): LessonProgressResponse | undefined => {
         if (!courseData?.progress) return undefined;
-        
+
         for (const chapter of courseData.progress.chapterProgress) {
             const lessonProg = chapter.lessonProgress.find(lp => lp.lessonId === lessonId);
             if (lessonProg) return lessonProg;
@@ -254,8 +259,8 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
                                                     <div className="flex-1 min-w-0">
                                                         <p
                                                             className={`text-sm font-medium ${isCurrent
-                                                                    ? "text-blue-600 dark:text-blue-400"
-                                                                    : "text-slate-900 dark:text-slate-100"
+                                                                ? "text-blue-600 dark:text-blue-400"
+                                                                : "text-slate-900 dark:text-slate-100"
                                                                 }`}
                                                         >
                                                             {lesson.title}
@@ -306,5 +311,13 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
                 {children}
             </main>
         </div>
+    );
+}
+
+export default function LearnLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <CourseProgressProvider>
+            <LearnLayoutContent>{children}</LearnLayoutContent>
+        </CourseProgressProvider>
     );
 }

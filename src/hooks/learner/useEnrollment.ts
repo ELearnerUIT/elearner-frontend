@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { learnerEnrollmentService } from '../../services/learner/enrollmentService';
+import { enrollmentService } from '../../services/learning/enrollment.service';
 import { learnerCourseService } from '../../services/learner/courseService';
 import type { MyCourse } from '@/lib/learner/dashboard/types';
-import type { EnrollmentResponse } from '../../lib/learner/enrollment/enrollments';
+import type { EnrollmentDetailResponse } from '../../services/learning/enrollment.types';
 
 
 /** Lấy danh sách enrollment của student, kèm chi tiết khoá học */
@@ -19,15 +19,20 @@ export function useEnrollments(page: number, size: number) {
   useEffect(() => {
     async function fetchData() {
       const studentId = user?.profile?.studentId;
+      console.log("StudentId: ", studentId);
       if (!studentId) return;
       setIsLoading(true);
       try {
         // Lấy danh sách enrollment (có phân trang)
-        const enrollmentsRes = await learnerEnrollmentService.getEnrollments(studentId, page, size);
-        const items: any[] = enrollmentsRes.items ?? enrollmentsRes.enrollments ?? [];
-        setTotal(enrollmentsRes.totalItems ?? items.length);
-        // Lấy chi tiết khoá học cho từng courseId
-        const coursePromises = items.map((enrollment: any) => learnerCourseService.getCourseById(enrollment.courseId));
+        const enrollmentsRes = await enrollmentService.getStudentEnrollments(studentId);
+        const items = enrollmentsRes.items || [];
+        setTotal(enrollmentsRes.totalItems || items.length);
+        // Lấy chi tiết khoá học cho từng courseSlug (ưu tiên slug)
+        const coursePromises = items.map((enrollment: any) => {
+          // Ưu tiên dùng slug, nếu không có thì dùng courseId
+          const identifier = enrollment.courseSlug || enrollment.courseId;
+          return learnerCourseService.getCourseBySlug(String(identifier));
+        });
         const courseDetails = await Promise.all(coursePromises);
         // Map sang MyCourse, có thể lấy thêm thông tin enrollment nếu cần
         const mapped = courseDetails.map((course: any, idx: number) => {
@@ -37,9 +42,9 @@ export function useEnrollments(page: number, size: number) {
             courseId: enrollment.courseId, // thêm trường này để so sánh chuẩn
             slug: String(course.slug || course.id),
             title: course.title,
-            instructor: String(course.teacherName || "Unknown"),
+            instructor: String(enrollment.instructorName || "Unknown"),
             thumbColor: "from-emerald-500 via-sky-500 to-indigo-500",
-            thumbnail: course.thumbnailUrl,
+            thumbnailUrl: course.thumbnailUrl,
             progress: enrollment.completionPercentage ?? 0,
             lastViewed: enrollment.enrolledAt ? new Date(enrollment.enrolledAt).toLocaleDateString() : "-",
             level: (course.difficulty === 'BEGINNER' ? 'Beginner' : course.difficulty === 'INTERMEDIATE' ? 'Intermediate' : 'Advanced') as 'Beginner' | 'Intermediate' | 'Advanced',
@@ -60,9 +65,9 @@ export function useEnrollments(page: number, size: number) {
 
 /** Lấy chi tiết enrollment */
 export function useEnrollmentDetail(enrollmentId: number) {
-  return useQuery<EnrollmentResponse>({
+  return useQuery<EnrollmentDetailResponse>({
     queryKey: ['learner-enrollment-detail', enrollmentId],
-    queryFn: () => learnerEnrollmentService.getEnrollmentDetail(enrollmentId),
+    queryFn: () => enrollmentService.getEnrollmentDetail(enrollmentId),
     enabled: !!enrollmentId,
   });
 }
@@ -70,14 +75,15 @@ export function useEnrollmentDetail(enrollmentId: number) {
 /** Đăng ký khoá học */
 export function useEnrollCourse() {
   return useMutation({
-    mutationFn: ({ studentId, courseId, courseVersionId }: { studentId: number; courseId: number; courseVersionId: number }) =>
-      learnerEnrollmentService.enrollCourse(studentId, courseId, courseVersionId),
+    mutationFn: ({ courseId, notes }: { courseId: number; notes: string; paymentTransactionId?: number }) =>
+      enrollmentService.enrollCourse(courseId, { notes, paymentTransactionId: undefined }),
   });
 }
 
 /** Huỷ đăng ký khoá học */
 export function useCancelEnrollment() {
   return useMutation({
-    mutationFn: (enrollmentId: number) => learnerEnrollmentService.cancelEnrollment(enrollmentId),
+    mutationFn: ({ enrollmentId, reason }: { enrollmentId: number; reason: string }) => 
+      enrollmentService.cancelEnrollment(enrollmentId, { reason }),
   });
 }

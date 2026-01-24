@@ -8,11 +8,13 @@ import { progressService } from "@/services/learning/progress.service";
 import { AppError } from "@/lib/api/api.error";
 import type { LessonDTO, LessonResourceResponse } from "@/services/learning/student-course.types";
 import type { LessonProgressResponse } from "@/services/learning/progress.types";
+import { useCourseProgress } from "../../course-progress-context";
 
 export default function LessonPage() {
     const params = useParams();
     const lessonId = params?.lessonId as string;
     const videoRef = useRef<HTMLVideoElement>(null);
+    const { refreshProgress } = useCourseProgress();
 
     const [lesson, setLesson] = useState<LessonDTO | null>(null);
     const [resources, setResources] = useState<LessonResourceResponse[]>([]);
@@ -25,7 +27,7 @@ export default function LessonPage() {
         const fetchLesson = async () => {
             setLoading(true);
             setError(null);
-            
+
             try {
                 const lessonData = await studentCourseService.getLessonDetails(Number(lessonId));
                 setLesson(lessonData);
@@ -83,6 +85,9 @@ export default function LessonPage() {
         try {
             const updatedProgress = await progressService.markLessonAsCompleted(Number(lessonId));
             setProgress(updatedProgress);
+
+            // Refresh the sidebar to reflect the updated completion status
+            refreshProgress();
         } catch (err) {
             console.error("Failed to mark lesson as completed:", err);
             if (err instanceof AppError) {

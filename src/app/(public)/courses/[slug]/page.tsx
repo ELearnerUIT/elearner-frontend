@@ -84,7 +84,7 @@ export default function CourseDetailPage() {
     if (enrollments && course?.id) {
       const enrolled = enrollments.items?.some(
         (enrollment: { courseId: number; status: string }) =>
-          enrollment.courseId === course.id && enrollment.status === "ACTIVE"
+          enrollment.courseId === course.id
       );
       setIsEnrolled(!!enrolled);
     }
@@ -115,31 +115,8 @@ export default function CourseDetailPage() {
       return;
     }
 
-    // Check if course is free or paid
-    const isFree = !course.publishedVersion.price || course.publishedVersion.price === 0;
-
-    if (isFree) {
-      // Auto-enroll for free courses
-      setIsEnrolling(true);
-      try {
-        await enrollmentService.enrollCourse(course.id, {
-          notes: "Enrolled in free course",
-        });
-        toast.success("Successfully enrolled! Redirecting to course...");
-        setTimeout(() => {
-          router.push(`/learner/learn/${slug}`);
-        }, 1000);
-      } catch (error: unknown) {
-        console.error("Enrollment error:", error);
-        const errorMessage = error instanceof Error ? error.message : "Failed to enroll in course";
-        toast.error(errorMessage);
-      } finally {
-        setIsEnrolling(false);
-      }
-    } else {
-      // Redirect to checkout for paid courses
-      router.push(`/learner/checkout/${slug}`);
-    }
+    // Redirect to checkout for both free and paid courses
+    router.push(`/learner/checkout/${slug}`);
   };
 
   const handlePreviewLesson = (lessonId: number) => {
@@ -352,7 +329,7 @@ export default function CourseDetailPage() {
                 <button
                   onClick={handleEnroll}
                   disabled={isEnrolling}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg transition mb-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-green-600/50 hover:shadow-xl hover:shadow-green-600/60 transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full btn btn-primary neon flex items-center justify-center gap-2 mb-6 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isEnrolling ? (
                     <>

@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { coursePreviewService } from "@/services/courses/course-preview.service";
 import { courseVersionService } from "@/services/courses/course-version.service";
 import { paymentService } from "@/services/billing/payment.service";
+import { enrollmentService } from "@/services/learning/enrollment.service";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -40,6 +41,9 @@ export default function CheckoutPage() {
         enabled: !!slug && isAuthenticated,
     });
 
+    // Check if course is free
+    const isFree = !publishedVersion?.price || publishedVersion.price === 0;
+
     // Create payment mutation
     const createPaymentMutation = useMutation({
         mutationFn: async (gateway: PaymentGateway) => {
@@ -56,8 +60,6 @@ export default function CheckoutPage() {
             const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
             const returnUrl = `${baseUrl}/learner/payment/success?courseId=${course.id}&slug=${slug}`;
             const cancelUrl = `${baseUrl}/courses/${slug}`;
-            // Callback URL is for gateway to POST to backend, not frontend
-            // Backend will construct this automatically based on its own domain
 
             console.log("Creating payment with:", {
                 courseId: course.id,
@@ -79,7 +81,6 @@ export default function CheckoutPage() {
         },
         onSuccess: (data) => {
             toast.success("Redirecting to payment gateway...");
-            // Redirect to payment URL
             window.location.href = data.paymentUrl;
         },
         onError: (error: any) => {
@@ -88,7 +89,7 @@ export default function CheckoutPage() {
         },
     });
 
-    const handlePayment = () => {
+    const handlePayment = async () => {
         if (!isAuthenticated || !user) {
             toast.error("Please log in to continue");
             router.push(`/login?redirect=/learner/checkout/${slug}`);
@@ -100,12 +101,35 @@ export default function CheckoutPage() {
             return;
         }
 
-        if (!selectedGateway) {
-            toast.error("Please select a payment method");
-            return;
-        }
+        if (isFree) {
+            // Handle free course enrollment
+            if (!course?.id) {
+                toast.error("Course ID not found");
+                return;
+            }
 
-        createPaymentMutation.mutate(selectedGateway);
+            try {
+                await enrollmentService.enrollCourse(course.id, {
+                    paymentTransactionId: 0,
+                    notes: "Enrolled in free course",
+                });
+                toast.success("Successfully enrolled! Redirecting to course...");
+                setTimeout(() => {
+                    router.push(`/learner/learn/${slug}`);
+                }, 1000);
+            } catch (error: any) {
+                console.error("Enrollment error:", error);
+                toast.error(error.message || "Failed to enroll in course");
+            }
+        } else {
+            // Handle paid course payment
+            if (!selectedGateway) {
+                toast.error("Please select a payment method");
+                return;
+            }
+
+            createPaymentMutation.mutate(selectedGateway);
+        }
     };
 
     if (!isAuthenticated) {
@@ -149,105 +173,107 @@ export default function CheckoutPage() {
                 <h1 className="text-3xl md:text-4xl font-bold mb-8">Checkout</h1>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Payment Method Selection */}
-                    <div className="lg:col-span-2">
-                        <div className="rounded-xl border border-border bg-card p-6">
-                            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                                <CreditCard className="h-5 w-5" />
-                                Select Payment Method
-                            </h2>
+                    {/* Payment Method Selection - Only show for paid courses */}
+                    {!isFree && (
+                        <div className="lg:col-span-2">
+                            <div className="rounded-xl border border-border bg-card p-6">
+                                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                                    <CreditCard className="h-5 w-5" />
+                                    Select Payment Method
+                                </h2>
 
-                            <div className="space-y-3">
-                                {/* VNPay */}
-                                <label
-                                    className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition ${selectedGateway === "VNPAY"
-                                        ? "border-primary bg-primary/10"
-                                        : "border-border hover:border-muted-foreground"
-                                        }`}
-                                >
-                                    <input
-                                        type="radio"
-                                        name="gateway"
-                                        value="VNPAY"
-                                        checked={selectedGateway === "VNPAY"}
-                                        onChange={(e) => setSelectedGateway(e.target.value as PaymentGateway)}
-                                        className="w-5 h-5"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="font-semibold">VNPay</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            Pay with VNPay e-wallet or linked cards
+                                <div className="space-y-3">
+                                    {/* VNPay */}
+                                    <label
+                                        className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition ${selectedGateway === "VNPAY"
+                                            ? "border-primary bg-primary/10"
+                                            : "border-border hover:border-muted-foreground"
+                                            }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="gateway"
+                                            value="VNPAY"
+                                            checked={selectedGateway === "VNPAY"}
+                                            onChange={(e) => setSelectedGateway(e.target.value as PaymentGateway)}
+                                            className="w-5 h-5"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-semibold">VNPay</div>
+                                            <div className="text-sm text-muted-foreground">
+                                                Pay with VNPay e-wallet or linked cards
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="text-2xl">💳</div>
-                                </label>
+                                        <div className="text-2xl">💳</div>
+                                    </label>
 
-                                {/* ZaloPay */}
-                                <label
-                                    className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition ${selectedGateway === "ZALOPAY"
-                                        ? "border-primary bg-primary/10"
-                                        : "border-border hover:border-muted-foreground"
-                                        }`}
-                                >
-                                    <input
-                                        type="radio"
-                                        name="gateway"
-                                        value="ZALOPAY"
-                                        checked={selectedGateway === "ZALOPAY"}
-                                        onChange={(e) => setSelectedGateway(e.target.value as PaymentGateway)}
-                                        className="w-5 h-5"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="font-semibold">ZaloPay</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            Pay with ZaloPay e-wallet
+                                    {/* ZaloPay */}
+                                    <label
+                                        className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition ${selectedGateway === "ZALOPAY"
+                                            ? "border-primary bg-primary/10"
+                                            : "border-border hover:border-muted-foreground"
+                                            }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="gateway"
+                                            value="ZALOPAY"
+                                            checked={selectedGateway === "ZALOPAY"}
+                                            onChange={(e) => setSelectedGateway(e.target.value as PaymentGateway)}
+                                            className="w-5 h-5"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-semibold">ZaloPay</div>
+                                            <div className="text-sm text-muted-foreground">
+                                                Pay with ZaloPay e-wallet
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="text-2xl">💰</div>
-                                </label>
+                                        <div className="text-2xl">💰</div>
+                                    </label>
 
-                                {/* MoMo */}
-                                <label
-                                    className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition ${selectedGateway === "MOMO"
-                                        ? "border-primary bg-primary/10"
-                                        : "border-border hover:border-muted-foreground"
-                                        }`}
-                                >
-                                    <input
-                                        type="radio"
-                                        name="gateway"
-                                        value="MOMO"
-                                        checked={selectedGateway === "MOMO"}
-                                        onChange={(e) => setSelectedGateway(e.target.value as PaymentGateway)}
-                                        className="w-5 h-5"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="font-semibold">MoMo</div>
-                                        <div className="text-sm text-muted-foreground">
-                                            Pay with MoMo e-wallet
+                                    {/* MoMo */}
+                                    <label
+                                        className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition ${selectedGateway === "MOMO"
+                                            ? "border-primary bg-primary/10"
+                                            : "border-border hover:border-muted-foreground"
+                                            }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="gateway"
+                                            value="MOMO"
+                                            checked={selectedGateway === "MOMO"}
+                                            onChange={(e) => setSelectedGateway(e.target.value as PaymentGateway)}
+                                            className="w-5 h-5"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-semibold">MoMo</div>
+                                            <div className="text-sm text-muted-foreground">
+                                                Pay with MoMo e-wallet
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="text-2xl">📱</div>
-                                </label>
-                            </div>
+                                        <div className="text-2xl">📱</div>
+                                    </label>
+                                </div>
 
-                            {/* Security Notice */}
-                            <div className="mt-6 p-4 rounded-lg bg-muted border border-border">
-                                <div className="flex items-start gap-3">
-                                    <Shield className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                                    <div className="text-sm text-muted-foreground">
-                                        <p className="font-semibold text-foreground mb-1">Secure Payment</p>
-                                        <p>
-                                            Your payment information is encrypted and secure. We do not store your payment details.
-                                        </p>
+                                {/* Security Notice */}
+                                <div className="mt-6 p-4 rounded-lg bg-muted border border-border">
+                                    <div className="flex items-start gap-3">
+                                        <Shield className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                                        <div className="text-sm text-muted-foreground">
+                                            <p className="font-semibold text-foreground mb-1">Secure Payment</p>
+                                            <p>
+                                                Your payment information is encrypted and secure. We do not store your payment details.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Order Summary */}
-                    <div className="lg:col-span-1">
+                    <div className={isFree ? "max-w-md mx-auto w-full lg:col-span-3" : "lg:col-span-1"}>
                         <div className="rounded-xl border border-border bg-card p-6 sticky top-24">
                             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
 
@@ -295,6 +321,8 @@ export default function CheckoutPage() {
                                                 <Loader2 className="h-4 w-4 animate-spin" />
                                                 Processing...
                                             </>
+                                        ) : isFree ? (
+                                            "Enroll Now - It's Free"
                                         ) : (
                                             "Complete Payment"
                                         )}

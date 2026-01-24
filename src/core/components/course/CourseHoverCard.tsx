@@ -13,6 +13,7 @@ export type CoursePreview = {
   bullets?: string[];
   price?: string;
   ctaLabel?: string;       // "Add to cart" / "View details"
+  slug?: string;
 };
 
 export default function CourseHoverCard({
@@ -114,19 +115,19 @@ export default function CourseHoverCard({
 
           <div className="mt-4 flex items-center justify-between gap-3">
             {preview.price && <div className="text-base font-bold">{preview.price}</div>}
-            <button
-              className="ml-auto inline-flex items-center justify-center px-4 py-2 rounded-lg
-                         bg-[#65D830] text-black font-semibold
-                         shadow-[0_6px_20px_rgba(101,216,48,.35)]
-                         hover:shadow-[0_8px_26px_rgba(101,216,48,.45)]
-                         transition-all"
-              onClick={(e) => {
-                e.stopPropagation();
-                // TODO: add to cart / navigate
-              }}
-            >
-              {preview.ctaLabel ?? "Add to cart"}
-            </button>
+            {preview.slug ? (
+              <a
+                href={`/courses/${preview.slug}`}
+                className="ml-auto inline-flex items-center justify-center px-4 py-2 rounded-lg
+                           bg-[#65D830] text-black font-semibold
+                           shadow-[0_6px_20px_rgba(101,216,48,.35)]
+                           hover:shadow-[0_8px_26px_rgba(101,216,48,.45)]
+                           transition-all"
+                onClick={(e) => e.stopPropagation()}
+              >
+                View More
+              </a>
+            ) : null}
           </div>
         </div>
       )}
