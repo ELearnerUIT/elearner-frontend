@@ -386,6 +386,7 @@ export default function LessonPage() {
                 {/* Video Player */}
                 {lesson.lessonType?.toUpperCase() === "VIDEO" && (
                     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                        BALLS
                         <div className="aspect-video bg-black relative">
                             {loadingVideo ? (
                                 <div className="absolute inset-0 flex items-center justify-center">
