@@ -20,8 +20,8 @@ import { LessonModal } from "./LessonModal";
 import { LessonItem } from "@/core/components/teacher/content/LessonItem";
 import { VideoUploadModal } from "./VideoUploadModal";
 import { DocumentUploadModal } from "./DocumentUploadModal";
-import { LinkQuizDialog } from "./LinkQuizDialog";
-import { LinkAssignmentDialog } from "./LinkAssignmentDialog";
+import { LinkQuizModal } from "./LinkQuizModal";
+import { LinkAssignmentModal } from "./LinkAssignmentModal";
 import { lessonResourceService } from "@/services/courses/content/lesson-resource.service";
 import { toast } from "sonner";
 
@@ -291,10 +291,12 @@ export const ChapterItem = ({
                                                 onDelete={handleDeleteLesson}
                                                 onManageVideo={(lesson) => setVideoModal({ isOpen: true, lesson })}
                                                 onManageDocument={(lesson) => setDocumentModal({ isOpen: true, lesson })}
+                                                onLinkQuiz={(lessonId) => setLinkQuizModal({ isOpen: true, lessonId })}
                                                 onManageQuiz={(lessonId) => {
                                                     // Navigate to quiz grading page
                                                     router.push(`/teacher/courses/${slug}/lessons/${lessonId}/quizzes`);
                                                 }}
+                                                onLinkAssignment={(lessonId) => setLinkAssignmentModal({ isOpen: true, lessonId })}
                                                 onManageAssignment={(lessonId) => {
                                                     // Navigate to assignment grading page
                                                     router.push(`/teacher/courses/${slug}/lessons/${lessonId}/assignments`);
@@ -363,27 +365,21 @@ export const ChapterItem = ({
 
             {/* Link Quiz Modal */}
             {linkQuizModal.lessonId && (
-                <LinkQuizDialog
-                    open={linkQuizModal.isOpen}
-                    onOpenChange={(open) => !open && setLinkQuizModal({ isOpen: false })}
+                <LinkQuizModal
+                    isOpen={linkQuizModal.isOpen}
+                    onClose={() => setLinkQuizModal({ isOpen: false })}
                     lessonId={linkQuizModal.lessonId}
-                    onLinkSuccess={() => {
-                        toast.success("Quiz linked successfully!");
-                        setLinkQuizModal({ isOpen: false });
-                    }}
+                    lessonTitle={lessons.find(l => l.id === linkQuizModal.lessonId)?.title || "Lesson"}
                 />
             )}
 
             {/* Link Assignment Modal */}
             {linkAssignmentModal.lessonId && (
-                <LinkAssignmentDialog
-                    open={linkAssignmentModal.isOpen}
-                    onOpenChange={(open) => !open && setLinkAssignmentModal({ isOpen: false })}
+                <LinkAssignmentModal
+                    isOpen={linkAssignmentModal.isOpen}
+                    onClose={() => setLinkAssignmentModal({ isOpen: false })}
                     lessonId={linkAssignmentModal.lessonId}
-                    onLinkSuccess={() => {
-                        toast.success("Assignment linked successfully!");
-                        setLinkAssignmentModal({ isOpen: false });
-                    }}
+                    lessonTitle={lessons.find(l => l.id === linkAssignmentModal.lessonId)?.title || "Lesson"}
                 />
             )}
         </>

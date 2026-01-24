@@ -233,8 +233,8 @@ export default function CourseDetailPage() {
                         <Star
                           key={star}
                           className={`h-4 w-4 ${star <= Math.round(ratingSummary.averageRating)
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-gray-600"
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-600"
                             }`}
                         />
                       ))}
@@ -300,16 +300,31 @@ export default function CourseDetailPage() {
               </div>
             </div>
 
-            {/* Right Sidebar - Only visible on mobile in hero */}
-            <div className="lg:hidden">
-              <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
-                <Image
-                  src={course.thumbnailUrl || "/images/lesson_thum.png"}
-                  alt={course.title}
-                  fill
-                  className="object-cover"
-                  priority
-                />
+            {/* Right Sidebar - Course Thumbnail */}
+            <div className="lg:col-span-1">
+              {/* Desktop Thumbnail */}
+              <div className="hidden lg:block">
+                <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
+                  <Image
+                    src={course.thumbnailUrl || "/images/lesson_thum.png"}
+                    alt={course.title}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              </div>
+              {/* Mobile Thumbnail */}
+              <div className="lg:hidden">
+                <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
+                  <Image
+                    src={course.thumbnailUrl || "/images/lesson_thum.png"}
+                    alt={course.title}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -100,16 +100,25 @@ export default function TeacherViewCoursePage() {
     const loadLessonContent = async (lessonId: number) => {
         try {
             setLoadingContent(true);
-            const [resources, quizzes, assignments] = await Promise.all([
-                lessonResourceService.getLessonResources(lessonId).catch(() => []),
-                assessmentService.getQuizzesByLesson(lessonId).catch(() => []),
-                assignmentService.getAssignmentsByLesson(lessonId).catch(() => []),
+
+            // Parallel loading with proper error handling for each
+            const [resources, quizzes, assignments] = await Promise.allSettled([
+                lessonResourceService.getLessonResources(lessonId),
+                assessmentService.getQuizzesByLesson(lessonId),
+                assignmentService.getAssignmentsByLesson(lessonId),
             ]);
-            setLessonResources(resources);
-            setLessonQuizzes(quizzes);
-            setLessonAssignments(assignments);
+
+            // Extract results or use empty arrays as fallback
+            setLessonResources(resources.status === 'fulfilled' ? resources.value : []);
+            setLessonQuizzes(quizzes.status === 'fulfilled' ? quizzes.value : []);
+            setLessonAssignments(assignments.status === 'fulfilled' ? assignments.value : []);
+
         } catch (error) {
             console.error("Failed to load lesson content:", error);
+            // Set empty arrays on complete failure
+            setLessonResources([]);
+            setLessonQuizzes([]);
+            setLessonAssignments([]);
         } finally {
             setLoadingContent(false);
         }
@@ -606,24 +615,21 @@ export default function TeacherViewCoursePage() {
                                                                     <p className="text-sm text-slate-400 mt-1">{quiz.description}</p>
                                                                 )}
                                                                 <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
-                                                                    {quiz.totalQuestions && (
-                                                                        <span>{quiz.totalQuestions} questions</span>
+                                                                    {quiz.questions && quiz.questions.length > 0 && (
+                                                                        <span>{quiz.questions.length} questions</span>
                                                                     )}
-                                                                    {quiz.timeLimit && (
+                                                                    {quiz.timeLimitMinutes && (
                                                                         <span className="flex items-center gap-1">
                                                                             <Clock className="w-3 h-3" />
-                                                                            {quiz.timeLimit} mins
+                                                                            {quiz.timeLimitMinutes} mins
                                                                         </span>
+                                                                    )}
+                                                                    {quiz.totalPoints && (
+                                                                        <span>{quiz.totalPoints} points</span>
                                                                     )}
                                                                     {quiz.passingScore && (
                                                                         <span>Passing: {quiz.passingScore}%</span>
                                                                     )}
-                                                                    <span className={`px-2 py-0.5 rounded ${quiz.status === 'PUBLISHED' ? 'bg-green-900/30 text-green-400' :
-                                                                        quiz.status === 'DRAFT' ? 'bg-amber-900/30 text-amber-400' :
-                                                                            'bg-slate-700 text-slate-400'
-                                                                        }`}>
-                                                                        {quiz.status}
-                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -646,26 +652,35 @@ export default function TeacherViewCoursePage() {
                                                             className="flex items-center justify-between p-3 bg-slate-750 hover:bg-slate-700 rounded-lg transition-colors"
                                                         >
                                                             <div className="flex-1">
-                                                                <p className="text-white font-medium">{assignment.title}</p>
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="text-white font-medium">{assignment.title}</p>
+                                                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${assignment.assignmentType === 'PRACTICE' ? 'bg-blue-900/30 text-blue-400' :
+                                                                            assignment.assignmentType === 'HOMEWORK' ? 'bg-purple-900/30 text-purple-400' :
+                                                                                assignment.assignmentType === 'PROJECT' ? 'bg-orange-900/30 text-orange-400' :
+                                                                                    'bg-red-900/30 text-red-400'
+                                                                        }`}>
+                                                                        {assignment.assignmentType}
+                                                                    </span>
+                                                                </div>
                                                                 {assignment.description && (
                                                                     <p className="text-sm text-slate-400 mt-1">{assignment.description}</p>
                                                                 )}
                                                                 <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
-                                                                    {assignment.maxScore && (
-                                                                        <span>Max score: {assignment.maxScore}</span>
+                                                                    {assignment.totalPoints && (
+                                                                        <span>{assignment.totalPoints} points</span>
+                                                                    )}
+                                                                    {assignment.timeLimitMinutes && (
+                                                                        <span className="flex items-center gap-1">
+                                                                            <Clock className="w-3 h-3" />
+                                                                            {assignment.timeLimitMinutes} mins
+                                                                        </span>
                                                                     )}
                                                                     {assignment.dueDate && (
                                                                         <span>Due: {new Date(assignment.dueDate).toLocaleDateString()}</span>
                                                                     )}
-                                                                    {assignment.totalSubmissions !== undefined && (
-                                                                        <span>{assignment.totalSubmissions} submissions</span>
+                                                                    {assignment.maxAttempts && (
+                                                                        <span>Max {assignment.maxAttempts} attempts</span>
                                                                     )}
-                                                                    <span className={`px-2 py-0.5 rounded ${assignment.status === 'PUBLISHED' ? 'bg-green-900/30 text-green-400' :
-                                                                        assignment.status === 'DRAFT' ? 'bg-amber-900/30 text-amber-400' :
-                                                                            'bg-slate-700 text-slate-400'
-                                                                        }`}>
-                                                                        {assignment.status}
-                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         </div>
