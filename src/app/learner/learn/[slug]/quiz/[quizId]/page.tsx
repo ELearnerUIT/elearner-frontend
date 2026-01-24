@@ -1,27 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Clock, AlertCircle, CheckCircle, ChevronRight } from "lucide-react";
+import { Clock, AlertCircle, CheckCircle, ChevronRight, Loader2, XCircle, RefreshCw } from "lucide-react";
+import { assessmentService } from "@/services/assessment/assessment.service";
+import { progressService } from "@/services/learning/progress.service";
+import studentCourseService from "@/services/learning/student-course.service";
+import { useCourseProgress } from "../../course-progress-context";
+import { toast } from "sonner";
+import type {
+    QuizResponse,
+    QuizAttemptResponse,
+    QuizEligibilityResponse,
+    QuestionResponse,
+    AnswerOptionResponse,
+} from "@/services/assessment/assessment.types";
 
-interface QuizQuestion {
-    id: string;
-    questionText: string;
-    questionType: "SINGLE" | "MULTIPLE";
-    options: {
-        id: string;
-        optionText: string;
-    }[];
-}
-
-interface QuizDetail {
-    id: string;
-    title: string;
-    description?: string;
-    duration: number; // seconds
-    passingScore: number;
-    totalQuestions: number;
-    questions: QuizQuestion[];
+// Question with options for display
+interface QuizQuestionDisplay {
+    id: number;
+    questionId: number;
+    content: string;
+    type: string;
+    points: number;
+    options: AnswerOptionResponse[];
 }
 
 export default function QuizPage() {
@@ -29,106 +31,66 @@ export default function QuizPage() {
     const router = useRouter();
     const quizId = params?.quizId as string;
     const slug = params?.slug as string;
+    const { refreshProgress } = useCourseProgress();
 
-    const [quiz, setQuiz] = useState<QuizDetail | null>(null);
+    // Quiz data state
+    const [quiz, setQuiz] = useState<QuizResponse | null>(null);
+    const [eligibility, setEligibility] = useState<QuizEligibilityResponse | null>(null);
+    const [questions, setQuestions] = useState<QuizQuestionDisplay[]>([]);
+    const [attempt, setAttempt] = useState<QuizAttemptResponse | null>(null);
+    const [lessonId, setLessonId] = useState<number | null>(null);
+
+    // UI state
     const [loading, setLoading] = useState(true);
+    const [starting, setStarting] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [answers, setAnswers] = useState<Record<string, string[]>>({});
+    const [answers, setAnswers] = useState<Record<number, number>>({});
     const [timeLeft, setTimeLeft] = useState(0);
-    const [attemptStarted, setAttemptStarted] = useState(false);
-    const [result, setResult] = useState<{
-        score: number;
-        passed: boolean;
-        correctAnswers: number;
-    } | null>(null);
+    const [result, setResult] = useState<QuizAttemptResponse | null>(null);
 
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Fetch quiz info and eligibility
     useEffect(() => {
-        // TODO: Replace with actual API call
-        const fetchQuiz = async () => {
+        const fetchQuizData = async () => {
             setLoading(true);
             try {
-                const mockQuiz: QuizDetail = {
-                    id: quizId,
-                    title: "Module 3 Quiz",
-                    description: "Test your knowledge of React Hooks and Patterns",
-                    duration: 600, // 10 minutes
-                    passingScore: 70,
-                    totalQuestions: 5,
-                    questions: [
-                        {
-                            id: "q1",
-                            questionText: "What is the purpose of useEffect hook?",
-                            questionType: "SINGLE",
-                            options: [
-                                { id: "opt1", optionText: "To manage state" },
-                                { id: "opt2", optionText: "To handle side effects" },
-                                { id: "opt3", optionText: "To create refs" },
-                                { id: "opt4", optionText: "To optimize performance" },
-                            ],
-                        },
-                        {
-                            id: "q2",
-                            questionText: "Which hooks can be used for performance optimization? (Select all that apply)",
-                            questionType: "MULTIPLE",
-                            options: [
-                                { id: "opt5", optionText: "useMemo" },
-                                { id: "opt6", optionText: "useCallback" },
-                                { id: "opt7", optionText: "useState" },
-                                { id: "opt8", optionText: "React.memo" },
-                            ],
-                        },
-                        {
-                            id: "q3",
-                            questionText: "When does useEffect run by default?",
-                            questionType: "SINGLE",
-                            options: [
-                                { id: "opt9", optionText: "Only on mount" },
-                                { id: "opt10", optionText: "After every render" },
-                                { id: "opt11", optionText: "Only on unmount" },
-                                { id: "opt12", optionText: "When dependencies change" },
-                            ],
-                        },
-                        {
-                            id: "q4",
-                            questionText: "What is a custom hook?",
-                            questionType: "SINGLE",
-                            options: [
-                                { id: "opt13", optionText: "A built-in React hook" },
-                                { id: "opt14", optionText: "A function that uses React hooks" },
-                                { id: "opt15", optionText: "A class component method" },
-                                { id: "opt16", optionText: "A CSS-in-JS solution" },
-                            ],
-                        },
-                        {
-                            id: "q5",
-                            questionText: "Which of the following are rules of hooks? (Select all that apply)",
-                            questionType: "MULTIPLE",
-                            options: [
-                                { id: "opt17", optionText: "Only call hooks at the top level" },
-                                { id: "opt18", optionText: "Only call hooks from React functions" },
-                                { id: "opt19", optionText: "Hooks can be called conditionally" },
-                                { id: "opt20", optionText: "Hooks must start with 'use'" },
-                            ],
-                        },
-                    ],
-                };
-                setQuiz(mockQuiz);
-                setTimeLeft(mockQuiz.duration);
-            } catch (error) {
+                // Fetch quiz info for taking (student view)
+                const quizData = await assessmentService.getQuizForTaking(Number(quizId));
+                setQuiz(quizData);
+                setLessonId(quizData.lessonId || null);
+
+                // Set initial time
+                if (quizData.timeLimitMinutes) {
+                    setTimeLeft(quizData.timeLimitMinutes * 60);
+                }
+
+                // Check eligibility
+                const eligibilityData = await assessmentService.checkQuizEligibility(Number(quizId));
+                setEligibility(eligibilityData);
+            } catch (error: any) {
                 console.error("Failed to fetch quiz:", error);
+                toast.error(error?.message || "Failed to load quiz");
             } finally {
                 setLoading(false);
             }
         };
 
         if (quizId) {
-            fetchQuiz();
+            fetchQuizData();
         }
+
+        return () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
+        };
     }, [quizId]);
 
+    // Timer logic
     useEffect(() => {
-        if (attemptStarted && timeLeft > 0 && !result) {
-            const timer = setInterval(() => {
+        if (attempt && !result && timeLeft > 0) {
+            timerRef.current = setInterval(() => {
                 setTimeLeft((prev) => {
                     if (prev <= 1) {
                         handleSubmit();
@@ -138,55 +100,138 @@ export default function QuizPage() {
                 });
             }, 1000);
 
-            return () => clearInterval(timer);
-        }
-    }, [attemptStarted, timeLeft, result]);
-
-    const handleStartAttempt = () => {
-        setAttemptStarted(true);
-    };
-
-    const handleAnswerChange = (questionId: string, optionId: string, isMultiple: boolean) => {
-        setAnswers((prev) => {
-            if (isMultiple) {
-                const currentAnswers = prev[questionId] || [];
-                if (currentAnswers.includes(optionId)) {
-                    return {
-                        ...prev,
-                        [questionId]: currentAnswers.filter((id) => id !== optionId),
-                    };
-                } else {
-                    return {
-                        ...prev,
-                        [questionId]: [...currentAnswers, optionId],
-                    };
+            return () => {
+                if (timerRef.current) {
+                    clearInterval(timerRef.current);
                 }
-            } else {
-                return {
-                    ...prev,
-                    [questionId]: [optionId],
-                };
+            };
+        }
+    }, [attempt, result]);
+
+    const handleStartAttempt = async () => {
+        setStarting(true);
+        try {
+            const attemptData = await assessmentService.startQuiz(Number(quizId));
+            setAttempt(attemptData);
+
+            // Set timer from quiz settings
+            if (quiz?.timeLimitMinutes) {
+                setTimeLeft(quiz.timeLimitMinutes * 60);
             }
-        });
+
+            // Build questions from attempt or fetch separately
+            if (attemptData.answers && attemptData.answers.length > 0) {
+                // If attempt has answers array, we can get questions from there
+                const questionsToDisplay: QuizQuestionDisplay[] = [];
+
+                for (const answer of attemptData.answers) {
+                    try {
+                        const questionData = await assessmentService.getQuestionById(answer.questionId);
+                        questionsToDisplay.push({
+                            id: answer.questionId,
+                            questionId: answer.questionId,
+                            content: questionData.content,
+                            type: questionData.type,
+                            points: questionData.maxPoints,
+                            options: questionData.answerOptions || [],
+                        });
+                    } catch (err) {
+                        console.error(`Failed to fetch question ${answer.questionId}:`, err);
+                    }
+                }
+                setQuestions(questionsToDisplay);
+            } else if (quiz?.questions && quiz.questions.length > 0) {
+                // Use quiz's questions list
+                const questionsToDisplay: QuizQuestionDisplay[] = [];
+
+                for (const q of quiz.questions) {
+                    try {
+                        const questionData = await assessmentService.getQuestionById(q.questionId);
+                        questionsToDisplay.push({
+                            id: q.id,
+                            questionId: q.questionId,
+                            content: questionData.content,
+                            type: questionData.type,
+                            points: q.points || questionData.maxPoints,
+                            options: questionData.answerOptions || [],
+                        });
+                    } catch (err) {
+                        console.error(`Failed to fetch question ${q.questionId}:`, err);
+                    }
+                }
+                setQuestions(questionsToDisplay);
+            }
+
+            toast.success("Quiz started! Good luck!");
+        } catch (error: any) {
+            console.error("Failed to start quiz:", error);
+            toast.error(error?.message || "Failed to start quiz");
+        } finally {
+            setStarting(false);
+        }
     };
 
-    const handleSubmit = async () => {
+    const handleAnswerChange = async (questionId: number, optionId: number, isMultiple: boolean) => {
+        // Update local state
+        setAnswers((prev) => ({
+            ...prev,
+            [questionId]: optionId,
+        }));
+
+        // Auto-save answer to backend
+        if (attempt) {
+            try {
+                await assessmentService.submitAnswer(Number(quizId), attempt.id, {
+                    questionId,
+                    selectedOptionId: optionId,
+                });
+            } catch (error) {
+                console.error("Failed to save answer:", error);
+                // Don't show error toast to avoid disturbing the user
+            }
+        }
+    };
+
+    const handleSubmit = useCallback(async () => {
+        if (!attempt || submitting) return;
+
         setSubmitting(true);
         try {
-            // TODO: Replace with actual API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            // Stop timer
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
 
-            // Mock result
-            const mockResult = {
-                score: 85,
-                passed: true,
-                correctAnswers: 4,
-            };
-            setResult(mockResult);
-        } catch (error) {
+            // Finish quiz
+            const resultData = await assessmentService.finishQuiz(Number(quizId), attempt.id);
+            setResult(resultData);
+
+            // If passed and we have lessonId, mark lesson as completed
+            if (resultData.passed && lessonId) {
+                try {
+                    await progressService.markLessonAsCompleted(lessonId);
+                    refreshProgress();
+                } catch (err) {
+                    console.error("Failed to mark lesson as completed:", err);
+                }
+            }
+
+            toast.success("Quiz submitted successfully!");
+        } catch (error: any) {
             console.error("Failed to submit quiz:", error);
+            toast.error(error?.message || "Failed to submit quiz");
         } finally {
             setSubmitting(false);
+        }
+    }, [attempt, quizId, lessonId, refreshProgress, submitting]);
+
+    const handleRetakeQuiz = () => {
+        setResult(null);
+        setAttempt(null);
+        setAnswers({});
+        setQuestions([]);
+        if (quiz?.timeLimitMinutes) {
+            setTimeLeft(quiz.timeLimitMinutes * 60);
         }
     };
 
@@ -200,36 +245,58 @@ export default function QuizPage() {
         return (
             <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-950">
                 <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <Loader2 className="w-16 h-16 text-blue-600 animate-spin mx-auto mb-4" />
                     <p className="text-slate-600 dark:text-slate-400">Loading quiz...</p>
                 </div>
             </div>
         );
     }
 
-    if (!quiz) return null;
+    if (!quiz) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-950">
+                <div className="text-center">
+                    <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <p className="text-slate-600 dark:text-slate-400">Quiz not found</p>
+                    <button
+                        onClick={() => router.push(`/learner/learn/${slug}`)}
+                        className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                        Back to Course
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     // Result Screen
     if (result) {
+        const passed = result.passed ?? false;
+        const score = result.score ?? 0;
+        const totalPoints = result.totalPoints ?? quiz.totalPoints ?? 100;
+        const scorePercent = totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0;
+
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
                 <div className="max-w-2xl w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center">
-                    <div className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-6 ${result.passed
-                            ? "bg-green-100 dark:bg-green-900/30"
-                            : "bg-red-100 dark:bg-red-900/30"
-                        }`}>
-                        {result.passed ? (
+                    <div
+                        className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-6 ${passed
+                                ? "bg-green-100 dark:bg-green-900/30"
+                                : "bg-red-100 dark:bg-red-900/30"
+                            }`}
+                    >
+                        {passed ? (
                             <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
                         ) : (
-                            <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400" />
+                            <XCircle className="w-12 h-12 text-red-600 dark:text-red-400" />
                         )}
                     </div>
 
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                        {result.passed ? "Congratulations!" : "Keep Trying!"}
+                        {passed ? "Congratulations!" : "Keep Trying!"}
                     </h1>
                     <p className="text-slate-600 dark:text-slate-400 mb-8">
-                        {result.passed
+                        {passed
                             ? "You've successfully passed this quiz!"
                             : "Don't worry, you can retake the quiz to improve your score."}
                     </p>
@@ -237,18 +304,28 @@ export default function QuizPage() {
                     <div className="grid grid-cols-2 gap-4 mb-8">
                         <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-6">
                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Your Score</p>
-                            <p className={`text-4xl font-bold ${result.passed ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                                }`}>
-                                {result.score}%
+                            <p
+                                className={`text-4xl font-bold ${passed
+                                        ? "text-green-600 dark:text-green-400"
+                                        : "text-red-600 dark:text-red-400"
+                                    }`}
+                            >
+                                {scorePercent}%
                             </p>
                         </div>
                         <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-6">
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Correct Answers</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Points Earned</p>
                             <p className="text-4xl font-bold text-slate-900 dark:text-slate-100">
-                                {result.correctAnswers}/{quiz.totalQuestions}
+                                {score}/{totalPoints}
                             </p>
                         </div>
                     </div>
+
+                    {result.timeSpent && (
+                        <p className="text-sm text-slate-500 dark:text-slate-500 mb-6">
+                            Time spent: {formatTime(result.timeSpent)}
+                        </p>
+                    )}
 
                     <div className="space-y-3">
                         <button
@@ -258,17 +335,13 @@ export default function QuizPage() {
                             Continue to Next Lesson
                             <ChevronRight className="w-5 h-5 inline ml-2" />
                         </button>
-                        {!result.passed && (
+                        {!passed && eligibility && eligibility.remainingAttempts > 0 && (
                             <button
-                                onClick={() => {
-                                    setResult(null);
-                                    setAnswers({});
-                                    setTimeLeft(quiz.duration);
-                                    setAttemptStarted(false);
-                                }}
-                                className="w-full px-6 py-3 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium transition-colors"
+                                onClick={handleRetakeQuiz}
+                                className="w-full px-6 py-3 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg font-medium transition-colors inline-flex items-center justify-center gap-2"
                             >
-                                Retake Quiz
+                                <RefreshCw className="w-5 h-5" />
+                                Retake Quiz ({eligibility.remainingAttempts} attempts left)
                             </button>
                         )}
                     </div>
@@ -278,7 +351,9 @@ export default function QuizPage() {
     }
 
     // Start Screen
-    if (!attemptStarted) {
+    if (!attempt) {
+        const canAttempt = eligibility?.canAttempt ?? true;
+
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
                 <div className="max-w-2xl w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8">
@@ -286,44 +361,70 @@ export default function QuizPage() {
                         {quiz.title}
                     </h1>
                     {quiz.description && (
-                        <p className="text-slate-600 dark:text-slate-400 mb-6">
-                            {quiz.description}
-                        </p>
+                        <p className="text-slate-600 dark:text-slate-400 mb-6">{quiz.description}</p>
                     )}
 
                     <div className="space-y-4 mb-8">
                         <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
                             <span className="text-slate-600 dark:text-slate-400">Total Questions</span>
                             <span className="font-semibold text-slate-900 dark:text-slate-100">
-                                {quiz.totalQuestions}
+                                {quiz.questions?.length ?? 0}
                             </span>
                         </div>
                         <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
                             <span className="text-slate-600 dark:text-slate-400">Time Limit</span>
                             <span className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                                 <Clock className="w-4 h-4" />
-                                {formatTime(quiz.duration)}
+                                {quiz.timeLimitMinutes ? `${quiz.timeLimitMinutes} minutes` : "No limit"}
                             </span>
                         </div>
                         <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
                             <span className="text-slate-600 dark:text-slate-400">Passing Score</span>
                             <span className="font-semibold text-slate-900 dark:text-slate-100">
-                                {quiz.passingScore}%
+                                {quiz.passingScore ?? 0}%
                             </span>
                         </div>
+                        {eligibility && (
+                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                <span className="text-slate-600 dark:text-slate-400">Attempts</span>
+                                <span className="font-semibold text-slate-900 dark:text-slate-100">
+                                    {eligibility.currentAttempts} / {eligibility.maxAttempts ?? "∞"}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-                        <p className="text-sm text-blue-800 dark:text-blue-300">
-                            ⚠️ Once you start the quiz, the timer will begin. Make sure you have a stable internet connection.
-                        </p>
-                    </div>
+                    {!canAttempt && eligibility?.reason && (
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+                            <p className="text-sm text-red-800 dark:text-red-300 flex items-center gap-2">
+                                <AlertCircle className="w-5 h-5" />
+                                {eligibility.reason}
+                            </p>
+                        </div>
+                    )}
+
+                    {canAttempt && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                            <p className="text-sm text-blue-800 dark:text-blue-300">
+                                ⚠️ Once you start the quiz, the timer will begin. Make sure you have a
+                                stable internet connection.
+                            </p>
+                        </div>
+                    )}
 
                     <button
                         onClick={handleStartAttempt}
-                        className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                        disabled={!canAttempt || starting}
+                        className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        Start Quiz
+                        {starting ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Starting...
+                            </>
+                        ) : (
+                            "Start Quiz"
+                        )}
                     </button>
                 </div>
             </div>
@@ -338,25 +439,29 @@ export default function QuizPage() {
                 <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 sticky top-0 z-10">
                     <div className="flex items-center justify-between mb-2">
                         <h2 className="font-semibold text-slate-900 dark:text-slate-100">{quiz.title}</h2>
-                        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold ${timeLeft < 60
-                                ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
-                                : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
-                            }`}>
+                        <div
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold ${timeLeft < 60
+                                    ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                                    : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                                }`}
+                        >
                             <Clock className="w-5 h-5" />
                             {formatTime(timeLeft)}
                         </div>
                     </div>
-                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                        <div
-                            className="bg-blue-600 h-2 rounded-full transition-all"
-                            style={{ width: `${(timeLeft / quiz.duration) * 100}%` }}
-                        />
-                    </div>
+                    {quiz.timeLimitMinutes && (
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                            <div
+                                className="bg-blue-600 h-2 rounded-full transition-all"
+                                style={{ width: `${(timeLeft / (quiz.timeLimitMinutes * 60)) * 100}%` }}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* Questions */}
                 <div className="space-y-6">
-                    {quiz.questions.map((question, index) => (
+                    {questions.map((question, index) => (
                         <div
                             key={question.id}
                             className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6"
@@ -367,17 +472,20 @@ export default function QuizPage() {
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
-                                        {question.questionText}
+                                        {question.content}
                                     </h3>
                                     <p className="text-sm text-slate-500 dark:text-slate-500">
-                                        {question.questionType === "MULTIPLE" ? "Select all that apply" : "Select one answer"}
+                                        {question.type === "MULTI_SELECT"
+                                            ? "Select all that apply"
+                                            : "Select one answer"}{" "}
+                                        • {question.points} points
                                     </p>
                                 </div>
                             </div>
 
                             <div className="space-y-3 ml-12">
                                 {question.options.map((option) => {
-                                    const isSelected = answers[question.id]?.includes(option.id);
+                                    const isSelected = answers[question.questionId] === option.id;
                                     return (
                                         <label
                                             key={option.id}
@@ -387,13 +495,23 @@ export default function QuizPage() {
                                                 }`}
                                         >
                                             <input
-                                                type={question.questionType === "MULTIPLE" ? "checkbox" : "radio"}
-                                                name={question.id}
+                                                type={
+                                                    question.type === "MULTI_SELECT" ? "checkbox" : "radio"
+                                                }
+                                                name={`question-${question.questionId}`}
                                                 checked={isSelected}
-                                                onChange={() => handleAnswerChange(question.id, option.id, question.questionType === "MULTIPLE")}
+                                                onChange={() =>
+                                                    handleAnswerChange(
+                                                        question.questionId,
+                                                        option.id,
+                                                        question.type === "MULTI_SELECT"
+                                                    )
+                                                }
                                                 className="mt-1"
                                             />
-                                            <span className="text-slate-900 dark:text-slate-100">{option.optionText}</span>
+                                            <span className="text-slate-900 dark:text-slate-100">
+                                                {option.content}
+                                            </span>
                                         </label>
                                     );
                                 })}
@@ -406,13 +524,20 @@ export default function QuizPage() {
                 <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 sticky bottom-0">
                     <button
                         onClick={handleSubmit}
-                        disabled={submitting || Object.keys(answers).length < quiz.questions.length}
-                        className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={submitting}
+                        className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        {submitting ? "Submitting..." : "Submit Quiz"}
+                        {submitting ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Submitting...
+                            </>
+                        ) : (
+                            "Submit Quiz"
+                        )}
                     </button>
                     <p className="text-sm text-slate-600 dark:text-slate-400 text-center mt-3">
-                        {Object.keys(answers).length}/{quiz.questions.length} questions answered
+                        {Object.keys(answers).length}/{questions.length} questions answered
                     </p>
                 </div>
             </div>
